@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1762296822582,
+      "tag": "0000_nice_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762300028168,
+      "tag": "0001_tearful_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762300681350,
+      "tag": "0002_supreme_lockheed",
+      "breakpoints": true
+    }
+  ]
+}
