@@ -61,7 +61,7 @@
 </script>
 
 <Card class="overflow-hidden {className}">
-	<CardHeader class="pb-4">
+	<CardHeader>
 		<div class="flex items-center justify-between">
 			<CardTitle class="text-lg md:text-xl">Week View</CardTitle>
 			<div class="flex items-center gap-2">
@@ -82,7 +82,7 @@
 		</div>
 	</CardHeader>
 
-	<CardContent class="p-0">
+	<CardContent>
 		<!-- Day Headers -->
 		<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
 			<div
@@ -111,7 +111,7 @@
 		</div>
 
 		<!-- Team Member Rows -->
-		<div class="px-3 py-3 md:px-6 md:py-6">
+		<div class="px-3 py-2 md:px-6 md:py-6">
 			<div class="space-y-2 md:space-y-4">
 				{#each sortedMembers as member, index}
 					<CalendarMemberRow
