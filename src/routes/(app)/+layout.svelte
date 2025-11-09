@@ -48,8 +48,8 @@
 					<Calendar class="h-6 w-6 text-primary-foreground" />
 				</div>
 				<div>
-					<h1 class="text-lg font-bold">Niko-Niko Calendar</h1>
-					<p class="text-xs text-muted-foreground">Team Mood Tracker</p>
+					<h1 class="text-lg font-bold">Sentio</h1>
+					<p class="text-xs text-muted-foreground">Track your Mood</p>
 				</div>
 			</div>
 
@@ -156,7 +156,7 @@
 	<!-- Footer -->
 	<footer class="border-t bg-card py-6">
 		<div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
-			<p>© 2025 Niko-Niko Calendar. Track your team's well-being with care.</p>
+			<p>© 2025 Sentio. Track your team's well-being with care.</p>
 		</div>
 	</footer>
 </div>

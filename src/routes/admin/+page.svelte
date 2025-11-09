@@ -39,7 +39,7 @@
 <div class="space-y-6">
 	<div>
 		<h3 class="text-lg font-medium">Welcome back, {data.user.name}!</h3>
-		<p class="text-muted-foreground text-sm">Here's an overview of your Niko-Niko calendar system.</p>
+		<p class="text-muted-foreground text-sm">Here's an overview for you</p>
 	</div>
 
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
