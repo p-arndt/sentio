@@ -3,6 +3,7 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Plus, Edit, Trash2 } from '@lucide/svelte';
+	import { formatDate } from '$lib/utils/date';
 	import type { PageData } from './$types';
 	import EmotionDialog from './EmotionDialog.svelte';
 
@@ -97,7 +98,7 @@
 				</CardHeader>
 				<CardContent>
 					<div class="text-muted-foreground text-xs">
-						Created {new Date(emotion.createdAt).toLocaleDateString()}
+						Created {formatDate(emotion.createdAt)}
 					</div>
 				</CardContent>
 			</Card>

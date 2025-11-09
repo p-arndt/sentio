@@ -13,6 +13,7 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import DarkModeToggle from '$lib/components/common/dark-mode-toggle.svelte';
 	import { Calendar, Users, Settings, User, LogOut, LayoutDashboard, Heart } from '@lucide/svelte';
+	import { getUserInitials } from '$lib/utils/user';
 	import type { LayoutData } from './$types';
 	import '../../app.css';
 
@@ -34,15 +35,6 @@
 			return page.url.pathname === '/';
 		}
 		return page.url.pathname.startsWith(href);
-	}
-
-	function getUserInitials(name: string) {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
 	}
 </script>
 

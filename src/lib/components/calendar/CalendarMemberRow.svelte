@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
+	import { getUserInitials } from '$lib/utils/user';
 	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
 	import CalendarDayCell from './CalendarDayCell.svelte';
 
@@ -27,15 +28,6 @@
 		isSubmitting = false,
 		isEven = false
 	}: Props = $props();
-
-	function getUserInitials(name: string) {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 <div

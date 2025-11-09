@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Users, UserCog, Smile } from '@lucide/svelte';
+	import { formatDate } from '$lib/utils/date';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -67,7 +68,7 @@
 							<div class="flex-1">
 								<p class="text-sm font-medium">{entry.user.name}</p>
 								<p class="text-muted-foreground text-xs">
-									{new Date(entry.date).toLocaleDateString()}
+									{formatDate(entry.date)}
 								</p>
 							</div>
 							{#if entry.comment}

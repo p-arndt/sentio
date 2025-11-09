@@ -9,28 +9,10 @@
 		CardTitle
 	} from '$lib/components/ui/card';
 	import * as Empty from '$lib/components/ui/empty/index.js';
-	import { Calendar, Eye, Globe, Lock, Plus, Settings, Users } from '@lucide/svelte';
+	import { Calendar, Plus, Settings, Users } from '@lucide/svelte';
+	import { formatDate, getVisibilityIcon } from '$lib/utils';
 
 	let { data } = $props();
-
-	function formatDate(date: Date) {
-		return new Date(date).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		});
-	}
-
-	function getVisibilityIcon(visibility: string) {
-		switch (visibility) {
-			case 'public':
-				return Globe;
-			case 'private':
-				return Lock;
-			default:
-				return Eye;
-		}
-	}
 
 	function getVisibilityDescription(visibility: string) {
 		switch (visibility) {
@@ -76,13 +58,8 @@
 								{/if}
 							</div>
 							<Badge variant="secondary" class="ml-2">
-								{#if team.visibility === 'public'}
-									<Globe class="mr-1 h-3 w-3" />
-								{:else if team.visibility === 'private'}
-									<Lock class="mr-1 h-3 w-3" />
-								{:else}
-									<Eye class="mr-1 h-3 w-3" />
-								{/if}
+								{@const VisibilityIcon = getVisibilityIcon(team.visibility)}
+								<VisibilityIcon class="mr-1 h-3 w-3" />
 								{team.visibility}
 							</Badge>
 						</div>

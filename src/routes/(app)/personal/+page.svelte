@@ -15,6 +15,8 @@
 		toDateString,
 		isSameDay,
 		getWeekDays,
+		formatDayNameAndDate,
+		formatMonthYear,
 		formatDate,
 		isToday
 	} from '$lib/utils/date';
@@ -29,14 +31,6 @@
 	let selectedDate = $state(new Date());
 	let selectedMood = $state<MoodEntryWithDetails | undefined>(undefined);
 	let isSubmitting = $state(false);
-
-	function formatDayName(date: Date) {
-		return formatDate(date, { weekday: 'short', month: 'short', day: 'numeric' });
-	}
-
-	function formatMonthYear(date: Date) {
-		return formatDate(date, { month: 'long', year: 'numeric' });
-	}
 
 	function getMoodForDate(date: Date): MoodEntryWithDetails[] {
 		const dateStr = toDateString(date);

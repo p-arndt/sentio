@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
 		CardContent,
@@ -6,18 +8,8 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import {
-		Users,
-		Calendar,
-		TrendingUp,
-		Heart,
-		Plus,
-		ArrowRight,
-		Smile,
-		Activity
-	} from '@lucide/svelte';
+	import { Activity, ArrowRight, Calendar, Heart, Plus, Users } from '@lucide/svelte';
+	import { getGreeting, formatDate } from '$lib/utils';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -41,21 +33,6 @@
 			show: true
 		}
 	]);
-
-	function getGreeting() {
-		const hour = new Date().getHours();
-		if (hour < 12) return 'Good morning';
-		if (hour < 18) return 'Good afternoon';
-		return 'Good evening';
-	}
-
-	function formatDate(date: Date) {
-		return new Date(date).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		});
-	}
 </script>
 
 <div class="container mx-auto space-y-8 px-4 py-8">

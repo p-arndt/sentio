@@ -3,7 +3,13 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import CalendarMemberRow from './CalendarMemberRow.svelte';
-	import { formatDate, isToday, filterWeekDays } from '$lib/utils/date';
+	import { 
+		formatDayName, 
+		formatDayDate, 
+		formatDate, 
+		isToday, 
+		filterWeekDays 
+	} from '$lib/utils/date';
 	import type { Emotion, MoodEntryWithDetails, TeamMember, TeamMemberWithUser } from '$lib/types';
 
 	type Props = {
@@ -39,7 +45,6 @@
 	let displayDays = $derived(filterWeekDays(weekDays, showWeekends));
 
 	let sortedMembers = $derived.by(() => {
-		// Sort current user to first, then rest alphabetically
 		const sorted = [...teamMembers];
 		if (currentUserId) {
 			sorted.sort((a, b) => {
@@ -51,13 +56,6 @@
 		return sorted;
 	});
 
-	function formatDayName(date: Date) {
-		return formatDate(date, { weekday: 'short' });
-	}
-
-	function formatDayDate(date: Date) {
-		return formatDate(date, { month: 'short', day: 'numeric' });
-	}
 </script>
 
 <Card class="overflow-hidden {className}">

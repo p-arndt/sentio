@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Plus, Users, Edit, Trash2 } from '@lucide/svelte';
+	import { formatDate } from '$lib/utils/date';
 	import type { PageData } from './$types';
 	import TeamDialog from './TeamDialog.svelte';
 
@@ -88,7 +89,7 @@
 						<span>{team.memberCount} members</span>
 					</div>
 					<div class="text-muted-foreground mt-2 text-xs">
-						Created {new Date(team.createdAt).toLocaleDateString()}
+						Created {formatDate(team.createdAt)}
 					</div>
 				</CardContent>
 			</Card>

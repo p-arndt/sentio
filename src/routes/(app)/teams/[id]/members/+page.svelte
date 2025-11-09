@@ -24,6 +24,8 @@
 		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
 	import { ChevronLeft, MoreVertical, UserPlus, Shield, User } from '@lucide/svelte';
+	import { getUserInitials } from '$lib/utils/user';
+	import { formatDate } from '$lib/utils/date';
 	import { enhance } from '$app/forms';
 	import InviteMembersDialog from './InviteMembersDialog.svelte';
 
@@ -31,14 +33,6 @@
 
 	let showInviteDialog = $state(false);
 
-	function getUserInitials(name: string) {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 <div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">

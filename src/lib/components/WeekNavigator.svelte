@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
-	import { toDate } from '$lib/utils/date';
+	import { toDate, getMondayUTC, formatDateRange, toYMD, addWeeks } from '$lib/utils/date';
 	import { goto } from '$app/navigation';
 
 	type Props = {
-		weekStart: string | Date; // ISO string or Date
-		paramName?: string; // query param name (default 'weekStart')
-		basePath: string; // route base path e.g. '/personal' or `/teams/${teamId}`
+		weekStart: string | Date;
+		paramName?: string;
+		basePath: string;
 		showToday?: boolean;
-		onChange?: (newWeekStart: Date) => void; // optional hook
+		onChange?: (newWeekStart: Date) => void;
 	};
 
 	let {
@@ -20,31 +20,16 @@
 		onChange
 	}: Props = $props();
 
-	function toMonday(d: Date): Date {
-		const day = d.getUTCDay();
-		const diff = day === 0 ? -6 : 1 - day; // Sunday -> back 6
-		const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff, 0, 0, 0, 0));
-		return monday;
-	}
-
-	function formatRange(start: Date): string {
-		const end = new Date(start);
-		end.setUTCDate(start.getUTCDate() + 6);
-		const fmt = (x: Date) => x.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-		return `${fmt(start)} - ${fmt(end)}`;
-	}
-
-	function ymd(d: Date): string {
-		return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-	}
-
-	let monday = $derived(toMonday(toDate(weekStart) || new Date()));
-	let label = $derived(formatRange(monday));
+	let monday = $derived(getMondayUTC(toDate(weekStart) || new Date()));
+	let label = $derived.by(() => {
+		const end = new Date(monday);
+		end.setUTCDate(monday.getUTCDate() + 6);
+		return formatDateRange(monday, end);
+	});
 
 	async function navigate(deltaWeeks: number) {
-		const newMonday = new Date(monday);
-		newMonday.setUTCDate(monday.getUTCDate() + deltaWeeks * 7);
-		const param = ymd(newMonday);
+		const newMonday = addWeeks(monday, deltaWeeks);
+		const param = toYMD(newMonday);
 		if (onChange) onChange(newMonday);
 		await goto(`${basePath}?${paramName}=${param}`);
 	}

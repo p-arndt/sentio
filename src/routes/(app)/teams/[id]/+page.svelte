@@ -15,9 +15,6 @@
 		Settings,
 		Users,
 		ChevronLeft,
-		Globe,
-		Lock,
-		Eye,
 		UserPlus,
 		Calendar
 	} from '@lucide/svelte';
@@ -27,9 +24,12 @@
 		toDateString,
 		isSameDay,
 		getWeekDays,
-		formatDate,
-		isToday
+		formatDayName,
+		formatDayDate,
+		isToday,
+		toYMD
 	} from '$lib/utils/date';
+	import { getUserInitials, getVisibilityIcon } from '$lib/utils';
 	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
@@ -44,23 +44,6 @@
 	let selectedMood: MoodEntryWithDetails | null = $state(null);
 	let isSubmitting = $state(false);
 
-	function formatDayName(date: Date) {
-		return formatDate(date, { weekday: 'short' });
-	}
-
-	function formatDayDate(date: Date) {
-		return formatDate(date, { month: 'short', day: 'numeric' });
-	}
-
-	function getUserInitials(name: string) {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
-
 	function getMoodForUserAndDate(userId: string, date: Date): MoodEntryWithDetails | undefined {
 		const dateStr = toDateString(date);
 		const result = data.entries.find((e: MoodEntryWithDetails) => {
@@ -74,28 +57,10 @@
 		return result;
 	}
 
-	function getVisibilityIcon(visibility: string) {
-		switch (visibility) {
-			case 'public':
-				return Globe;
-			case 'private':
-				return Lock;
-			default:
-				return Eye;
-		}
-	}
-
 	import { goto } from '$app/navigation';
 
-	function toYMD(d: Date): string {
-		const y = d.getUTCFullYear();
-		const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-		const day = String(d.getUTCDate()).padStart(2, '0');
-		return `${y}-${m}-${day}`;
-	}
-
 	async function handleWeekChange(direction: 'prev' | 'next') {
-		const base = weekStart; // already represents Monday
+		const base = weekStart;
 		const delta = direction === 'prev' ? -7 : 7;
 		const newWeekStart = new Date(base);
 		newWeekStart.setUTCDate(base.getUTCDate() + delta);
@@ -290,11 +255,7 @@
 				: data.team.visibility === 'private'
 					? 'Only you can view'
 					: 'Team members only'}
-			icon={data.team.visibility === 'public'
-				? Globe
-				: data.team.visibility === 'private'
-					? Lock
-					: Eye}
+			icon={getVisibilityIcon(data.team.visibility)}
 		/>
 		<StatCard
 			title="This Week"

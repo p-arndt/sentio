@@ -188,3 +188,130 @@ export function getMonthYear(date: Date | string): string {
 	return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+// ==================== ENHANCED DATE FORMATTING ====================
+
+/**
+ * Format day name (e.g., "Mon" or "Monday")
+ */
+export function formatDayName(date: Date | string | null | undefined, format: 'short' | 'long' = 'short'): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	return d.toLocaleDateString('en-US', { weekday: format });
+}
+
+/**
+ * Format day date (e.g., "Jan 15")
+ */
+export function formatDayDate(date: Date | string | null | undefined): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/**
+ * Format month and year (e.g., "January 2024")
+ */
+export function formatMonthYear(date: Date | string | null | undefined): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+/**
+ * Format full date (e.g., "Monday, January 15, 2024")
+ */
+export function formatFullDate(date: Date | string | null | undefined): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	return d.toLocaleDateString('en-US', { 
+		weekday: 'long', 
+		month: 'long', 
+		day: 'numeric',
+		year: 'numeric'
+	});
+}
+
+/**
+ * Format date with custom weekday and date (e.g., "Mon, Jan 15")
+ */
+export function formatDayNameAndDate(date: Date | string | null | undefined): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	return d.toLocaleDateString('en-US', { 
+		weekday: 'short', 
+		month: 'short', 
+		day: 'numeric' 
+	});
+}
+
+/**
+ * Convert date to YYYY-MM-DD format using UTC (for URL params and server communication)
+ */
+export function toYMD(date: Date | string | null | undefined): string {
+	const d = toDate(date);
+	if (!d || isNaN(d.getTime())) return '';
+	const y = d.getUTCFullYear();
+	const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+	const day = String(d.getUTCDate()).padStart(2, '0');
+	return `${y}-${m}-${day}`;
+}
+
+/**
+ * Format a date range (e.g., "Jan 15 - Jan 21")
+ */
+export function formatDateRange(
+	start: Date | string | null | undefined, 
+	end: Date | string | null | undefined
+): string {
+	const startDate = toDate(start);
+	const endDate = toDate(end);
+	if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return '';
+	
+	const startStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+	const endStr = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+	return `${startStr} - ${endStr}`;
+}
+
+/**
+ * Get week boundaries (start = Monday, end = Sunday)
+ */
+export function getWeekBoundaries(date: Date | string = new Date()): { start: Date; end: Date } {
+	const start = getWeekStart(date);
+	const end = new Date(start);
+	end.setDate(start.getDate() + 6);
+	end.setHours(23, 59, 59, 999);
+	return { start, end };
+}
+
+/**
+ * Add days to a date
+ */
+export function addDays(date: Date | string, days: number): Date {
+	const d = toDate(date) || new Date();
+	const result = new Date(d);
+	result.setDate(d.getDate() + days);
+	return result;
+}
+
+/**
+ * Add weeks to a date
+ */
+export function addWeeks(date: Date | string, weeks: number): Date {
+	return addDays(date, weeks * 7);
+}
+
+/**
+ * Get Monday of a week using UTC (for server-side consistency)
+ */
+export function getMondayUTC(date: Date | string): Date {
+	const d = toDate(date) || new Date();
+	const day = d.getUTCDay();
+	const diff = day === 0 ? -6 : 1 - day;
+	return new Date(Date.UTC(
+		d.getUTCFullYear(), 
+		d.getUTCMonth(), 
+		d.getUTCDate() + diff, 
+		0, 0, 0, 0
+	));
+}
+

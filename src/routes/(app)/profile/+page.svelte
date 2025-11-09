@@ -14,6 +14,7 @@
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
 	import { User, Bell, Palette, Calendar, Heart, Save } from '@lucide/svelte';
+	import { getUserInitials } from '$lib/utils/user';
 	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
@@ -24,15 +25,6 @@
 	let defaultView = $state(data.preferences?.defaultView || 'week');
 	let enableNotifications = $state(data.preferences?.enableNotifications ?? true);
 	let personalMode = $state(data.user?.personalMode ?? false);
-
-	function getUserInitials(userName: string) {
-		return userName
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 
 	const timezones = [
 		'UTC',

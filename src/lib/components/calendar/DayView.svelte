@@ -12,7 +12,8 @@
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import { cn } from '$lib/utils';
-	import { formatDate, toDateString } from '$lib/utils/date';
+	import { formatFullDate, toDateString } from '$lib/utils/date';
+	import { getUserInitials } from '$lib/utils/user';
 	import type { MoodEntryWithDetails, Emotion, TeamMemberWithUser } from '$lib/types';
 
 	type Props = {
@@ -41,7 +42,6 @@
 		className = ''
 	}: Props = $props();
 
-	// Sort members to put current user at top
 	let sortedMembers = $derived(
 		[...teamMembers].sort((a, b) => {
 			if (a.userId === currentUserId) return -1;
@@ -49,15 +49,6 @@
 			return 0;
 		})
 	);
-
-	function getUserInitials(name: string) {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 
 	function getMoodsForMember(userId: string): MoodEntryWithDetails[] {
 		const dateStr = toDateString(selectedDate);
@@ -75,7 +66,7 @@
 			<div>
 				<CardTitle class="text-lg md:text-xl">Day View</CardTitle>
 				<p class="text-sm text-muted-foreground mt-1">
-					{formatDate(selectedDate, { weekday: 'long', month: 'long', day: 'numeric' })}
+					{formatFullDate(selectedDate)}
 				</p>
 			</div>
 			<div class="flex items-center gap-2">

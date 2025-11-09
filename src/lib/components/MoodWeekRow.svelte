@@ -2,7 +2,7 @@
 	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { formatDate, isToday, toDateString } from '$lib/utils/date';
+	import { formatDayNameAndDate, isToday, toDateString } from '$lib/utils/date';
 	import type { Emotion, MoodEntryWithDetails } from '$lib/types';
 
 	type Props = {
@@ -14,7 +14,7 @@
 		isSubmitting?: boolean;
 		allowAdd?: boolean;
 		allowEdit?: boolean;
-		showDayHeader?: boolean; // personal view shows day name + Today badge
+		showDayHeader?: boolean;
 		userId?: string;
 	};
 
@@ -41,9 +41,6 @@
 		return entries.filter((e) => toDateString(e.date) === d);
 	}
 
-	function formatDayName(date: Date) {
-		return formatDate(date, { weekday: 'short', month: 'short', day: 'numeric' });
-	}
 </script>
 
 <div class="grid gap-2" style="grid-template-columns: repeat({days.length}, 1fr)">
@@ -57,7 +54,7 @@
 		>
 			{#if showDayHeader}
 				<div class="text-center">
-					<div class="text-sm font-medium">{formatDayName(day)}</div>
+					<div class="text-sm font-medium">{formatDayNameAndDate(day)}</div>
 					{#if today}
 						<Badge variant="outline" class="mt-1 text-xs">Today</Badge>
 					{/if}
