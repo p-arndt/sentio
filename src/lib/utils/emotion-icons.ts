@@ -1,23 +1,23 @@
 import type { EmotionWithIcon } from '$lib/data/emotions';
 import {
-	Frown,
-	Meh,
-	Smile,
 	Angry,
 	Annoyed,
+	Cloud,
+	Coffee,
+	Frown,
 	Heart,
 	Laugh,
-	Sparkles,
-	PartyPopper,
-	ThumbsUp,
-	ThumbsDown,
-	Star,
 	Lightbulb,
-	Coffee,
-	Zap,
-	Cloud,
+	Meh,
+	Moon,
+	PartyPopper,
+	Smile,
+	Sparkles,
+	Star,
 	Sun,
-	Moon
+	ThumbsDown,
+	ThumbsUp,
+	Zap
 } from '@lucide/svelte';
 
 // Map emotion names to Lucide icons
@@ -56,13 +56,26 @@ export function getEmotionIcon(emotionName: string): any {
 
 // Convert database emotions to EmotionWithIcon
 export function mapEmotionsWithIcons(
-	dbEmotions: Array<{ id: string; name: string; emoji: string; color: string }>
+	dbEmotions: Array<{
+		id: string;
+		name: string;
+		emoji: string;
+		color: string;
+		valence: number;
+		order: string;
+		createdAt?: string | Date;
+		updatedAt?: string | Date;
+	}>
 ): EmotionWithIcon[] {
 	return dbEmotions.map((emotion) => ({
 		id: emotion.id,
 		name: emotion.name,
 		emoji: emotion.emoji,
 		color: emotion.color,
-		icon: getEmotionIcon(emotion.name)
+		icon: getEmotionIcon(emotion.name),
+		valence: emotion.valence,
+		order: emotion.order,
+		createdAt: emotion.createdAt ? new Date(emotion.createdAt) : new Date(),
+		updatedAt: emotion.updatedAt ? new Date(emotion.updatedAt) : new Date()
 	}));
 }

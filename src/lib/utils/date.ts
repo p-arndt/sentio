@@ -16,7 +16,7 @@ export function toDateString(date: string | Date | null | undefined): string | n
 	if (!date) return null;
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return null;
-	
+
 	// Use local date to avoid timezone issues
 	const year = d.getFullYear();
 	const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -69,9 +69,17 @@ export function getWeekDays(startDate: Date | string): Date[] {
 /**
  * Get the previous week's start date
  */
-export function getPreviousWeek(date: Date): Date {
+export function getPreviousWeek(_date?: Date): Date {
+	const date = _date || new Date();
 	const prev = new Date(date);
 	prev.setDate(date.getDate() - 7);
+	return prev;
+}
+
+export function getDaysBefore(days: number, _date?: Date): Date {
+	const date = _date || new Date();
+	const prev = new Date(date);
+	prev.setDate(date.getDate() - days);
 	return prev;
 }
 
@@ -145,14 +153,14 @@ export function getMonthDays(date: Date | string): Date[] {
 	const d = toDate(date) || new Date();
 	const year = d.getFullYear();
 	const month = d.getMonth();
-	
+
 	const lastDay = new Date(year, month + 1, 0);
-	
+
 	const days: Date[] = [];
 	for (let i = 1; i <= lastDay.getDate(); i++) {
 		days.push(new Date(year, month, i));
 	}
-	
+
 	return days;
 }
 
@@ -163,20 +171,20 @@ export function getMonthGrid(date: Date | string): Date[] {
 	const d = toDate(date) || new Date();
 	const year = d.getFullYear();
 	const month = d.getMonth();
-	
+
 	const firstDay = new Date(year, month, 1);
-	
+
 	// Start from Monday before the first day of month
 	const startDay = getWeekStart(firstDay);
 	const days: Date[] = [];
-	
+
 	const current = new Date(startDay);
 	// Generate 6 weeks worth of days
 	for (let i = 0; i < 42; i++) {
 		days.push(new Date(current));
 		current.setDate(current.getDate() + 1);
 	}
-	
+
 	return days;
 }
 
@@ -193,7 +201,10 @@ export function getMonthYear(date: Date | string): string {
 /**
  * Format day name (e.g., "Mon" or "Monday")
  */
-export function formatDayName(date: Date | string | null | undefined, format: 'short' | 'long' = 'short'): string {
+export function formatDayName(
+	date: Date | string | null | undefined,
+	format: 'short' | 'long' = 'short'
+): string {
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return '';
 	return d.toLocaleDateString('en-US', { weekday: format });
@@ -223,9 +234,9 @@ export function formatMonthYear(date: Date | string | null | undefined): string 
 export function formatFullDate(date: Date | string | null | undefined): string {
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return '';
-	return d.toLocaleDateString('en-US', { 
-		weekday: 'long', 
-		month: 'long', 
+	return d.toLocaleDateString('en-US', {
+		weekday: 'long',
+		month: 'long',
 		day: 'numeric',
 		year: 'numeric'
 	});
@@ -237,10 +248,10 @@ export function formatFullDate(date: Date | string | null | undefined): string {
 export function formatDayNameAndDate(date: Date | string | null | undefined): string {
 	const d = toDate(date);
 	if (!d || isNaN(d.getTime())) return '';
-	return d.toLocaleDateString('en-US', { 
-		weekday: 'short', 
-		month: 'short', 
-		day: 'numeric' 
+	return d.toLocaleDateString('en-US', {
+		weekday: 'short',
+		month: 'short',
+		day: 'numeric'
 	});
 }
 
@@ -260,13 +271,13 @@ export function toYMD(date: Date | string | null | undefined): string {
  * Format a date range (e.g., "Jan 15 - Jan 21")
  */
 export function formatDateRange(
-	start: Date | string | null | undefined, 
+	start: Date | string | null | undefined,
 	end: Date | string | null | undefined
 ): string {
 	const startDate = toDate(start);
 	const endDate = toDate(end);
 	if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return '';
-	
+
 	const startStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 	const endStr = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 	return `${startStr} - ${endStr}`;
@@ -307,11 +318,44 @@ export function getMondayUTC(date: Date | string): Date {
 	const d = toDate(date) || new Date();
 	const day = d.getUTCDay();
 	const diff = day === 0 ? -6 : 1 - day;
-	return new Date(Date.UTC(
-		d.getUTCFullYear(), 
-		d.getUTCMonth(), 
-		d.getUTCDate() + diff, 
-		0, 0, 0, 0
-	));
+	return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff, 0, 0, 0, 0));
 }
 
+/**
+ * Get week range (start = Monday 00:00:00.000Z, end = Sunday 23:59:59.999Z) for a given
+ * optional weekStartParam (YYYY-MM-DD) or the provided `now` Date.
+ *
+ * This matches the server-side behavior where a query param `weekStart` is interpreted
+ * as UTC midnight of that date. When no param is provided, the current UTC week is used.
+ */
+export function getWeekRange(
+	weekStartParam?: string | null,
+	now: Date = new Date()
+): { startOfWeek: Date; endOfWeek: Date } {
+	if (weekStartParam) {
+		const startOfWeek = new Date(`${weekStartParam}T00:00:00.000Z`);
+		const endOfWeek = new Date(startOfWeek);
+		endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+		endOfWeek.setUTCHours(23, 59, 59, 999);
+		return { startOfWeek, endOfWeek };
+	}
+
+	const today = now;
+	const dayOfWeek = today.getUTCDay();
+	const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+	const startOfWeek = new Date(
+		Date.UTC(
+			today.getUTCFullYear(),
+			today.getUTCMonth(),
+			today.getUTCDate() + daysToMonday,
+			0,
+			0,
+			0,
+			0
+		)
+	);
+	const endOfWeek = new Date(startOfWeek);
+	endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+	endOfWeek.setUTCHours(23, 59, 59, 999);
+	return { startOfWeek, endOfWeek };
+}

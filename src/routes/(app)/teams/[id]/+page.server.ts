@@ -2,6 +2,7 @@ import { redirect, error } from '@sveltejs/kit';
 import { TeamService } from '$lib/server/services/team.service';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { getWeekRange, toYMD } from '$lib/utils/date';
 
 export async function load({ params, locals, url }) {
 	if (!locals.user) {
@@ -30,32 +31,7 @@ export async function load({ params, locals, url }) {
 
 	// Determine week range (Monday to Sunday) from query or current week
 	const weekStartParam = url.searchParams.get('weekStart'); // YYYY-MM-DD
-
-	let startOfWeek: Date;
-	if (weekStartParam) {
-		// Interpret as UTC midnight for stability across TZs
-		startOfWeek = new Date(`${weekStartParam}T00:00:00.000Z`);
-	} else {
-		const today = new Date();
-		const dayOfWeek = today.getDay();
-		const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday (0), go back 6 days, else go to Monday
-		startOfWeek = new Date(
-			Date.UTC(
-				today.getUTCFullYear(),
-				today.getUTCMonth(),
-				today.getUTCDate() + daysToMonday,
-				0,
-				0,
-				0,
-				0
-			)
-		);
-	}
-
-	// End of week in UTC
-	const endOfWeek = new Date(startOfWeek);
-	endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
-	endOfWeek.setUTCHours(23, 59, 59, 999);
+	const { startOfWeek, endOfWeek } = getWeekRange(weekStartParam);
 
 	const entries = await MoodEntryService.getTeamMoodEntries(params.id, startOfWeek, endOfWeek);
 
@@ -63,25 +39,10 @@ export async function load({ params, locals, url }) {
 	if (entries.length === 0 && !weekStartParam) {
 		const latest = await MoodEntryService.getLatestTeamEntry(params.id);
 		if (latest) {
-			// Compute Monday of latest.date
-			const latestDate = new Date(latest.date);
-			const latestDay = latestDate.getUTCDay();
-			const offset = latestDay === 0 ? -6 : 1 - latestDay;
-			const latestWeekStart = new Date(
-				Date.UTC(
-					latestDate.getUTCFullYear(),
-					latestDate.getUTCMonth(),
-					latestDate.getUTCDate() + offset,
-					0,
-					0,
-					0,
-					0
-				)
-			);
-			const y = latestWeekStart.getUTCFullYear();
-			const m = String(latestWeekStart.getUTCMonth() + 1).padStart(2, '0');
-			const d = String(latestWeekStart.getUTCDate()).padStart(2, '0');
-			const target = `/teams/${params.id}?weekStart=${y}-${m}-${d}`;
+			// Compute week range for latest.date and redirect to its Monday (UTC Y-M-D)
+			const { startOfWeek: latestWeekStart } = getWeekRange(undefined, new Date(latest.date));
+			const ymd = toYMD(latestWeekStart);
+			const target = `/teams/${params.id}?weekStart=${ymd}`;
 			throw redirect(303, target);
 		}
 	}

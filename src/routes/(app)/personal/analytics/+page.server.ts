@@ -1,6 +1,7 @@
-import { redirect } from '@sveltejs/kit';
-import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { getDaysBefore } from '$lib';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -8,36 +9,28 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(303, '/login');
 	}
 
-	// Get emotions
-	const emotions = await EmotionService.getGlobalEmotions();
-
-	// Calculate date ranges
 	const now = new Date();
-	
-	// Last 30 days
-	const thirtyDaysAgo = new Date(now);
-	thirtyDaysAgo.setDate(now.getDate() - 30);
-	
-	// Last 7 days (this week)
-	const sevenDaysAgo = new Date(now);
-	sevenDaysAgo.setDate(now.getDate() - 7);
-	
-	// Previous 7 days (last week)
-	const fourteenDaysAgo = new Date(now);
-	fourteenDaysAgo.setDate(now.getDate() - 14);
+	const thirtyDaysAgo = getDaysBefore(30, now);
+	const sevenDaysAgo = getDaysBefore(7, now);
+	const fourteenDaysAgo = getDaysBefore(14, now);
+	const ninetyDaysAgo = getDaysBefore(90, now);
 
-	// Last 90 days for trends
-	const ninetyDaysAgo = new Date(now);
-	ninetyDaysAgo.setDate(now.getDate() - 90);
-
-	// Fetch personal mood entries
-	const last30DaysEntries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, thirtyDaysAgo, now);
-	const last7DaysEntries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, sevenDaysAgo, now);
-	const previous7DaysEntries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, fourteenDaysAgo, sevenDaysAgo);
-	const last90DaysEntries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, ninetyDaysAgo, now);
-
-	// All time entries
-	const allEntries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, new Date('2020-01-01'), now);
+	// Run independent fetches in parallel
+	const [
+		emotions,
+		last30DaysEntries,
+		last7DaysEntries,
+		previous7DaysEntries,
+		last90DaysEntries,
+		allEntries
+	] = await Promise.all([
+		EmotionService.getGlobalEmotions(),
+		MoodEntryService.getPersonalMoodEntries(locals.user.id, thirtyDaysAgo, now),
+		MoodEntryService.getPersonalMoodEntries(locals.user.id, sevenDaysAgo, now),
+		MoodEntryService.getPersonalMoodEntries(locals.user.id, fourteenDaysAgo, sevenDaysAgo),
+		MoodEntryService.getPersonalMoodEntries(locals.user.id, ninetyDaysAgo, now),
+		MoodEntryService.getPersonalMoodEntries(locals.user.id, new Date('2020-01-01'), now)
+	]);
 
 	return {
 		emotions,

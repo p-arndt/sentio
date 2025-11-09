@@ -1,7 +1,8 @@
-import { redirect, error } from '@sveltejs/kit';
-import { TeamService } from '$lib/server/services/team.service';
-import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { getDaysBefore } from '$lib';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { TeamService } from '$lib/server/services/team.service';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -25,17 +26,21 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	// Calculate date ranges
 	const now = new Date();
-	const thirtyDaysAgo = new Date(now);
-	thirtyDaysAgo.setDate(now.getDate() - 30);
-	const sevenDaysAgo = new Date(now);
-	sevenDaysAgo.setDate(now.getDate() - 7);
-	const fourteenDaysAgo = new Date(now);
-	fourteenDaysAgo.setDate(now.getDate() - 14);
-	const ninetyDaysAgo = new Date(now);
-	ninetyDaysAgo.setDate(now.getDate() - 90);
+	const thirtyDaysAgo = getDaysBefore(30, now);
+	const sevenDaysAgo = getDaysBefore(7, now);
+	const fourteenDaysAgo = getDaysBefore(14, now);
+	const ninetyDaysAgo = getDaysBefore(90, now);
 
 	// Fetch all data in parallel
-	const [isAdmin, emotions, last30DaysEntries, last7DaysEntries, previous7DaysEntries, last90DaysEntries, allEntries] = await Promise.all([
+	const [
+		isAdmin,
+		emotions,
+		last30DaysEntries,
+		last7DaysEntries,
+		previous7DaysEntries,
+		last90DaysEntries,
+		allEntries
+	] = await Promise.all([
 		TeamService.isUserTeamAdmin(params.id, locals.user.id),
 		EmotionService.getTeamEmotions(params.id),
 		MoodEntryService.getTeamMoodEntries(params.id, thirtyDaysAgo, now),
