@@ -34,6 +34,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{data.team.name} Analytics - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto space-y-6 px-4 py-8">
 	<!-- Header -->
 	<AnalyticsHeader

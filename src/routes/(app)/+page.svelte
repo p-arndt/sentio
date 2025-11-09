@@ -35,6 +35,10 @@
 	]);
 </script>
 
+<svelte:head>
+	<title>Dashboard - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto space-y-8 px-4 py-8">
 	<!-- Hero Section -->
 	<div class="space-y-2">

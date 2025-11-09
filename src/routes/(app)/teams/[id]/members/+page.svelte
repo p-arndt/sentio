@@ -35,6 +35,10 @@
 
 </script>
 
+<svelte:head>
+	<title>Team Members - {data.team.name} - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
 	<!-- Header -->
 	<div class="flex items-center gap-3">

@@ -8,6 +8,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<title>Sentio</title>
 </svelte:head>
 
 <ModeWatcher />

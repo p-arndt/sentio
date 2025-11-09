@@ -6,8 +6,7 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { User, Mail, Lock, Eye, EyeOff, Check, X, Shield } from '@lucide/svelte';
+	import { Check, Eye, EyeOff, Lock, Mail, Shield, User, X } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -22,7 +21,6 @@
 	let confirmPassword = $state('');
 	let showPassword = $state(false);
 	let showConfirmPassword = $state(false);
-	let termsAccepted = $state(false);
 	let error = $state('');
 	let loading = $state(false);
 	let passwordStrength = $state(0);
@@ -52,20 +50,6 @@
 		if (/[0-9]/.test(pwd)) strength++;
 		if (/[^A-Za-z0-9]/.test(pwd)) strength++;
 		return strength;
-	}
-
-	function getStrengthColor(strength: number): string {
-		if (strength <= 2) return 'bg-destructive';
-		if (strength <= 3) return 'bg-chart-1';
-		if (strength <= 4) return 'bg-primary';
-		return 'bg-chart-4';
-	}
-
-	function getStrengthText(strength: number): string {
-		if (strength <= 2) return 'Weak';
-		if (strength <= 3) return 'Fair';
-		if (strength <= 4) return 'Good';
-		return 'Strong';
 	}
 
 	async function register(e: Event) {
@@ -125,6 +109,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Create Account - Sentio</title>
+</svelte:head>
+
 <div
 	class="flex min-h-screen items-center justify-center from-background via-background to-primary/5 p-4"
 >
@@ -135,7 +123,9 @@
 			</div>
 			<CardTitle class="text-2xl font-bold text-primary">Create Account</CardTitle>
 			{#if invitationToken}
-				<p class="mt-2 text-muted-foreground">You were invited to join! Create your account below.</p>
+				<p class="mt-2 text-muted-foreground">
+					You were invited to join! Create your account below.
+				</p>
 			{:else if data.hasValidInvitation === false}
 				<p class="mt-2 text-muted-foreground">Sign up is by invitation only</p>
 			{:else}

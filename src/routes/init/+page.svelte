@@ -45,11 +45,18 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center from-background via-background to-primary/5 p-4">
+<svelte:head>
+	<title>Initialize Admin Account - Sentio</title>
+</svelte:head>
+<div
+	class="flex min-h-screen items-center justify-center from-background via-background to-primary/5 p-4"
+>
 	{#if form?.success}
 		<Card class="w-full max-w-md border-border bg-card/80 shadow-2xl backdrop-blur-sm">
 			<CardHeader class="pb-2 text-center">
-				<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-chart-4">
+				<div
+					class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-chart-4"
+				>
 					<Check class="h-8 w-8 text-primary-foreground" />
 				</div>
 				<CardTitle class="text-2xl font-bold text-primary">Admin Created!</CardTitle>
@@ -59,15 +66,15 @@
 				<p class="text-center text-sm text-muted-foreground">
 					You can now log in with your credentials and start managing the application.
 				</p>
-				<Button href="/login" class="w-full" size="lg">
-					Go to Login
-				</Button>
+				<Button href="/login" class="w-full" size="lg">Go to Login</Button>
 			</CardContent>
 		</Card>
 	{:else}
 		<Card class="w-full max-w-md border-border bg-card/80 shadow-2xl backdrop-blur-sm">
 			<CardHeader class="pb-2 text-center">
-				<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
+				<div
+					class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary"
+				>
 					<Shield class="h-8 w-8 text-primary-foreground" />
 				</div>
 				<CardTitle class="text-2xl font-bold text-primary">Initialize Admin Account</CardTitle>
@@ -76,7 +83,9 @@
 			<CardContent class="pt-6">
 				<!-- Error Alert -->
 				{#if form?.error}
-					<div class="mb-6 flex gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+					<div
+						class="mb-6 flex gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4"
+					>
 						<AlertCircle class="h-5 w-5 shrink-0 text-destructive" />
 						<div>
 							<p class="text-sm font-medium text-destructive">{form.error}</p>
@@ -132,7 +141,7 @@
 								type="button"
 								onclick={() => (showPassword = !showPassword)}
 								disabled={loading}
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
 							>
 								{#if showPassword}
 									<EyeOff class="h-4 w-4" />
@@ -165,7 +174,7 @@
 								type="button"
 								onclick={() => (showConfirmPassword = !showConfirmPassword)}
 								disabled={loading}
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
 							>
 								{#if showConfirmPassword}
 									<EyeOff class="h-4 w-4" />
@@ -204,7 +213,9 @@
 							{:else}
 								<X class="h-4 w-4 text-muted-foreground" />
 							{/if}
-							<span class={password.length >= 8 ? 'text-muted-foreground' : 'text-muted-foreground'}>
+							<span
+								class={password.length >= 8 ? 'text-muted-foreground' : 'text-muted-foreground'}
+							>
 								Password at least 8 characters
 							</span>
 						</div>
@@ -214,21 +225,22 @@
 							{:else}
 								<X class="h-4 w-4 text-muted-foreground" />
 							{/if}
-							<span class={password === confirmPassword && password ? 'text-muted-foreground' : 'text-muted-foreground'}>
+							<span
+								class={password === confirmPassword && password
+									? 'text-muted-foreground'
+									: 'text-muted-foreground'}
+							>
 								Passwords match
 							</span>
 						</div>
 					</div>
 
 					<!-- Submit Button -->
-					<Button
-						type="submit"
-						disabled={loading || !validateForm()}
-						class="w-full"
-						size="lg"
-					>
+					<Button type="submit" disabled={loading || !validateForm()} class="w-full" size="lg">
 						{#if loading}
-							<div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></div>
+							<div
+								class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"
+							></div>
 							Creating Admin Account...
 						{:else}
 							Create Admin Account

@@ -207,6 +207,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{data.team.name} - Team Dashboard - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto space-y-6 px-4 py-8">
 	<!-- Header -->
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

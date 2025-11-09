@@ -15,6 +15,10 @@
 	let { data } = $props();
 </script>
 
+<svelte:head>
+	<title>Teams - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto space-y-6 px-4 py-8">
 	<!-- Header -->
 	<div class="flex items-center justify-between">

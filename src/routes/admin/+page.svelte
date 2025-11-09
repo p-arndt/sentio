@@ -36,6 +36,10 @@
 	];
 </script>
 
+<svelte:head>
+	<title>Admin Dashboard - Sentio</title>
+</svelte:head>
+
 <div class="space-y-6">
 	<div>
 		<h3 class="text-lg font-medium">Welcome back, {data.user.name}!</h3>

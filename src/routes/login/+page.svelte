@@ -40,6 +40,9 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Login - Sentio</title>
+</svelte:head>
 <div
 	class="flex min-h-screen items-center justify-center from-background via-background to-primary/5 p-4"
 >

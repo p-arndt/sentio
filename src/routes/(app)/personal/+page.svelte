@@ -1,26 +1,15 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import StatCard from '$lib/components/StatCard.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
-	import { ChevronLeft, ChevronRight, Plus, Heart, BarChart3 } from '@lucide/svelte';
-	import WeekNavigator from '$lib/components/WeekNavigator.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
-	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import MoodWeekRow from '$lib/components/MoodWeekRow.svelte';
-	import {
-		toDate,
-		toDateString,
-		isSameDay,
-		getWeekDays,
-		formatDayNameAndDate,
-		formatMonthYear,
-		formatDate,
-		isToday
-	} from '$lib/utils/date';
+	import StatCard from '$lib/components/StatCard.svelte';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import WeekNavigator from '$lib/components/WeekNavigator.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
+	import { formatDate, formatMonthYear, getWeekDays, toDate, toDateString } from '$lib/utils/date';
+	import { BarChart3, Heart, Plus } from '@lucide/svelte';
 
 	let { data } = $props();
 
@@ -46,23 +35,6 @@
 		return data.emotions.find((e) => e.id === id);
 	}
 
-	function navigateWeek(direction: 'prev' | 'next') {
-		const newDate = new Date(weekStart);
-		newDate.setUTCDate(newDate.getUTCDate() + (direction === 'next' ? 7 : -7));
-		// Use UTC components to format YYYY-MM-DD like team page
-		const y = newDate.getUTCFullYear();
-		const m = String(newDate.getUTCMonth() + 1).padStart(2, '0');
-		const d = String(newDate.getUTCDate()).padStart(2, '0');
-		const weekParam = `${y}-${m}-${d}`;
-		if (weekParam) {
-			goto(`/personal?weekStart=${weekParam}`);
-		}
-	}
-
-	function goToToday() {
-		goto('/personal');
-	}
-
 	let totalEntries = $derived(data.moodEntries.length);
 	let uniqueDays = $derived(
 		new Set(
@@ -83,7 +55,7 @@
 
 	async function handleQuickMood(emotionId: string, date: Date, userId: string, comment?: string) {
 		if (isSubmitting) return;
-		
+
 		isSubmitting = true;
 		try {
 			const response = await fetch('/api/mood-entries', {
@@ -115,12 +87,15 @@
 		}
 	}
 
-	async function handleUpdateMood(id: string, moodData: {
-		emotionId: string;
-		comment?: string;
-		timeOfDay?: string;
-		isPrivate?: boolean;
-	}) {
+	async function handleUpdateMood(
+		id: string,
+		moodData: {
+			emotionId: string;
+			comment?: string;
+			timeOfDay?: string;
+			isPrivate?: boolean;
+		}
+	) {
 		if (isSubmitting) return;
 		isSubmitting = true;
 		try {
@@ -175,7 +150,7 @@
 		isPrivate?: boolean;
 	}) {
 		if (isSubmitting) return;
-		
+
 		isSubmitting = true;
 		try {
 			const response = await fetch('/api/mood-entries', {
@@ -208,6 +183,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Personal Calendar - Sentio</title>
+</svelte:head>
+
 <div class="container mx-auto max-w-6xl space-y-6 px-4 py-8">
 	<!-- Header -->
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -232,7 +211,10 @@
 
 	<!-- Stats -->
 	<div class="grid gap-4 md:grid-cols-3">
-		<StatCard title="This Week" value={`${totalEntries}${totalEntries === 1 ? ' entry' : ' entries'}`} />
+		<StatCard
+			title="This Week"
+			value={`${totalEntries}${totalEntries === 1 ? ' entry' : ' entries'}`}
+		/>
 		<StatCard title="Days Logged" value={`${uniqueDays} / 7`} />
 		<StatCard title="Streak" value="Coming soon" />
 	</div>
@@ -252,7 +234,7 @@
 				entries={data.moodEntries}
 				onQuickAdd={handleQuickMood}
 				onEdit={(date, entry) => openMoodDialog(date, entry)}
-				isSubmitting={isSubmitting}
+				{isSubmitting}
 				allowAdd={true}
 				allowEdit={true}
 				showDayHeader={true}
@@ -305,13 +287,15 @@
 	{selectedDate}
 	requireComment={false}
 	onSave={handleSaveMood}
-	entry={selectedMood ? {
-		id: selectedMood.id,
-		emotionId: selectedMood.emotionId,
-		comment: selectedMood.comment ?? undefined,
-		timeOfDay: selectedMood.timeOfDay ?? undefined,
-		isPrivate: selectedMood.isPrivate
-	} : undefined}
+	entry={selectedMood
+		? {
+				id: selectedMood.id,
+				emotionId: selectedMood.emotionId,
+				comment: selectedMood.comment ?? undefined,
+				timeOfDay: selectedMood.timeOfDay ?? undefined,
+				isPrivate: selectedMood.isPrivate
+			}
+		: undefined}
 	onUpdate={handleUpdateMood}
 	onDelete={handleDeleteMood}
 />

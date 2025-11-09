@@ -65,6 +65,9 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Accept Invitation - Sentio</title>
+</svelte:head>
 <div class="flex min-h-screen items-center justify-center p-4">
 	<Card class="w-full max-w-md">
 		<CardHeader class="text-center">

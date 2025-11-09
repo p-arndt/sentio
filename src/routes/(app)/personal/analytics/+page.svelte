@@ -1,20 +1,11 @@
 <script lang="ts">
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
 	import MoodAnalytics from '$lib/components/MoodAnalytics.svelte';
-	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
-	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
 	import AnalyticsHeader from '$lib/components/analytics/AnalyticsHeader.svelte';
 	import AnalyticsStatsGrid from '$lib/components/analytics/AnalyticsStatsGrid.svelte';
-	import type { PageData } from './$types';
-	import type { Emotion } from '$lib/types';
+	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
+	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
 	import { averageValence30Days, consistency } from '$lib/utils/emotion-analytics';
+	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -22,6 +13,10 @@
 	const last30DaysCount = $derived(data.last30DaysEntries.length);
 	const last7DaysCount = $derived(data.last7DaysEntries.length);
 </script>
+
+<svelte:head>
+	<title>Personal Analytics - Sentio</title>
+</svelte:head>
 
 <div class="container mx-auto max-w-6xl space-y-6 px-4 py-8">
 	<!-- Header -->
