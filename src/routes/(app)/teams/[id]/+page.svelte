@@ -1,0 +1,373 @@
+<script lang="ts">
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	import StatCard from '$lib/components/StatCard.svelte';
+	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import { Separator } from '$lib/components/ui/separator';
+	import {
+		Settings,
+		Users,
+		ChevronLeft,
+		Globe,
+		Lock,
+		Eye,
+		UserPlus,
+		Calendar
+	} from '@lucide/svelte';
+	import { invalidateAll } from '$app/navigation';
+	import {
+		toDate,
+		toDateString,
+		isSameDay,
+		getWeekDays,
+		formatDate,
+		isToday
+	} from '$lib/utils/date';
+	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
+	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
+	import type { MoodEntryWithDetails } from '$lib/types';
+
+	let { data } = $props();
+
+	let weekStart = $derived(toDate(data.weekStart) || new Date());
+	let weekDays = $derived(getWeekDays(weekStart));
+
+	let showMoodDialog = $state(false);
+	let selectedDate = $state(new Date());
+	let selectedMood: MoodEntryWithDetails | null = $state(null);
+	let isSubmitting = $state(false);
+
+	function formatDayName(date: Date) {
+		return formatDate(date, { weekday: 'short' });
+	}
+
+	function formatDayDate(date: Date) {
+		return formatDate(date, { month: 'short', day: 'numeric' });
+	}
+
+	function getUserInitials(name: string) {
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	}
+
+	function getMoodForUserAndDate(userId: string, date: Date): MoodEntryWithDetails | undefined {
+		const dateStr = toDateString(date);
+		const result = data.entries.find((e: MoodEntryWithDetails) => {
+			const entryDateStr = toDateString(e.date);
+			const userMatch = e.userId === userId;
+			const dateMatch = entryDateStr === dateStr;
+
+			return userMatch && dateMatch;
+		});
+
+		return result;
+	}
+
+	function getVisibilityIcon(visibility: string) {
+		switch (visibility) {
+			case 'public':
+				return Globe;
+			case 'private':
+				return Lock;
+			default:
+				return Eye;
+		}
+	}
+
+	import { goto } from '$app/navigation';
+
+	function toYMD(d: Date): string {
+		const y = d.getUTCFullYear();
+		const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+		const day = String(d.getUTCDate()).padStart(2, '0');
+		return `${y}-${m}-${day}`;
+	}
+
+	async function handleWeekChange(direction: 'prev' | 'next') {
+		const base = weekStart; // already represents Monday
+		const delta = direction === 'prev' ? -7 : 7;
+		const newWeekStart = new Date(base);
+		newWeekStart.setUTCDate(base.getUTCDate() + delta);
+		const ymd = toYMD(newWeekStart);
+		await goto(`/teams/${data.team.id}?weekStart=${ymd}`);
+	}
+
+	async function handleQuickMood(emotionId: string, date: Date) {
+		if (isSubmitting) return;
+
+		isSubmitting = true;
+		try {
+			const payload = {
+				emotionId,
+				// Send local date string to avoid TZ drift
+				date: toDateString(date),
+				teamId: data.team.id
+			};
+
+			const response = await fetch('/api/mood-entries', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(payload)
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error('Failed to save mood entry:', errorData);
+				throw new Error(errorData.error || 'Failed to save mood entry');
+			}
+
+			const result = await response.json();
+
+			await invalidateAll();
+		} catch (error) {
+			console.error('Error saving mood:', error);
+			throw error;
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	function openMoodDialog(date: Date, mood?: MoodEntryWithDetails) {
+		selectedDate = date;
+		selectedMood = mood || null;
+		showMoodDialog = true;
+	}
+
+	async function handleSaveMood(moodData: {
+		emotionId: string;
+		comment?: string;
+		timeOfDay?: string;
+		isPrivate?: boolean;
+	}) {
+		if (isSubmitting) return;
+
+		isSubmitting = true;
+		try {
+			const response = await fetch('/api/mood-entries', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					...moodData,
+					// Send local date string to avoid TZ drift
+					date: toDateString(selectedDate),
+					teamId: data.team.id
+				})
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error('Failed to save mood entry:', errorData);
+				throw new Error(errorData.error || 'Failed to save mood entry');
+			}
+
+			await invalidateAll();
+			showMoodDialog = false;
+		} catch (error) {
+			console.error('Error saving mood:', error);
+			throw error;
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	async function handleUpdateMood(
+		id: string,
+		moodData: {
+			emotionId: string;
+			comment?: string;
+			timeOfDay?: string;
+			isPrivate?: boolean;
+		}
+	) {
+		if (isSubmitting) return;
+		isSubmitting = true;
+		try {
+			const response = await fetch(`/api/mood-entries/${id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(moodData)
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error('Failed to update mood entry:', errorData);
+				throw new Error(errorData.error || 'Failed to update mood entry');
+			}
+
+			await invalidateAll();
+			showMoodDialog = false;
+			selectedMood = null;
+		} catch (error) {
+			console.error('Error updating mood:', error);
+			throw error;
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	async function handleDeleteMood(id: string) {
+		if (isSubmitting) return;
+		isSubmitting = true;
+		try {
+			const response = await fetch(`/api/mood-entries/${id}`, { method: 'DELETE' });
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error('Failed to delete mood entry:', errorData);
+				throw new Error(errorData.error || 'Failed to delete mood entry');
+			}
+			await invalidateAll();
+			showMoodDialog = false;
+			selectedMood = null;
+		} catch (error) {
+			console.error('Error deleting mood:', error);
+			throw error;
+		} finally {
+			isSubmitting = false;
+		}
+	}
+</script>
+
+<div class="container mx-auto space-y-6 px-4 py-8">
+	<!-- Header -->
+	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div class="space-y-1">
+			<div class="flex items-center gap-3">
+				<Button href="/teams" variant="ghost" size="icon">
+					<ChevronLeft class="h-4 w-4" />
+				</Button>
+				<div>
+					<h1 class="text-3xl font-bold">{data.team.name}</h1>
+					{#if data.team.description}
+						<p class="text-muted-foreground">{data.team.description}</p>
+					{/if}
+				</div>
+			</div>
+		</div>
+
+		<div class="flex gap-2">
+			{#if data.isAdmin}
+				<Button href="/teams/{data.team.id}/members" variant="outline">
+					<UserPlus class="mr-2 h-4 w-4" />
+					Manage Members
+				</Button>
+				<Button href="/teams/{data.team.id}/settings" variant="outline">
+					<Settings class="mr-2 h-4 w-4" />
+					Settings
+				</Button>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Team Info -->
+	<div class="grid gap-4 md:grid-cols-3">
+		<StatCard
+			title="Members"
+			value={data.team.memberCount}
+			subtitle="Active team members"
+			icon={Users}
+		/>
+		<StatCard
+			title="Visibility"
+			value={data.team.visibility}
+			subtitle={data.team.visibility === 'public'
+				? 'Anyone can view'
+				: data.team.visibility === 'private'
+					? 'Only you can view'
+					: 'Team members only'}
+			icon={data.team.visibility === 'public'
+				? Globe
+				: data.team.visibility === 'private'
+					? Lock
+					: Eye}
+		/>
+		<StatCard
+			title="This Week"
+			value={data.entries.length}
+			subtitle="Mood entries logged"
+			icon={Calendar}
+		/>
+	</div>
+
+	<!-- Team Calendar -->
+	<CalendarContainer
+		teamId={data.team.id}
+		{weekStart}
+		{weekDays}
+		teamMembers={data.team.members}
+		emotions={data.emotions}
+		entries={data.entries}
+		currentUserId={data.currentUserId}
+		showWeekends={data.team.showWeekends}
+		onWeekChange={handleWeekChange}
+		onQuickAdd={(emotionId, date, userId) => handleQuickMood(emotionId, date)}
+		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
+		{isSubmitting}
+	/>
+
+	<!-- Team Members -->
+	<Card>
+		<CardHeader>
+			<CardTitle>Team Members</CardTitle>
+			<CardDescription>
+				{data.team.memberCount}
+				{data.team.memberCount === 1 ? 'member' : 'members'}
+			</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{#each data.team.members as member}
+					<div class="flex items-center gap-3 rounded-lg border p-3">
+						<Avatar>
+							<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
+							<AvatarFallback>{getUserInitials(member.user.name)}</AvatarFallback>
+						</Avatar>
+						<div class="min-w-0 flex-1">
+							<div class="truncate font-medium">{member.user.name}</div>
+							<div class="truncate text-sm text-muted-foreground">{member.user.email}</div>
+						</div>
+						{#if member.role === 'admin'}
+							<Badge variant="secondary">Admin</Badge>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</CardContent>
+	</Card>
+</div>
+
+<!-- Mood Entry Dialog -->
+<MoodEntryDialog
+	bind:open={showMoodDialog}
+	emotions={data.emotions}
+	teamId={data.team.id}
+	{selectedDate}
+	allowPrivate={false}
+	requireComment={data.team.requireComment}
+	onSave={handleSaveMood}
+	entry={selectedMood
+		? {
+				id: selectedMood.id,
+				emotionId: selectedMood.emotionId,
+				comment: selectedMood.comment ?? undefined,
+				timeOfDay: selectedMood.timeOfDay ?? undefined,
+				isPrivate: selectedMood.isPrivate
+			}
+		: undefined}
+	onUpdate={handleUpdateMood}
+	onDelete={handleDeleteMood}
+/>

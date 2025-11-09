@@ -7,5 +7,4 @@ export { default as CommentDialog } from './components/CommentDialog.svelte';
 
 export * from './types';
 export * from './data/emotions';
-export * from './data/mock';
 export * from './utils/date';

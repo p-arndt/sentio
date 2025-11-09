@@ -1,12 +1,20 @@
 import { building } from '$app/environment';
+import { EMOTION_DATA } from '$lib/data/emotion-data';
 import { db } from '$lib/server/db';
-import { emotion } from '$lib/server/db/schema';
+import { emotion, user as userTable } from '$lib/server/db/schema';
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
+import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
-import { EMOTION_DATA } from '$lib/data/emotion-data';
+
+let initialized = false;
+let hasAdmin = false;
+
+export const markAdminInitialized = () => {
+	hasAdmin = true;
+}
 
 export const init: ServerInit = async () => {
 	try {
@@ -32,6 +40,18 @@ export const init: ServerInit = async () => {
 	} catch (error) {
 		console.error('Failed to seed emotions:', error);
 	}
+
+	// Check if an admin user exists
+	if (!initialized) {
+		const admins = await db.select().from(userTable).where(eq(userTable.isAdmin, true));
+		hasAdmin = admins.length > 0;
+		if (hasAdmin) {
+			console.log('✓ Admin user found');
+		} else {
+			console.log('⚠ No admin user found - initialization required');
+		}
+		initialized = true;
+	}
 };
 
 export const betterAuthHandle: Handle = async ({ event, resolve }) => {
@@ -52,12 +72,20 @@ export const authHandle: Handle = async ({ event, resolve }) => {
 		headers: event.request.headers
 	});
 
-	if (!session?.user?.id && !event.url.pathname.startsWith('/login')) {
-		return redirect(302, '/login');
+	// If no admin exists and not on init route, redirect to init
+	if (!hasAdmin && event.url.pathname !== '/init') {
+		return redirect(302, '/init');
 	}
 
-	if (session?.user?.id && event.url.pathname === '/login') {
-		return redirect(302, '/');
+	// If admin exists but not on init route, proceed with normal auth checks
+	if (hasAdmin) {
+		if (!session?.user?.id && !event.url.pathname.startsWith('/login') && event.url.pathname !== '/register') {
+			return redirect(302, '/login');
+		}
+
+		if (session?.user?.id && event.url.pathname === '/login') {
+			return redirect(302, '/');
+		}
 	}
 
 	return resolve(event);

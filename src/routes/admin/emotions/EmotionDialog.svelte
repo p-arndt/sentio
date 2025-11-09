@@ -24,15 +24,53 @@
 	let { open = $bindable(false), emotion = null }: Props = $props();
 
 	let isSubmitting = $state(false);
+	let emojiInputRef: HTMLInputElement | null = $state(null);
 
-	let formData = $derived({
-		name: emotion?.name ?? '',
-		emoji: emotion?.emoji ?? '',
-		color: emotion?.color ?? '#3b82f6'
+	let name = $state('');
+	let emoji = $state('');
+	let color = $state('#3b82f6');
+
+	// Update form when emotion changes or dialog opens
+	$effect(() => {
+		if (emotion && open) {
+			name = emotion.name;
+			emoji = emotion.emoji;
+			color = emotion.color;
+		} else if (!emotion && open) {
+			name = '';
+			emoji = '';
+			color = '#3b82f6';
+		}
 	});
 
 	function closeDialog() {
 		open = false;
+		// Reset form after closing
+		setTimeout(() => {
+			name = '';
+			emoji = '';
+			color = '#3b82f6';
+		}, 200);
+	}
+
+	function handleEmojiPaste(e: ClipboardEvent) {
+		// Handle emoji pasting with better support for various emoji formats
+		if (!e.clipboardData) return;
+
+		const text = e.clipboardData.getData('text/plain');
+		if (text) {
+			// Take only the first character/emoji
+			const firstEmoji = Array.from(text)[0];
+			if (firstEmoji) {
+				emoji = firstEmoji;
+				e.preventDefault();
+			}
+		}
+	}
+
+	function clearEmoji() {
+		emoji = '';
+		emojiInputRef?.focus();
 	}
 </script>
 
@@ -64,35 +102,43 @@
 			<div class="grid gap-4 py-4">
 				<div class="grid gap-2">
 					<Label for="name">Name</Label>
-					<Input
-						id="name"
-						name="name"
-						placeholder="e.g., Very Happy"
-						value={formData.name}
-						required
-					/>
+					<Input id="name" name="name" placeholder="e.g., Very Happy" bind:value={name} required />
 				</div>
 
 				<div class="grid gap-2">
 					<Label for="emoji">Emoji</Label>
 					<div class="flex items-center gap-2">
 						<Input
+							bind:ref={emojiInputRef}
 							id="emoji"
 							name="emoji"
 							placeholder="😊"
-							value={formData.emoji}
-							maxlength={2}
+							bind:value={emoji}
+							onpaste={handleEmojiPaste}
+							maxlength={10}
 							class="text-2xl"
 							required
 						/>
 						<div
 							class="flex h-10 w-16 items-center justify-center rounded-md border text-2xl"
-							style="background-color: {formData.color}20;"
+							style="background-color: {color}20;"
 						>
-							{formData.emoji || '😊'}
+							{emoji || '😊'}
 						</div>
+						{#if emoji}
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								title="Clear emoji"
+								onclick={clearEmoji}
+								class="h-10 w-10"
+							>
+								✕
+							</Button>
+						{/if}
 					</div>
-					<p class="text-muted-foreground text-xs">
+					<p class="text-xs text-muted-foreground">
 						Paste an emoji from your keyboard or emoji picker
 					</p>
 				</div>
@@ -100,39 +146,30 @@
 				<div class="grid gap-2">
 					<Label for="color">Color</Label>
 					<div class="flex items-center gap-2">
-						<Input id="color" name="color" type="color" value={formData.color} required />
+						<Input id="color" name="color" type="color" bind:value={color} required />
 						<Input
 							id="color-text"
-							name="color-text"
 							type="text"
 							placeholder="#3b82f6"
-							value={formData.color}
-							pattern="^#[0-9A-Fa-f]{6}$"
+							bind:value={color}
 							class="font-mono"
-							oninput={(e) => {
-								const input = e.currentTarget;
-								if (input.value.match(/^#[0-9A-Fa-f]{6}$/)) {
-									const colorInput = document.getElementById('color') as HTMLInputElement;
-									if (colorInput) colorInput.value = input.value;
-								}
-							}}
 						/>
 					</div>
-					<p class="text-muted-foreground text-xs">Choose a color for this emotion's background</p>
+					<p class="text-xs text-muted-foreground">Choose a color for this emotion's background</p>
 				</div>
 
 				<div class="rounded-lg border p-4">
-					<p class="text-muted-foreground mb-2 text-xs font-medium">Preview</p>
+					<p class="mb-2 text-xs font-medium text-muted-foreground">Preview</p>
 					<div class="flex items-center gap-3">
 						<div
 							class="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
-							style="background-color: {formData.color}20;"
+							style="background-color: {color}20;"
 						>
-							{formData.emoji || '😊'}
+							{emoji || '😊'}
 						</div>
 						<div>
-							<p class="font-medium">{formData.name || 'Emotion Name'}</p>
-							<p class="text-muted-foreground text-xs">{formData.color}</p>
+							<p class="font-medium">{name || 'Emotion Name'}</p>
+							<p class="text-xs text-muted-foreground">{color}</p>
 						</div>
 					</div>
 				</div>

@@ -8,8 +8,9 @@
 
 	type Props = {
 		data: PageData;
+		form?: { success?: boolean; error?: string } | null;
 	};
-	let { data }: Props = $props();
+	let { data, form = null }: Props = $props();
 
 	let showWeekends = $state(data.settings.showWeekends);
 </script>
@@ -19,6 +20,18 @@
 		<h3 class="text-lg font-medium">Calendar Settings</h3>
 		<p class="text-muted-foreground text-sm">Configure how the calendar displays</p>
 	</div>
+
+	{#if form?.success}
+		<div class="rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100">
+			Settings saved successfully!
+		</div>
+	{/if}
+
+	{#if form?.error}
+		<div class="rounded-lg border border-red-500 bg-red-50 p-4 text-red-900 dark:bg-red-950 dark:text-red-100">
+			{form.error}
+		</div>
+	{/if}
 
 	<Card>
 		<CardHeader>
@@ -44,6 +57,8 @@
 					</div>
 					<Switch id="show-weekends" name="showWeekends" bind:checked={showWeekends} />
 				</div>
+
+				<input type="hidden" name="showWeekends" value={showWeekends ? 'true' : 'false'} />
 
 				<div class="mt-6 flex justify-end">
 					<Button type="submit">Save Changes</Button>

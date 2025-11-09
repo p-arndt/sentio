@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Users, UserCog, Settings, LayoutDashboard, Smile } from '@lucide/svelte';
+	import { Users, UserCog, Settings, LayoutDashboard, Smile, Home } from '@lucide/svelte';
 
 	type Props = {
 		children: import('svelte').Snippet;
@@ -24,9 +24,14 @@
 			<h1 class="text-xl font-bold">Admin Panel</h1>
 		</div>
 		<nav class="flex flex-col gap-1 p-4">
+			<Button variant="ghost" class="justify-start" href="/">
+				<Home class="mr-2 h-4 w-4" />
+				Back to Home
+			</Button>
+			<Separator class="my-2" />
 			{#each navItems as item}
 				<Button
-					variant={$page.url.pathname === item.href ? 'secondary' : 'ghost'}
+					variant={page.url.pathname === item.href ? 'secondary' : 'ghost'}
 					class="justify-start"
 					href={item.href}
 				>
@@ -41,7 +46,7 @@
 		<div class="border-b">
 			<div class="flex h-16 items-center px-6">
 				<h2 class="text-2xl font-semibold">
-					{navItems.find((item) => item.href === $page.url.pathname)?.label || 'Admin'}
+					{navItems.find((item) => item.href === page.url.pathname)?.label || 'Admin'}
 				</h2>
 			</div>
 		</div>

@@ -34,7 +34,8 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	updateSettings: async ({ request }) => {
 		const formData = await request.formData();
-		const showWeekends = formData.get('showWeekends') === 'on';
+		const showWeekendsValue = formData.get('showWeekends');
+		const showWeekends = showWeekendsValue === 'true';
 
 		try {
 			// Update or insert setting
@@ -60,7 +61,8 @@ export const actions: Actions = {
 			}
 
 			return { success: true };
-		} catch {
+		} catch (error) {
+			console.error('Error updating settings:', error);
 			return fail(500, { error: 'Failed to update settings' });
 		}
 	}

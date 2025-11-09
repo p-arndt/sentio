@@ -7,8 +7,9 @@
 
 	type Props = {
 		data: PageData;
+		form?: { success?: boolean; error?: string } | null;
 	};
-	let { data }: Props = $props();
+	let { data, form = null }: Props = $props();
 
 	let showDialog = $state(false);
 	let editingTeam = $state<(typeof data.teams)[0] | null>(null);
@@ -36,6 +37,18 @@
 		</Button>
 	</div>
 
+	{#if form?.success}
+		<div class="rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100">
+			Team saved successfully!
+		</div>
+	{/if}
+
+	{#if form?.error}
+		<div class="rounded-lg border border-red-500 bg-red-50 p-4 text-red-900 dark:bg-red-950 dark:text-red-100">
+			{form.error}
+		</div>
+	{/if}
+
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 		{#each data.teams as team}
 			<Card>
@@ -53,8 +66,17 @@
 							</Button>
 							<form method="POST" action="?/deleteTeam">
 								<input type="hidden" name="teamId" value={team.id} />
-								<Button variant="ghost" size="icon" type="submit">
-									<Trash2 class="h-4 w-4" />
+								<Button
+									variant="ghost"
+									size="icon"
+									type="submit"
+									onclick={(e) => {
+										if (!confirm(`Are you sure you want to delete team "${team.name}"? This will remove all members and mood entries.`)) {
+											e.preventDefault();
+										}
+									}}
+								>
+									<Trash2 class="h-4 w-4 text-destructive" />
 								</Button>
 							</form>
 						</div>

@@ -5,7 +5,13 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			session: import('better-auth').Session | null;
-			user: import('better-auth').User | null;
+			user:
+				| (import('better-auth').User & {
+						isAdmin?: boolean | null;
+						timezone?: string;
+						personalMode?: boolean;
+				  })
+				| null;
 		}
 		// interface PageData {}
 		// interface PageState {}
@@ -13,5 +19,4 @@ declare global {
 	}
 }
 
-export { };
-
+export {};

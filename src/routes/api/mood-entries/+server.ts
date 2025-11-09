@@ -1,8 +1,43 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import { calendarEntry } from '$lib/server/db/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+
+/**
+ * GET /api/mood-entries
+ * Get mood entries for a user or team within a date range
+ */
+export const GET: RequestHandler = async ({ locals, url }) => {
+	if (!locals.user) {
+		return json({ success: false, error: 'Unauthorized' }, { status: 401 });
+	}
+
+	const startDate = url.searchParams.get('startDate');
+	const endDate = url.searchParams.get('endDate');
+	const teamId = url.searchParams.get('teamId');
+	const personal = url.searchParams.get('personal') === 'true';
+
+	if (!startDate || !endDate) {
+		return json({ success: false, error: 'startDate and endDate are required' }, { status: 400 });
+	}
+
+	try {
+		const start = new Date(startDate);
+		const end = new Date(endDate);
+
+		let entries;
+
+		if (personal || !teamId) {
+			entries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, start, end);
+		} else {
+			entries = await MoodEntryService.getTeamMoodEntries(teamId, start, end);
+		}
+
+		return json({ success: true, data: entries });
+	} catch (error) {
+		console.error('Error fetching mood entries:', error);
+		return json({ success: false, error: 'Failed to fetch mood entries' }, { status: 500 });
+	}
+};
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -10,89 +45,36 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	try {
-		const { emotionId, date, comment } = await request.json();
+		const { emotionId, date, comment, teamId, timeOfDay, isPrivate } = await request.json();
 
 		if (!emotionId || !date) {
 			return json({ error: 'Emotion and date are required' }, { status: 400 });
 		}
 
-		// Normalize date to start of day in UTC
-		const entryDate = new Date(date);
-		entryDate.setUTCHours(0, 0, 0, 0);
+		// Expect date as 'YYYY-MM-DD'; fallback to parsing full string
+		let dateStr = typeof date === 'string' ? date.trim() : '';
+		if (dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+		const [y, m, d] = dateStr.split('-').map(Number);
+		if (!y || !m || !d) {
+			return json({ error: 'Invalid date format' }, { status: 400 });
+		}
+		// Create UTC date at noon to avoid timezone shifting across locales
+		const entryDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0));
 
-		console.log('Saving mood entry:', { userId: locals.user.id, emotionId, date: entryDate });
-
-		// Check if entry already exists for this user and date
-		const existing = await db
-			.select()
-			.from(calendarEntry)
-			.where(eq(calendarEntry.userId, locals.user.id));
-
-		// Find matching entry by date (compare date strings)
-		const matchingEntry = existing.find((e) => {
-			const existingDate = new Date(e.date);
-			existingDate.setUTCHours(0, 0, 0, 0);
-			return existingDate.getTime() === entryDate.getTime();
+		// Always create a new entry (allowing multiple moods per day)
+		const result = await MoodEntryService.createMoodEntry({
+			userId: locals.user.id,
+			emotionId,
+			date: entryDate,
+			comment: comment || null,
+			teamId: teamId || null,
+			timeOfDay: timeOfDay || null,
+			isPrivate: isPrivate || false
 		});
 
-		let result;
-
-		if (matchingEntry) {
-			// Update existing entry
-			console.log('Updating existing entry:', matchingEntry.id);
-			result = await db
-				.update(calendarEntry)
-				.set({
-					emotionId,
-					comment: comment || null,
-					updatedAt: new Date()
-				})
-				.where(eq(calendarEntry.id, matchingEntry.id))
-				.returning();
-		} else {
-			// Create new entry
-			console.log('Creating new entry');
-			result = await db
-				.insert(calendarEntry)
-				.values({
-					userId: locals.user.id,
-					emotionId,
-					date: entryDate,
-					comment: comment || null
-				})
-				.returning();
-		}
-
-		console.log('Save successful:', result[0]);
-		return json({ success: true, entry: result[0] });
+		return json(result);
 	} catch (error) {
 		console.error('Error saving mood entry:', error);
-		return json({ error: 'Failed to save mood entry' }, { status: 500 });
+		return json({ error: 'Failed to save entry' }, { status: 500 });
 	}
-};
-
-export const GET: RequestHandler = async ({ url, locals }) => {
-	if (!locals.user) {
-		return json({ error: 'Unauthorized' }, { status: 401 });
-	}
-
-	const startDate = url.searchParams.get('startDate');
-	const endDate = url.searchParams.get('endDate');
-
-	const conditions = [eq(calendarEntry.userId, locals.user.id)];
-
-	if (startDate) {
-		conditions.push(gte(calendarEntry.date, new Date(startDate)));
-	}
-
-	if (endDate) {
-		conditions.push(lte(calendarEntry.date, new Date(endDate)));
-	}
-
-	const entries = await db
-		.select()
-		.from(calendarEntry)
-		.where(and(...conditions));
-
-	return json({ entries });
 };

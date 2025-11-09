@@ -9,7 +9,13 @@ export const user = pgTable('users', {
 		.$defaultFn(() => false)
 		.notNull(),
 	image: text('image'),
+	timezone: text('timezone')
+		.$defaultFn(() => 'UTC')
+		.notNull(),
 	isAdmin: boolean('is_admin')
+		.$defaultFn(() => false)
+		.notNull(),
+	personalMode: boolean('personal_mode')
 		.$defaultFn(() => false)
 		.notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -58,10 +64,15 @@ export const verification = pgTable('verifications', {
 
 export const emotion = pgTable('emotions', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	teamId: uuid('team_id').references(() => team.id, { onDelete: 'cascade' }), // null for global/default emotions
 	name: text('name').notNull(),
 	emoji: text('emoji').notNull(),
 	color: text('color').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull()
+	order: text('order')
+		.$defaultFn(() => '0')
+		.notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
 export const calendarEntry = pgTable('calendar_entries', {
@@ -69,11 +80,16 @@ export const calendarEntry = pgTable('calendar_entries', {
 	userId: uuid('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
+	teamId: uuid('team_id').references(() => team.id, { onDelete: 'cascade' }), // null for personal entries
 	emotionId: uuid('emotion_id')
 		.notNull()
 		.references(() => emotion.id, { onDelete: 'cascade' }),
 	date: timestamp('date').notNull(),
+	timeOfDay: text('time_of_day'), // 'morning', 'noon', 'evening' - for multiple moods per day
 	comment: text('comment'),
+	isPrivate: boolean('is_private')
+		.$defaultFn(() => false)
+		.notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -82,6 +98,18 @@ export const team = pgTable('teams', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	name: text('name').notNull(),
 	description: text('description'),
+	visibility: text('visibility')
+		.$defaultFn(() => 'team')
+		.notNull(), // 'public', 'team', 'private'
+	allowMultipleMoodsPerDay: boolean('allow_multiple_moods_per_day')
+		.$defaultFn(() => false)
+		.notNull(),
+	requireComment: boolean('require_comment')
+		.$defaultFn(() => false)
+		.notNull(),
+	showWeekends: boolean('show_weekends')
+		.$defaultFn(() => true)
+		.notNull(),
 	createdBy: uuid('created_by')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
@@ -109,6 +137,25 @@ export const settings = pgTable('settings', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	key: text('key').notNull().unique(),
 	value: text('value').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const userPreferences = pgTable('user_preferences', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' })
+		.unique(),
+	theme: text('theme')
+		.$defaultFn(() => 'system')
+		.notNull(), // 'light', 'dark', 'system'
+	defaultView: text('default_view')
+		.$defaultFn(() => 'week')
+		.notNull(), // 'day', 'week', 'month'
+	enableNotifications: boolean('enable_notifications')
+		.$defaultFn(() => true)
+		.notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });

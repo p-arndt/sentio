@@ -39,10 +39,32 @@ export const load: PageServerLoad = async () => {
 		})
 		.from(user);
 
+	// Get admin users
+	const adminUsers = await db
+		.select({
+			id: user.id,
+			name: user.name,
+			email: user.email
+		})
+		.from(user)
+		.where(eq(user.isAdmin, true));
+
+	// Get non-admin users
+	const nonAdminUsers = await db
+		.select({
+			id: user.id,
+			name: user.name,
+			email: user.email
+		})
+		.from(user)
+		.where(eq(user.isAdmin, false));
+
 	return {
 		teams: teamsWithMembers,
 		allTeams,
-		allUsers
+		allUsers,
+		adminUsers,
+		nonAdminUsers
 	};
 };
 
@@ -96,5 +118,51 @@ export const actions: Actions = {
 		await db.delete(teamMember).where(eq(teamMember.id, memberId));
 
 		return { success: true };
+	},
+
+	makeAdmin: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const formData = await request.formData();
+		const userId = formData.get('userId') as string;
+
+		if (!userId) {
+			return fail(400, { error: 'User ID is required' });
+		}
+
+		try {
+			await db.update(user).set({ isAdmin: true }).where(eq(user.id, userId));
+			return { success: true };
+		} catch {
+			return fail(400, { error: 'Failed to make user admin' });
+		}
+	},
+
+	removeAdmin: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const formData = await request.formData();
+		const userId = formData.get('userId') as string;
+
+		if (!userId) {
+			return fail(400, { error: 'User ID is required' });
+		}
+
+		// Prevent removing the last admin
+		const admins = await db.select().from(user).where(eq(user.isAdmin, true));
+		if (admins.length <= 1) {
+			return fail(400, { error: 'Cannot remove the last admin' });
+		}
+
+		try {
+			await db.update(user).set({ isAdmin: false }).where(eq(user.id, userId));
+			return { success: true };
+		} catch {
+			return fail(400, { error: 'Failed to remove admin privileges' });
+		}
 	}
 };

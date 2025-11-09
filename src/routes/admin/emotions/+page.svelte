@@ -8,8 +8,9 @@
 
 	type Props = {
 		data: PageData;
+		form?: { success?: boolean; error?: string } | null;
 	};
-	let { data }: Props = $props();
+	let { data, form = null }: Props = $props();
 
 	let showDialog = $state(false);
 	let editingEmotion = $state<(typeof data.emotions)[0] | null>(null);
@@ -36,6 +37,18 @@
 			Add Emotion
 		</Button>
 	</div>
+
+	{#if form?.success}
+		<div class="rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100">
+			Emotion saved successfully!
+		</div>
+	{/if}
+
+	{#if form?.error}
+		<div class="rounded-lg border border-red-500 bg-red-50 p-4 text-red-900 dark:bg-red-950 dark:text-red-100">
+			{form.error}
+		</div>
+	{/if}
 
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 		{#each data.emotions as emotion}
@@ -66,8 +79,17 @@
 							</Button>
 							<form method="POST" action="?/deleteEmotion">
 								<input type="hidden" name="emotionId" value={emotion.id} />
-								<Button variant="ghost" size="icon" type="submit">
-									<Trash2 class="h-4 w-4" />
+								<Button
+									variant="ghost"
+									size="icon"
+									type="submit"
+									onclick={(e) => {
+										if (!confirm(`Are you sure you want to delete "${emotion.name}"?`)) {
+											e.preventDefault();
+										}
+									}}
+								>
+									<Trash2 class="h-4 w-4 text-destructive" />
 								</Button>
 							</form>
 						</div>
