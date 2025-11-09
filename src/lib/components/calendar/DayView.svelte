@@ -2,10 +2,17 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
-	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
+	import {
+		Tooltip,
+		TooltipContent,
+		TooltipProvider,
+		TooltipTrigger
+	} from '$lib/components/ui/tooltip';
+	import { ChevronLeft, ChevronRight, MessageCircle } from '@lucide/svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import { cn } from '$lib/utils';
-	import { formatDate, toDateString, isToday } from '$lib/utils/date';
+	import { formatDate, toDateString } from '$lib/utils/date';
 	import type { MoodEntryWithDetails, Emotion, TeamMemberWithUser } from '$lib/types';
 
 	type Props = {
@@ -15,7 +22,7 @@
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
 		onDayChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (emotionId: string, date: Date, userId: string) => Promise<void> | void;
+		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		className?: string;
@@ -33,6 +40,15 @@
 		isSubmitting = false,
 		className = ''
 	}: Props = $props();
+
+	// Sort members to put current user at top
+	let sortedMembers = $derived(
+		[...teamMembers].sort((a, b) => {
+			if (a.userId === currentUserId) return -1;
+			if (b.userId === currentUserId) return 1;
+			return 0;
+		})
+	);
 
 	function getUserInitials(name: string) {
 		return name
@@ -99,8 +115,9 @@
 
 	<CardContent>
 		<div class="space-y-4">
-			{#each teamMembers as member}
+			{#each sortedMembers as member}
 				{@const moods = getMoodsForMember(member.userId)}
+				{@const isCurrentUser = member.userId === currentUserId}
 				<div class="rounded-lg border p-4">
 					<div class="flex items-center gap-3 mb-4">
 						<Avatar class="h-10 w-10">
@@ -108,7 +125,12 @@
 							<AvatarFallback>{getUserInitials(member.user.name)}</AvatarFallback>
 						</Avatar>
 						<div class="flex-1 min-w-0">
-							<div class="font-medium truncate">{member.user.name}</div>
+							<div class="font-medium truncate flex items-center gap-2">
+								{member.user.name}
+								{#if isCurrentUser}
+									<span class="text-xs text-muted-foreground">(You)</span>
+								{/if}
+							</div>
 							{#if member.role === 'admin'}
 								<div class="text-xs text-muted-foreground">Team Admin</div>
 							{/if}
@@ -117,66 +139,63 @@
 
 					<Separator class="mb-4" />
 
-					<div class="space-y-3">
+					<div class="space-y-2">
 						{#if moods.length > 0}
-							{#each moods as mood}
-								{@const emotion = getEmotionById(mood.emotionId)}
-								{#if emotion}
-									<button
-										onclick={() =>
-											member.userId === currentUserId && onEdit && onEdit(selectedDate, mood, member.userId)}
-										disabled={member.userId !== currentUserId}
-										class={cn(
-											'w-full rounded-lg p-4 text-left transition-colors',
-											member.userId === currentUserId && 'hover:bg-muted cursor-pointer',
-											member.userId !== currentUserId && 'cursor-default'
-										)}
-										style="background-color: {emotion.color}15; border: 1px solid {emotion.color}40;"
-									>
-										<div class="flex items-start gap-3">
-											<div class="text-3xl">{emotion.emoji}</div>
-											<div class="flex-1 min-w-0">
-												<div class="font-semibold text-sm">{emotion.name}</div>
-												{#if mood.timeOfDay}
-													<div class="text-xs text-muted-foreground mt-1">🕐 {mood.timeOfDay}</div>
-												{/if}
-												{#if mood.comment}
-												<div class="text-sm text-foreground mt-2">
-													💬 {mood.comment}
-												</div>
-												{/if}
-											</div>
-										</div>
-									</button>
-								{/if}
-							{/each}
+							<div class="flex flex-wrap gap-2">
+								{#each moods as mood}
+									{@const emotion = getEmotionById(mood.emotionId)}
+									{#if emotion}
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger>
+													<button
+														onclick={() =>
+															isCurrentUser && onEdit ? onEdit(selectedDate, mood, member.userId) : null}
+														disabled={!isCurrentUser}
+														class={cn(
+															'relative flex items-center justify-center h-12 w-12 rounded-full transition-all',
+															isCurrentUser && 'hover:scale-105 cursor-pointer',
+															!isCurrentUser && 'cursor-default opacity-75'
+														)}
+														style="background-color: {emotion.color}40;"
+													>
+														<span class="text-2xl">{emotion.emoji}</span>
+														{#if mood.comment}
+															<MessageCircle
+																class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
+															/>
+														{/if}
+													</button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<div class="space-y-1 text-xs">
+														<div class="font-semibold">{emotion.name}</div>
+														{#if mood.timeOfDay}
+															<div class="text-muted-foreground">🕐 {mood.timeOfDay}</div>
+														{/if}
+														{#if mood.comment}
+															<div class="text-foreground max-w-xs">💬 {mood.comment}</div>
+														{/if}
+													</div>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									{/if}
+								{/each}
+							</div>
 						{:else}
-							<div class="flex flex-col items-center justify-center py-8 text-muted-foreground">
-								<div class="text-4xl mb-2">😶</div>
-								<p class="text-sm">No mood recorded for today</p>
-								{#if member.userId === currentUserId}
-									<p class="text-xs mt-1">Click below to add one</p>
-								{/if}
+							<div class="flex flex-col items-center justify-center py-6 text-muted-foreground">
+								<div class="text-3xl mb-1">😶</div>
+								<p class="text-xs">No mood recorded</p>
 							</div>
 						{/if}
 
-						{#if member.userId === currentUserId}
-							<div class="pt-2">
-								<p class="text-xs text-muted-foreground mb-2">Quick add:</p>
-								<div class="flex flex-wrap gap-2">
-									{#each emotions as emotion}
-										<button
-											onclick={() => onQuickAdd(emotion.id, selectedDate, member.userId)}
-											disabled={isSubmitting}
-											class="h-10 w-10 rounded-lg transition-transform hover:scale-110 disabled:opacity-50"
-											style="background-color: {emotion.color}; border: 1px solid {emotion.color}"
-											title={emotion.name}
-										>
-											<span class="text-lg">{emotion.emoji}</span>
-										</button>
-									{/each}
-								</div>
-							</div>
+						{#if isCurrentUser}
+							<QuickMoodSelector
+								{emotions}
+								onSelect={(emotionId, comment) => onQuickAdd(emotionId, selectedDate, member.userId, comment)}
+								disabled={isSubmitting}
+							/>
 						{/if}
 					</div>
 				</div>

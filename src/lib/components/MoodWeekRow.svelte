@@ -91,7 +91,7 @@
 						<div class="flex justify-center">
 							<QuickMoodSelector
 								emotions={emotions}
-								onSelect={(emotionId) => onQuickAdd(emotionId, day, userId)}
+								onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
 								size="sm"
 								variant="ghost"
 								disabled={isSubmitting}
@@ -103,7 +103,7 @@
 						<div class="flex h-full items-center justify-center">
 							<QuickMoodSelector
 								emotions={emotions}
-								onSelect={(emotionId) => onQuickAdd(emotionId, day, userId)}
+								onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
 								disabled={isSubmitting}
 							/>
 						</div>

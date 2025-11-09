@@ -1,12 +1,18 @@
 <script lang="ts">
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { 
-		Users, 
-		Calendar, 
-		TrendingUp, 
-		Heart, 
+	import {
+		Users,
+		Calendar,
+		TrendingUp,
+		Heart,
 		Plus,
 		ArrowRight,
 		Smile,
@@ -20,9 +26,20 @@
 	let { data }: Props = $props();
 
 	let quickActions = $derived([
-		{ label: 'Log Today\'s Mood', href: '/calendar', icon: Smile, variant: 'default' as const, show: true },
-		{ label: 'Create Team', href: '/teams/new', icon: Users, variant: 'outline' as const, show: data.user.isAdmin },
-		{ label: 'View Personal Calendar', href: '/personal', icon: Heart, variant: 'outline' as const, show: true }
+		{
+			label: 'Create Team',
+			href: '/teams/new',
+			icon: Users,
+			variant: 'outline' as const,
+			show: data.user.isAdmin
+		},
+		{
+			label: 'View Personal Calendar',
+			href: '/personal',
+			icon: Heart,
+			variant: 'outline' as const,
+			show: true
+		}
 	]);
 
 	function getGreeting() {
@@ -47,14 +64,12 @@
 		<h1 class="text-4xl font-bold tracking-tight">
 			{getGreeting()}, {data.user.name}! 👋
 		</h1>
-		<p class="text-xl text-muted-foreground">
-			How are you feeling today?
-		</p>
+		<p class="text-xl text-muted-foreground">How are you feeling today?</p>
 	</div>
 
 	<!-- Quick Actions -->
 	<div class="grid gap-4 md:grid-cols-3">
-		{#each quickActions.filter(a => a.show) as action}
+		{#each quickActions.filter((a) => a.show) as action}
 			<Button
 				href={action.href}
 				variant={action.variant}
@@ -186,10 +201,7 @@
 				<div class="space-y-3">
 					{#each data.personalEntries.slice(0, 5) as entry}
 						<div class="flex items-center gap-4 rounded-lg border p-3">
-							<div 
-								class="rounded-full p-2" 
-								style="background-color: {entry.emotion.color}20;"
-							>
+							<div class="rounded-full p-2" style="background-color: {entry.emotion.color}20;">
 								<span class="text-2xl">{entry.emotion.emoji}</span>
 							</div>
 							<div class="flex-1">

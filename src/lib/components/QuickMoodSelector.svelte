@@ -1,64 +1,164 @@
 <script lang="ts">
 	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
-	import { Button } from '$lib/components/ui/button';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { Textarea } from '$lib/components/ui/textarea';
+	import {
+		Tooltip,
+		TooltipContent,
+		TooltipProvider,
+		TooltipTrigger
+	} from '$lib/components/ui/tooltip';
 	import type { Emotion } from '$lib/types';
-	import { Plus } from '@lucide/svelte';
+	import { MessageCircle, Plus } from '@lucide/svelte';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		emotions: Emotion[];
-		onSelect: (emotionId: string) => void | Promise<void>;
+		onSelect: (emotionId: string, comment?: string) => void | Promise<void>;
 		size?: 'default' | 'sm' | 'lg' | 'icon';
 		variant?: 'default' | 'ghost' | 'outline';
 		disabled?: boolean;
+		open?: boolean;
+		onOpenChange?: (open: boolean) => void;
 	};
 
-	let { emotions, onSelect, size = 'default', variant = 'ghost', disabled = false }: Props = $props();
+	let {
+		emotions,
+		onSelect,
+		size = 'default',
+		variant = 'ghost',
+		disabled = false,
+		open = $bindable(false),
+		onOpenChange
+	}: Props = $props();
 
-	let open = $state(false);
-	let isSelecting = $state(false);
+	let selectedEmotionId = $state<string | undefined>(undefined);
+	let comment = $state('');
+	let showComment = $state(false);
+	let isSaving = $state(false);
 
-	async function handleSelect(emotionId: string) {
-		isSelecting = true;
+	function handleOpenChange(newOpen: boolean) {
+		open = newOpen;
+		if (onOpenChange) {
+			onOpenChange(newOpen);
+		}
+	}
+
+	async function handleEmotionSelect(emotionId: string) {
+		selectedEmotionId = emotionId;
+
+		// If comment field is not open, auto-save immediately for smooth UX
+		if (!showComment) {
+			await handleQuickSave(emotionId);
+		}
+	}
+
+	async function handleQuickSave(emotionId: string) {
+		if (!emotionId) return;
+
+		isSaving = true;
 		try {
-			await onSelect(emotionId);
+			await onSelect(emotionId, comment || undefined);
 			open = false;
+			selectedEmotionId = undefined;
+			comment = '';
+			showComment = false;
 		} catch (error) {
 			console.error('Failed to save mood:', error);
 		} finally {
-			isSelecting = false;
+			isSaving = false;
 		}
+	}
+
+	async function handleSaveWithComment() {
+		if (!selectedEmotionId) return;
+		await handleQuickSave(selectedEmotionId);
 	}
 </script>
 
-<Popover bind:open>
-	<PopoverTrigger>
-		<Button {variant} {size} disabled={disabled || isSelecting}>
-			<Plus class="h-4 w-4" />
-		</Button>
+<Popover {open} onOpenChange={handleOpenChange}>
+	<PopoverTrigger disabled={disabled || isSaving} class={buttonVariants({ variant, size })}>
+		<Plus class="h-4 w-4" />
 	</PopoverTrigger>
-	<PopoverContent class="w-auto p-3" align="center">
-		<div class="space-y-2">
-			<p class="text-sm font-medium">Quick mood log</p>
-			{#if isSelecting}
-				<div class="flex items-center justify-center p-4">
-					<div class="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-				</div>
-			{:else}
-				<div class="grid grid-cols-4 gap-2">
-					{#each emotions as emotion}
-						<button
-							type="button"
-							class="flex flex-col items-center gap-1 rounded-lg border-2 border-transparent p-2 transition-all hover:border-primary hover:bg-accent disabled:opacity-50"
-							onclick={() => handleSelect(emotion.id)}
-							disabled={isSelecting}
-							title={emotion.name}
-						>
-							<span class="text-2xl">{emotion.emoji}</span>
-							<span class="text-xs font-medium">{emotion.name}</span>
-						</button>
-					{/each}
-				</div>
-			{/if}
+	<PopoverContent class="w-80 p-4" align="center">
+		<div class="space-y-4">
+			<div>
+				<h4 class="mb-3 text-sm font-medium">How are you feeling?</h4>
+				<TooltipProvider
+					delayDuration={300}
+					skipDelayDuration={0}
+				>
+					<div class="flex flex-wrap justify-center gap-2">
+						{#each emotions as emotion (emotion.id)}
+							<Tooltip disableHoverableContent={true}>
+								<TooltipTrigger
+									class={[
+										buttonVariants({
+											variant: selectedEmotionId === emotion.id ? 'default' : 'outline',
+											size: 'icon'
+										}),
+										'h-12 w-12',
+										'relative border-2 transition-all duration-200 hover:scale-110',
+										selectedEmotionId === emotion.id && 'shadow-lg ring-2 ring-ring ring-offset-2'
+									]}
+									style={selectedEmotionId !== emotion.id
+										? `border-color: ${emotion.color}30; background-color: ${emotion.color}10;`
+										: ''}
+									onclick={() => handleEmotionSelect(emotion.id)}
+								>
+									<span class="text-2xl">{emotion.emoji}</span>
+								</TooltipTrigger>
+								<TooltipContent side="top">
+									<p class="text-xs">{emotion.name}</p>
+								</TooltipContent>
+							</Tooltip>
+						{/each}
+					</div>
+				</TooltipProvider>
+			</div>
+			<div class="border-t pt-2">
+				{#if showComment}
+					<div class="space-y-2">
+						<Textarea
+							bind:value={comment}
+							placeholder="How are you feeling? Any thoughts to share?"
+							class="min-h-20 resize-none text-sm"
+							autofocus
+						/>
+						<div class="flex justify-end gap-2">
+							<Button
+								variant="ghost"
+								size="sm"
+								onclick={() => {
+									showComment = false;
+									comment = '';
+								}}
+							>
+								Cancel
+							</Button>
+							<Button
+								size="sm"
+								onclick={handleSaveWithComment}
+								disabled={!selectedEmotionId || isSaving}
+							>
+								{isSaving ? 'Saving...' : 'Save'}
+							</Button>
+						</div>
+					</div>
+				{:else}
+					<div class="flex items-center justify-between">
+						<Button variant="ghost" size="sm" onclick={() => (showComment = true)} class="text-xs">
+							<MessageCircle class="mr-1.5 h-3 w-3" />
+							{comment ? 'Edit comment' : 'Add comment'}
+						</Button>
+						{#if selectedEmotionId}
+							<Button size="sm" onclick={handleSaveWithComment} disabled={isSaving}>
+								{isSaving ? 'Saving...' : 'Save'}
+							</Button>
+						{/if}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</PopoverContent>
 </Popover>
