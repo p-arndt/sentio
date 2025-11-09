@@ -303,7 +303,6 @@
 	bind:open={showMoodDialog}
 	emotions={data.emotions}
 	{selectedDate}
-	allowPrivate={true}
 	requireComment={false}
 	onSave={handleSaveMood}
 	entry={selectedMood ? {

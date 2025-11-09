@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Users, UserCog, Smile } from '@lucide/svelte';
-	import { formatDate } from '$lib/utils/date';
+	import { Users, UserCog, Smile, Sparkles } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -27,6 +26,12 @@
 			value: data.stats.totalMoodEntries,
 			icon: Smile,
 			description: 'This month'
+		},
+		{
+			title: 'Global Emotions',
+			value: data.stats.globalEmotions,
+			icon: Sparkles,
+			description: 'Available emotions'
 		}
 	];
 </script>
@@ -37,7 +42,7 @@
 		<p class="text-muted-foreground text-sm">Here's an overview of your Niko-Niko calendar system.</p>
 	</div>
 
-	<div class="grid gap-4 md:grid-cols-3">
+	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 		{#each stats as stat}
 			<Card>
 				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -52,32 +57,66 @@
 		{/each}
 	</div>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Recent Activity</CardTitle>
-			<CardDescription>Latest mood entries across all teams</CardDescription>
-		</CardHeader>
-		<CardContent>
-			{#if data.recentEntries.length === 0}
-				<p class="text-muted-foreground text-center py-8">No recent activity</p>
-			{:else}
-				<div class="space-y-4">
-					{#each data.recentEntries as entry}
-						<div class="flex items-center gap-4">
-							<div class="text-2xl">{entry.emotion.emoji}</div>
-							<div class="flex-1">
-								<p class="text-sm font-medium">{entry.user.name}</p>
-								<p class="text-muted-foreground text-xs">
-									{formatDate(entry.date)}
-								</p>
+	<div class="grid gap-4 md:grid-cols-2">
+		<!-- Team Members Overview -->
+		<Card>
+			<CardHeader>
+				<CardTitle>Team Members</CardTitle>
+				<CardDescription>Number of members per team</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if data.teamActivity.length === 0}
+					<p class="text-muted-foreground text-center py-8">No teams yet</p>
+				{:else}
+					<div class="space-y-3">
+						{#each data.teamActivity as activity}
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-2">
+									<Users class="text-muted-foreground h-4 w-4" />
+									<span class="font-medium">{activity.teamName}</span>
+								</div>
+								<span class="text-muted-foreground text-sm">
+									{activity.memberCount} {activity.memberCount === 1 ? 'member' : 'members'}
+								</span>
 							</div>
-							{#if entry.comment}
-								<p class="text-muted-foreground text-sm max-w-xs truncate">{entry.comment}</p>
-							{/if}
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</CardContent>
-	</Card>
+						{/each}
+					</div>
+				{/if}
+			</CardContent>
+		</Card>
+
+		<!-- Team Activity (Last 7 Days) -->
+		<Card>
+			<CardHeader>
+				<CardTitle>Team Activity</CardTitle>
+				<CardDescription>Mood entries in the last 7 days</CardDescription>
+			</CardHeader>
+			<CardContent>
+				{#if data.teamEntryStats.length === 0}
+					<p class="text-muted-foreground text-center py-8">No activity yet</p>
+				{:else}
+					<div class="space-y-3">
+						{#each data.teamEntryStats as stats}
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-2">
+									<Smile class="text-muted-foreground h-4 w-4" />
+									<span class="font-medium">{stats.teamName}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-muted-foreground text-sm">
+										{stats.entryCount} {stats.entryCount === 1 ? 'entry' : 'entries'}
+									</span>
+									{#if stats.entryCount > 0}
+										<div class="h-2 w-2 rounded-full bg-green-500"></div>
+									{:else}
+										<div class="h-2 w-2 rounded-full bg-muted"></div>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</CardContent>
+		</Card>
+	</div>
 </div>

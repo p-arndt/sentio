@@ -232,6 +232,9 @@ export class MoodEntryService {
 	 * Create mood entry
 	 */
 	static async createMoodEntry(data: MoodEntryCreate): Promise<MoodEntry> {
+		// Personal entries (no teamId) are always private
+		const isPersonalEntry = !data.teamId;
+		
 		const result = await db
 			.insert(calendarEntry)
 			.values({
@@ -241,7 +244,7 @@ export class MoodEntryService {
 				date: data.date,
 				timeOfDay: data.timeOfDay || null,
 				comment: data.comment || null,
-				isPrivate: data.isPrivate || false
+				isPrivate: isPersonalEntry ? true : (data.isPrivate || false)
 			})
 			.returning();
 
@@ -252,10 +255,19 @@ export class MoodEntryService {
 	 * Update mood entry
 	 */
 	static async updateMoodEntry(entryId: string, data: MoodEntryUpdate): Promise<MoodEntry | null> {
+		// Get the existing entry to check if it's a personal entry
+		const existingEntry = await MoodEntryService.getMoodEntryById(entryId);
+		if (!existingEntry) return null;
+		
+		// Personal entries (no teamId) are always private
+		const isPersonalEntry = !existingEntry.teamId;
+		
 		const result = await db
 			.update(calendarEntry)
 			.set({
 				...data,
+				// Force isPrivate to true for personal entries
+				...(isPersonalEntry && { isPrivate: true }),
 				updatedAt: new Date()
 			})
 			.where(eq(calendarEntry.id, entryId))

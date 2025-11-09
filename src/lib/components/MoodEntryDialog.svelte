@@ -206,7 +206,7 @@
 			</div>
 
 			<!-- Privacy Toggle -->
-			{#if allowPrivate && !teamId}
+			{#if allowPrivate && teamId}
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label>Private Entry</Label>
