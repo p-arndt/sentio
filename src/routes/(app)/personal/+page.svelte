@@ -87,7 +87,7 @@
 		showMoodDialog = true;
 	}
 
-	async function handleQuickMood(emotionId: string, date: Date) {
+	async function handleQuickMood(emotionId: string, date: Date, userId: string, comment?: string) {
 		if (isSubmitting) return;
 		
 		isSubmitting = true;
@@ -101,7 +101,8 @@
 					emotionId,
 					// Send local date string to avoid timezone drift
 					date: toDateString(date),
-					teamId: null
+					teamId: null,
+					...(comment && { comment })
 				})
 			});
 
@@ -255,6 +256,7 @@
 				allowAdd={true}
 				allowEdit={true}
 				showDayHeader={true}
+				userId={data.user.id}
 			/>
 		</CardContent>
 	</Card>

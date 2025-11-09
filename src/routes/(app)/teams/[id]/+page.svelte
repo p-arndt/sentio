@@ -103,7 +103,7 @@
 		await goto(`/teams/${data.team.id}?weekStart=${ymd}`);
 	}
 
-	async function handleQuickMood(emotionId: string, date: Date) {
+	async function handleQuickMood(emotionId: string, date: Date, userId: string, comment?: string) {
 		if (isSubmitting) return;
 
 		isSubmitting = true;
@@ -112,7 +112,8 @@
 				emotionId,
 				// Send local date string to avoid TZ drift
 				date: toDateString(date),
-				teamId: data.team.id
+				teamId: data.team.id,
+				...(comment && { comment })
 			};
 
 			const response = await fetch('/api/mood-entries', {
@@ -314,7 +315,7 @@
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
 		onWeekChange={handleWeekChange}
-		onQuickAdd={(emotionId, date, userId) => handleQuickMood(emotionId, date)}
+		onQuickAdd={(emotionId, date, userId, comment) => handleQuickMood(emotionId, date, userId, comment)}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}
 	/>

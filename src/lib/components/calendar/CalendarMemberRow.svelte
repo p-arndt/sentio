@@ -10,7 +10,7 @@
 		emotions: Emotion[];
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
-		onQuickAdd: (emotionId: string, day: Date, userId: string) => void;
+		onQuickAdd: (emotionId: string, day: Date, userId: string, comment?: string) => void;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		isEven?: boolean;

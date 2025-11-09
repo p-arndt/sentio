@@ -15,7 +15,7 @@
 		currentUserId?: string;
 		showWeekends: boolean;
 		onWeekChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (emotionId: string, date: Date, userId: string) => Promise<void> | void;
+		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		className?: string;

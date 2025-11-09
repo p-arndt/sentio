@@ -9,12 +9,13 @@
 		days: Date[];
 		emotions: Emotion[];
 		entries: MoodEntryWithDetails[];
-		onQuickAdd: (emotionId: string, date: Date) => Promise<void> | void;
+		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails) => void;
 		isSubmitting?: boolean;
 		allowAdd?: boolean;
 		allowEdit?: boolean;
 		showDayHeader?: boolean; // personal view shows day name + Today badge
+		userId?: string;
 	};
 
 	let {
@@ -26,7 +27,8 @@
 		isSubmitting = false,
 		allowAdd = true,
 		allowEdit = true,
-		showDayHeader = false
+		showDayHeader = false,
+		userId = ''
 	}: Props = $props();
 
 	function getEmotionById(id: string) {
@@ -89,7 +91,7 @@
 						<div class="flex justify-center">
 							<QuickMoodSelector
 								emotions={emotions}
-								onSelect={(emotionId) => onQuickAdd(emotionId, day)}
+								onSelect={(emotionId) => onQuickAdd(emotionId, day, userId)}
 								size="sm"
 								variant="ghost"
 								disabled={isSubmitting}
@@ -101,7 +103,7 @@
 						<div class="flex h-full items-center justify-center">
 							<QuickMoodSelector
 								emotions={emotions}
-								onSelect={(emotionId) => onQuickAdd(emotionId, day)}
+								onSelect={(emotionId) => onQuickAdd(emotionId, day, userId)}
 								disabled={isSubmitting}
 							/>
 						</div>
