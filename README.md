@@ -45,6 +45,10 @@ Use the [Sentio Docker Hub Image](https://hub.docker.com/r/padi2312/sentio) the 
    docker compose up -d
    ```
 
+3. **Access the app:**
+
+   Open your browser and go to `http://localhost:3000` (or the port you configured).
+
 # How to Use
 
 ## For Team Members
