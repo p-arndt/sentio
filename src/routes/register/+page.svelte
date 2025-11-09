@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
@@ -7,6 +8,13 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { User, Mail, Lock, Eye, EyeOff, Check, X, Shield } from '@lucide/svelte';
+	import type { PageData } from './$types';
+
+	type Props = {
+		data: PageData;
+	};
+
+	let { data }: Props = $props();
 
 	let name = $state('');
 	let email = $state('');
@@ -18,6 +26,19 @@
 	let error = $state('');
 	let loading = $state(false);
 	let passwordStrength = $state(0);
+	let invitationToken = $state('');
+
+	$effect(() => {
+		// Extract invitation token from query param and pre-fill email
+		const token = page.url.searchParams.get('invitationToken');
+		if (token) {
+			invitationToken = token;
+			// Pre-fill email from the invitation data
+			if (data.invitationEmail) {
+				email = data.invitationEmail;
+			}
+		}
+	});
 
 	$effect(() => {
 		passwordStrength = calculatePasswordStrength(password);
@@ -69,7 +90,33 @@
 		loading = true;
 		try {
 			await authClient.signUp.email({ email, password, name: name.trim() });
-			goto('/login');
+
+			// If we have an invitation token, accept it after signup
+			if (invitationToken) {
+				try {
+					const res = await fetch('/api/invitations/accept', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ token: invitationToken })
+					});
+
+					const result = await res.json();
+					if (res.ok) {
+						// Redirect to dashboard or team page
+						if (result.type === 'team' && result.teamId) {
+							goto(`/teams/${result.teamId}`);
+						} else {
+							goto('/');
+						}
+						return;
+					}
+				} catch (inviteErr) {
+					console.error('Error accepting invitation:', inviteErr);
+					// Fall through to redirect to dashboard
+				}
+			}
+
+			goto('/');
 		} catch (e: any) {
 			error = e.message || 'Registration failed';
 		} finally {
@@ -87,7 +134,13 @@
 				<User class="h-8 w-8 text-primary-foreground" />
 			</div>
 			<CardTitle class="text-2xl font-bold text-primary">Create Account</CardTitle>
-			<p class="mt-2 text-muted-foreground">Join us and start your journey</p>
+			{#if invitationToken}
+				<p class="mt-2 text-muted-foreground">You were invited to join! Create your account below.</p>
+			{:else if data.hasValidInvitation === false}
+				<p class="mt-2 text-muted-foreground">Sign up is by invitation only</p>
+			{:else}
+				<p class="mt-2 text-muted-foreground">Join us and start your journey</p>
+			{/if}
 		</CardHeader>
 		<CardContent class="pt-6">
 			<form onsubmit={register} class="space-y-6">

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Plus, Users, Edit, Trash2 } from '@lucide/svelte';
+	import { Plus, Users, Edit, Trash2, Mail } from '@lucide/svelte';
 	import { formatDate } from '$lib/utils/date';
 	import type { PageData } from './$types';
 	import TeamDialog from './TeamDialog.svelte';
+	import InviteDialog from './InviteDialog.svelte';
 
 	type Props = {
 		data: PageData;
@@ -14,6 +15,8 @@
 
 	let showDialog = $state(false);
 	let editingTeam = $state<(typeof data.teams)[0] | null>(null);
+	let showInviteDialog = $state(false);
+	let selectedTeamForInvite = $state<(typeof data.teams)[0] | null>(null);
 
 	function openCreateDialog() {
 		editingTeam = null;
@@ -23,6 +26,11 @@
 	function openEditDialog(team: (typeof data.teams)[0]) {
 		editingTeam = team;
 		showDialog = true;
+	}
+
+	function openInviteDialog(team: (typeof data.teams)[0]) {
+		selectedTeamForInvite = team;
+		showInviteDialog = true;
 	}
 </script>
 
@@ -62,6 +70,14 @@
 							{/if}
 						</div>
 						<div class="flex gap-1">
+							<Button
+								variant="ghost"
+								size="icon"
+								title="Invite member"
+								onclick={() => openInviteDialog(team)}
+							>
+								<Mail class="h-4 w-4" />
+							</Button>
 							<Button variant="ghost" size="icon" onclick={() => openEditDialog(team)}>
 								<Edit class="h-4 w-4" />
 							</Button>
@@ -114,3 +130,16 @@
 </div>
 
 <TeamDialog bind:open={showDialog} team={editingTeam} />
+
+{#if selectedTeamForInvite}
+	<InviteDialog
+		bind:open={showInviteDialog}
+		onOpenChange={(open) => {
+			if (!open) {
+				selectedTeamForInvite = null;
+			}
+		}}
+		teamId={selectedTeamForInvite.id}
+		teamName={selectedTeamForInvite.name}
+	/>
+{/if}

@@ -24,9 +24,45 @@ export const load: PageServerLoad = async () => {
 		});
 	}
 
+	// Get email settings
+	const smtpHostResult = await db
+		.select()
+		.from(settings)
+		.where(eq(settings.key, 'smtpHost'))
+		.limit(1);
+
+	const smtpPortResult = await db
+		.select()
+		.from(settings)
+		.where(eq(settings.key, 'smtpPort'))
+		.limit(1);
+
+	const smtpUsernameResult = await db
+		.select()
+		.from(settings)
+		.where(eq(settings.key, 'smtpUsername'))
+		.limit(1);
+
+	const smtpPasswordResult = await db
+		.select()
+		.from(settings)
+		.where(eq(settings.key, 'smtpPassword'))
+		.limit(1);
+
+	const smtpFromEmailResult = await db
+		.select()
+		.from(settings)
+		.where(eq(settings.key, 'smtpFromEmail'))
+		.limit(1);
+
 	return {
 		settings: {
-			showWeekends
+			showWeekends,
+			smtpHost: smtpHostResult[0]?.value || '',
+			smtpPort: smtpPortResult[0]?.value || '587',
+			smtpUsername: smtpUsernameResult[0]?.value || '',
+			smtpPassword: smtpPasswordResult[0]?.value || '',
+			smtpFromEmail: smtpFromEmailResult[0]?.value || ''
 		}
 	};
 };
@@ -64,6 +100,53 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error updating settings:', error);
 			return fail(500, { error: 'Failed to update settings' });
+		}
+	},
+
+	updateEmailSettings: async ({ request }) => {
+		const formData = await request.formData();
+		const smtpHost = formData.get('smtpHost')?.toString() || '';
+		const smtpPort = formData.get('smtpPort')?.toString() || '587';
+		const smtpUsername = formData.get('smtpUsername')?.toString() || '';
+		const smtpPassword = formData.get('smtpPassword')?.toString() || '';
+		const smtpFromEmail = formData.get('smtpFromEmail')?.toString() || '';
+
+		try {
+			const settingsToUpdate = [
+				{ key: 'smtpHost', value: smtpHost },
+				{ key: 'smtpPort', value: smtpPort },
+				{ key: 'smtpUsername', value: smtpUsername },
+				{ key: 'smtpPassword', value: smtpPassword },
+				{ key: 'smtpFromEmail', value: smtpFromEmail }
+			];
+
+			for (const setting of settingsToUpdate) {
+				const existing = await db
+					.select()
+					.from(settings)
+					.where(eq(settings.key, setting.key))
+					.limit(1);
+
+				if (existing.length > 0) {
+					await db
+						.update(settings)
+						.set({
+							value: setting.value,
+							updatedAt: new Date()
+						})
+						.where(eq(settings.key, setting.key));
+				} else {
+					await db.insert(settings).values({
+						key: setting.key,
+						value: setting.value
+					});
+				}
+			}
+
+			return { success: true };
+		} catch (error) {
+			console.error('Error updating email settings:', error);
+			return fail(500, { error: 'Failed to update email settings' });
 		}
 	}
 };

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { env } from '$env/dynamic/public';
 	import { authClient } from '$lib/auth/client';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from '@lucide/svelte';
+	import sentiologo from '$lib/assets/logo.png';
 
 	let email = $state('');
 	let password = $state('');
@@ -43,10 +45,10 @@
 >
 	<Card class="w-full max-w-md border-border bg-card/80 shadow-2xl backdrop-blur-sm">
 		<CardHeader class="pb-2 text-center">
-			<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-				<LogIn class="h-8 w-8 text-primary-foreground" />
+			<div class="mx-auto mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-primary">
+				<img src={sentiologo} alt="Senoti logo" class="h-32 w-auto" />
 			</div>
-			<CardTitle class="text-2xl font-bold text-primary">Welcome Back</CardTitle>
+			<CardTitle class="text-2xl font-bold text-primary">Welcome</CardTitle>
 			<p class="mt-2 text-muted-foreground">Sign in to your account</p>
 		</CardHeader>
 		<CardContent class="pt-6">
@@ -131,14 +133,16 @@
 			</form>
 
 			<!-- Register Link -->
-			<div class="mt-6 text-center">
-				<p class="text-muted-foreground">
-					Don't have an account?
-					<a href="/register" class="ml-1 font-medium text-primary hover:underline"
-						>Create one here</a
-					>
-				</p>
-			</div>
+			{#if env.PUBLIC_ALLOW_SIGNUP === 'true'}
+				<div class="mt-4 text-center">
+					<p class="text-muted-foreground">
+						Don't have an account?
+						<a href="/register" class="ml-1 font-medium text-primary hover:underline"
+							>Create one here</a
+						>
+					</p>
+				</div>
+			{/if}
 
 			<!-- Forgot Password Link -->
 			<div class="mt-4 text-center">

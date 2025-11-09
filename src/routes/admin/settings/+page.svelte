@@ -3,6 +3,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
 
@@ -13,6 +14,11 @@
 	let { data, form = null }: Props = $props();
 
 	let showWeekends = $state(data.settings.showWeekends);
+	let smtpHost = $state(data.settings.smtpHost || '');
+	let smtpPort = $state(data.settings.smtpPort || '587');
+	let smtpUsername = $state(data.settings.smtpUsername || '');
+	let smtpPassword = $state(data.settings.smtpPassword || '');
+	let smtpFromEmail = $state(data.settings.smtpFromEmail || '');
 </script>
 
 <div class="space-y-6">
@@ -62,6 +68,91 @@
 
 				<div class="mt-6 flex justify-end">
 					<Button type="submit">Save Changes</Button>
+				</div>
+			</form>
+		</CardContent>
+	</Card>
+
+	<Card>
+		<CardHeader>
+			<CardTitle>Email Settings</CardTitle>
+			<CardDescription>Configure SMTP settings for sending invitation emails</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<form
+				method="POST"
+				action="?/updateEmailSettings"
+				use:enhance={() => {
+					return async ({ update }) => {
+						await update();
+					};
+				}}
+			>
+				<div class="space-y-4">
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="smtp-host" class="text-sm font-medium">SMTP Host</Label>
+							<Input
+								id="smtp-host"
+								name="smtpHost"
+								type="text"
+								placeholder="smtp.gmail.com"
+								bind:value={smtpHost}
+								required
+							/>
+						</div>
+						<div class="space-y-2">
+							<Label for="smtp-port" class="text-sm font-medium">SMTP Port</Label>
+							<Input
+								id="smtp-port"
+								name="smtpPort"
+								type="number"
+								placeholder="587"
+								bind:value={smtpPort}
+								required
+							/>
+						</div>
+					</div>
+
+					<div class="space-y-2">
+						<Label for="smtp-username" class="text-sm font-medium">SMTP Username</Label>
+						<Input
+							id="smtp-username"
+							name="smtpUsername"
+							type="text"
+							placeholder="your-email@gmail.com"
+							bind:value={smtpUsername}
+							required
+						/>
+					</div>
+
+					<div class="space-y-2">
+						<Label for="smtp-password" class="text-sm font-medium">SMTP Password</Label>
+						<Input
+							id="smtp-password"
+							name="smtpPassword"
+							type="password"
+							placeholder="Your SMTP password"
+							bind:value={smtpPassword}
+							required
+						/>
+					</div>
+
+					<div class="space-y-2">
+						<Label for="smtp-from-email" class="text-sm font-medium">From Email Address</Label>
+						<Input
+							id="smtp-from-email"
+							name="smtpFromEmail"
+							type="email"
+							placeholder="noreply@yourdomain.com"
+							bind:value={smtpFromEmail}
+							required
+						/>
+					</div>
+				</div>
+
+				<div class="mt-6 flex justify-end">
+					<Button type="submit">Save Email Settings</Button>
 				</div>
 			</form>
 		</CardContent>

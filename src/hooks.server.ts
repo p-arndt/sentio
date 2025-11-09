@@ -14,7 +14,7 @@ let hasAdmin = false;
 
 export const markAdminInitialized = () => {
 	hasAdmin = true;
-}
+};
 
 export const init: ServerInit = async () => {
 	try {
@@ -68,6 +68,11 @@ export const betterAuthHandle: Handle = async ({ event, resolve }) => {
 };
 
 export const authHandle: Handle = async ({ event, resolve }) => {
+	const unprotectedRoutes = ['/init', '/invitations'];
+	if (unprotectedRoutes.some((route) => event.url.pathname.startsWith(route))) {
+		return resolve(event);
+	}
+
 	const session = await auth.api.getSession({
 		headers: event.request.headers
 	});
@@ -79,7 +84,11 @@ export const authHandle: Handle = async ({ event, resolve }) => {
 
 	// If admin exists but not on init route, proceed with normal auth checks
 	if (hasAdmin) {
-		if (!session?.user?.id && !event.url.pathname.startsWith('/login') && event.url.pathname !== '/register') {
+		if (
+			!session?.user?.id &&
+			!event.url.pathname.startsWith('/login') &&
+			event.url.pathname !== '/register'
+		) {
 			return redirect(302, '/login');
 		}
 

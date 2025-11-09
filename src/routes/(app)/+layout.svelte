@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
+	import sentiologo from '$lib/assets/logo.png';
+	import DarkModeToggle from '$lib/components/common/dark-mode-toggle.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -11,11 +12,10 @@
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
-	import DarkModeToggle from '$lib/components/common/dark-mode-toggle.svelte';
-	import { Calendar, Users, Settings, User, LogOut, LayoutDashboard, Heart } from '@lucide/svelte';
 	import { getUserInitials } from '$lib/utils/user';
-	import type { LayoutData } from './$types';
+	import { Heart, LayoutDashboard, LogOut, Settings, User, Users } from '@lucide/svelte';
 	import '../../app.css';
+	import type { LayoutData } from './$types';
 
 	type Props = {
 		data: LayoutData;
@@ -43,13 +43,10 @@
 	<header class="border-b bg-card">
 		<div class="container mx-auto flex h-16 items-center justify-between px-4">
 			<!-- Logo and Title -->
-			<div class="flex items-center gap-3">
-				<div class="rounded-lg bg-primary p-2">
-					<Calendar class="h-6 w-6 text-primary-foreground" />
-				</div>
+			<div class="flex items-center gap-1">
+				<img src={sentiologo} alt="Senoti logo" class="h-10 w-10" />
 				<div>
-					<h1 class="text-lg font-bold">Sentio</h1>
-					<p class="text-xs text-muted-foreground">Track your Mood</p>
+					<h1 class="text-xl font-bold">Sentio</h1>
 				</div>
 			</div>
 

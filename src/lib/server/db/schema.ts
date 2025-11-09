@@ -163,3 +163,21 @@ export const userPreferences = pgTable('user_preferences', {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+export const invitation = pgTable('invitations', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	email: text('email').notNull(),
+	token: text('token').notNull().unique(),
+	type: text('type')
+		.$defaultFn(() => 'team')
+		.notNull(), // 'team' or 'general' (general = instance-wide invitation)
+	teamId: uuid('team_id').references(() => team.id, { onDelete: 'cascade' }), // null for general invitations
+	createdBy: uuid('created_by')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	acceptedBy: uuid('accepted_by').references(() => user.id, { onDelete: 'set null' }),
+	expiresAt: timestamp('expires_at').notNull(),
+	acceptedAt: timestamp('accepted_at'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
