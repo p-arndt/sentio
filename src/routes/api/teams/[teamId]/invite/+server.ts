@@ -7,7 +7,7 @@ import { generateRandomString } from '$lib/utils';
 
 export const POST: RequestHandler = async ({ request, locals, params }) => {
 	try {
-		if (!locals.user || !locals.user.isAdmin) {
+		if (!locals.user) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
 
@@ -25,6 +25,14 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		const teamRecord = await db.select().from(team).where(eq(team.id, actualTeamId)).limit(1);
 		if (teamRecord.length === 0) {
 			return json({ error: 'Team not found' }, { status: 404 });
+		}
+
+		// Check if user is team owner or platform admin
+		const isTeamOwner = teamRecord[0].createdBy === locals.user.id;
+		const isAdmin = locals.user.isAdmin;
+
+		if (!isTeamOwner && !isAdmin) {
+			return json({ error: 'Only team owners and admins can invite members' }, { status: 403 });
 		}
 
 		// Generate token
@@ -50,7 +58,7 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 			email,
 			teamRecord[0].name,
 			invitationLink,
-			invitingUser[0]?.name || 'An admin'
+			invitingUser[0]?.name || 'A team member'
 		);
 
 		if (!emailSent) {

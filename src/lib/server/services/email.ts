@@ -94,7 +94,7 @@ export async function sendInvitationEmail(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>You're invited to join</title>
+    <title>You're invited to join Sentio</title>
     <!-- Preview text for many email clients -->
     <style>
       /* Ensure mobile-friendly email rendering */
@@ -108,7 +108,7 @@ export async function sendInvitationEmail(
   <body style="margin:0; padding:0; background-color:#f5f7fb; font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;">
     <!-- Hidden preview text -->
     <div style="display:none;max-height:0px;overflow:hidden;mso-hide:all;">
-      ${invitedByName} invited you to join Niko Niko Calendar — accept the invitation to get started.
+      ${invitedByName} invited you to join a Mood Calendar — accept the invitation to get started.
     </div>
 
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -119,7 +119,7 @@ export async function sendInvitationEmail(
               <td style="background:linear-gradient(90deg,#0ea5ff 0%,#007bff 100%);padding:22px 24px;display:flex;align-items:center;gap:12px;">
                 <!-- Simple inline logo -->
                 <div style="width:40px;height:40px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;color:#007bff;font-size:18px;">
-                  NN
+                  Sentio
                 </div>
                 <div style="color:#fff;font-weight:600;font-size:16px;">Niko Niko Calendar</div>
               </td>

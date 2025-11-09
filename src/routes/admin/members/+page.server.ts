@@ -164,5 +164,43 @@ export const actions: Actions = {
 		} catch {
 			return fail(400, { error: 'Failed to remove admin privileges' });
 		}
+	},
+
+	deleteUser: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const formData = await request.formData();
+		const userId = formData.get('userId') as string;
+
+		if (!userId) {
+			return fail(400, { error: 'User ID is required' });
+		}
+
+		// Prevent deleting the current user
+		if (userId === locals.user.id) {
+			return fail(400, { error: 'Cannot delete your own account' });
+		}
+
+		// Prevent deleting the last admin
+		const targetUser = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+		if (targetUser.length > 0 && targetUser[0].isAdmin) {
+			const admins = await db.select().from(user).where(eq(user.isAdmin, true));
+			if (admins.length <= 1) {
+				return fail(400, { error: 'Cannot delete the last admin' });
+			}
+		}
+
+		try {
+			// Delete user from all teams first
+			await db.delete(teamMember).where(eq(teamMember.userId, userId));
+			// Delete the user
+			await db.delete(user).where(eq(user.id, userId));
+			return { success: true };
+		} catch (error) {
+			console.error('Error deleting user:', error);
+			return fail(400, { error: 'Failed to delete user' });
+		}
 	}
 };

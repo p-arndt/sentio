@@ -51,9 +51,6 @@
 				throw new Error(j.error || 'Failed to delete');
 			}
 
-			$effect(() => {
-				loadPending();
-			});
 			// remove locally
 			pending = pending.filter((p) => p.id !== id);
 		} catch (err) {
@@ -65,6 +62,11 @@
 		if (!data?.emailConfigured) return;
 		showInviteDialog = true;
 	}
+
+	// Load pending invitations on mount
+	$effect(() => {
+		loadPending();
+	});
 </script>
 
 <div class="space-y-6">

@@ -23,12 +23,10 @@
 			<p class="text-muted-foreground">Manage your team mood calendars</p>
 		</div>
 
-		{#if data.user.isAdmin}
-			<Button href="/teams/new" size="lg">
-				<Plus class="mr-2 h-4 w-4" />
-				Create Team
-			</Button>
-		{/if}
+		<Button href="/teams/new" size="lg">
+			<Plus class="mr-2 h-4 w-4" />
+			Create Team
+		</Button>
 	</div>
 
 	<!-- Teams Grid -->
@@ -83,18 +81,12 @@
 				</Empty.Media>
 				<Empty.Title>No teams yet</Empty.Title>
 				<Empty.Description>
-					{#if data.user.isAdmin}
-						Create your first team to track moods and invite members.
-					{:else}
-						You aren't in any teams yet — ask an admin to invite you.
-					{/if}
+					Create your first team to track moods and invite members.
 				</Empty.Description>
 			</Empty.Header>
-			{#if data.user.isAdmin}
-				<Empty.Content>
-					<Button variant="outline" href="/teams/new">Create Team</Button>
-				</Empty.Content>
-			{/if}
+			<Empty.Content>
+				<Button variant="outline" href="/teams/new">Create Team</Button>
+			</Empty.Content>
 		</Empty.Root>
 	{/if}
 </div>
