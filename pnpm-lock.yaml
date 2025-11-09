@@ -26,6 +26,9 @@ importers:
       d3-shape:
         specifier: ^3.2.0
         version: 3.2.0
+      drizzle-orm:
+        specifier: ^0.44.7
+        version: 0.44.7(kysely@0.28.8)(postgres@3.4.7)
       nodemailer:
         specifier: ^7.0.10
         version: 7.0.10
@@ -87,9 +90,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.6
         version: 0.31.6
-      drizzle-orm:
-        specifier: ^0.44.7
-        version: 0.44.7(kysely@0.28.8)(postgres@3.4.7)
       embla-carousel-svelte:
         specifier: ^8.6.0
         version: 8.6.0(svelte@5.43.4)
