@@ -2,17 +2,21 @@
 FROM node:22 AS base
 WORKDIR /app
 RUN npm install -g pnpm
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
 
-# Stage 1: Build the application
-FROM base AS builder
+# Stage 1: Install all dependencies (including dev)
+FROM base AS dependencies
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Build the application
+FROM dependencies AS builder
 WORKDIR /app
 COPY . .
 RUN pnpm run build
 
-# Stage 2: Install the dependencies
-FROM base AS dependencies
+# Stage 3: Prepare production dependencies
+FROM base AS prod-dependencies
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
@@ -21,7 +25,7 @@ RUN pnpm install --prod
 FROM gcr.io/distroless/nodejs22-debian12 AS production
 WORKDIR /app
 
-COPY --from=dependencies /app/node_modules /app/node_modules
+COPY --from=prod-dependencies /app/node_modules /app/node_modules
 COPY --from=builder /app/build /app/build
 COPY --from=builder /app/drizzle /app/drizzle
 
