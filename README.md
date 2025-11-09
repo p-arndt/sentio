@@ -1,8 +1,12 @@
-# 🎭 Sentio - Team Mood Tracker
+# Sentio - Team Mood Tracker
+
+<p align="center">
+    <img src="src/lib/assets/logo.png" alt="Sentio Logo" width="200" />
+</p>
 
 Keep your team's spirits up! Track team morale, spot emotional trends, and build a healthier team culture.
 
-## What is Sentio?
+# What is Sentio?
 
 Sentio is a simple way for teams to track how everyone is feeling. Every day, team members quickly log their mood, and you get instant insights into your team's emotional wellbeing. It's like a daily pulse check for your team!
 
@@ -15,9 +19,17 @@ Sentio is a simple way for teams to track how everyone is feeling. Every day, te
 - 👤 Manage team members and permissions
 - 📅 Track historical data and progress
 
-## Getting Started
+# Getting Started
 
-### Quick Setup (5 minutes)
+## Quick Setup with Docker Compose
+
+The easiest way to get up and running! Just use Docker Compose:
+
+### Use Docker Hub Image
+
+Use the [Sentio Docker Hub Image](https://hub.docker.com/r/padi2312/sentio) the backend service in your `docker-compose.yml`.
+
+### Build on your own
 
 1. **Clone the repository:**
 
@@ -26,63 +38,30 @@ Sentio is a simple way for teams to track how everyone is feeling. Every day, te
    cd sentio
    ```
 
-2. **Install dependencies:**
+2. **Start everything with Docker Compose:**
 
    ```bash
-   pnpm install
+   cd docker
+   docker compose up -d
    ```
 
-3. **Set up your environment file:**
-   Create a `.env.local` file and add these settings:
+# How to Use
 
-   ```env
-   POSTGRES_USER=sentio_user
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_HOST=localhost
-   POSTGRES_PORT=5432
-   POSTGRES_DB=sentio_db
-   AUTH_SECRET=your_secret_key
-   PUBLIC_APP_URL=http://localhost:5173
-   ```
-
-4. **Start the database:**
-
-   ```bash
-   pnpm run db:start
-   ```
-
-5. **Initialize the database:**
-
-   ```bash
-   pnpm run db:generate
-   pnpm run db:push
-   ```
-
-6. **Run the app:**
-
-   ```bash
-   pnpm run dev
-   ```
-
-   Open http://localhost:5173 in your browser! 🎉
-
-## How to Use
-
-### For Team Members
+## For Team Members
 
 1. Log in with your email and password
 2. Click the mood button to log how you're feeling today
 3. Choose your emotion from the options
 4. Done! Your team can now see the team's mood snapshot
 
-### For Team Managers
+## For Team Managers
 
 1. Create or join a team
 2. Invite team members to your workspace
 3. View team analytics and mood trends
 4. Get actionable insights about your team's wellbeing
 
-## Features at a Glance
+# Features at a Glance
 
 | Feature                 | What it does                              |
 | ----------------------- | ----------------------------------------- |
@@ -92,33 +71,22 @@ Sentio is a simple way for teams to track how everyone is feeling. Every day, te
 | **Team Management**     | Add/remove members, manage permissions    |
 | **Secure**              | Your data is safe with encrypted sessions |
 
-## Environment Variables
+# Environment Variables
 
 For developers: Here are the environment variables you need to set up the application.
 
-### Required Settings
+## Required Settings
 
-| Variable            | What it is                | Example                  |
-| ------------------- | ------------------------- | ------------------------ |
-| `POSTGRES_USER`     | Database username         | `sentio_user`            |
-| `POSTGRES_PASSWORD` | Database password         | `your_secure_password`   |
-| `POSTGRES_HOST`     | Where your database lives | `localhost`              |
-| `POSTGRES_PORT`     | Database port             | `5432`                   |
-| `POSTGRES_DB`       | Database name             | `sentio_db`              |
-| `AUTH_SECRET`       | Security key for sessions | Generate a random string |
-| `PUBLIC_APP_URL`    | Where the app runs        | `http://localhost:5173`  |
-
-### Optional Settings (Email)
-
-If you want to send emails for verification:
-
-| Variable        | What it is           |
-| --------------- | -------------------- |
-| `SMTP_HOST`     | Email server address |
-| `SMTP_PORT`     | Email server port    |
-| `SMTP_USER`     | Email login          |
-| `SMTP_PASSWORD` | Email password       |
-| `SMTP_FROM`     | Sender email address |
+| Variable              | What it is                             | Example / Default                 |
+| --------------------- | -------------------------------------- | --------------------------------- |
+| `PUBLIC_ALLOW_SIGNUP` | Enable user registration (true/false)  | `"false"`                         |
+| `BETTER_AUTH_SECRET`  | Secret used by the auth/session system | (generate a secure random string) |
+| `BETTER_AUTH_URL`     | URL of the auth service                | `https://auth.example.com`        |
+| `POSTGRES_HOST`       | Where your database lives              | `localhost`                       |
+| `POSTGRES_PORT`       | Database port (optional)               | `5432`                            |
+| `POSTGRES_USER`       | Database username                      | `sentio`                          |
+| `POSTGRES_PASSWORD`   | Database password                      | `sentio`                          |
+| `POSTGRES_DB`         | Database name                          | `sentio`                          |
 
 ## Common Commands
 
