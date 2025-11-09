@@ -22,12 +22,14 @@ export interface UserPreferences {
 	updatedAt: Date;
 }
 
+export type Visibility = 'public' | 'team' | 'private';
+
 // ==================== TEAM TYPES ====================
 export interface Team {
 	id: string;
 	name: string;
 	description?: string | null;
-	visibility: 'public' | 'team' | 'private';
+	visibility: Visibility;
 	allowMultipleMoodsPerDay: boolean;
 	requireComment: boolean;
 	showWeekends: boolean;
@@ -62,6 +64,8 @@ export interface Emotion {
 	name: string;
 	emoji: string;
 	color: string;
+	valence: number; // Score representing positive/negative sentiment (default emotions use -5 to +5)
+	description?: string | null; // Optional description to explain the emotion's meaning
 	order: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -233,6 +237,8 @@ export interface EmotionCreateInput {
 	name: string;
 	emoji: string;
 	color: string;
+	valence?: number; // Defaults to 0 if not provided
+	description?: string;
 	order?: string;
 }
 
@@ -240,6 +246,8 @@ export interface EmotionUpdateInput {
 	name?: string;
 	emoji?: string;
 	color?: string;
+	valence?: number;
+	description?: string;
 	order?: string;
 }
 

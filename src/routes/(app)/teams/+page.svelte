@@ -13,17 +13,6 @@
 	import { formatDate, getVisibilityIcon } from '$lib/utils';
 
 	let { data } = $props();
-
-	function getVisibilityDescription(visibility: string) {
-		switch (visibility) {
-			case 'public':
-				return 'Anyone can view';
-			case 'private':
-				return 'Only you can view';
-			default:
-				return 'Team members only';
-		}
-	}
 </script>
 
 <div class="container mx-auto space-y-6 px-4 py-8">
@@ -94,13 +83,18 @@
 				</Empty.Media>
 				<Empty.Title>No teams yet</Empty.Title>
 				<Empty.Description>
-					Create your first team to start tracking mood with your colleagues. Teams help you
-					understand and improve your team's well-being.
+					{#if data.user.isAdmin}
+						Create your first team to track moods and invite members.
+					{:else}
+						You aren't in any teams yet — ask an admin to invite you.
+					{/if}
 				</Empty.Description>
 			</Empty.Header>
-			<Empty.Content>
-				<Button variant="outline" href="/teams/new">Create Team</Button>
-			</Empty.Content>
+			{#if data.user.isAdmin}
+				<Empty.Content>
+					<Button variant="outline" href="/teams/new">Create Team</Button>
+				</Empty.Content>
+			{/if}
 		</Empty.Root>
 	{/if}
 </div>

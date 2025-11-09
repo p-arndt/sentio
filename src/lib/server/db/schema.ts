@@ -1,5 +1,5 @@
 // src/lib/server/db/schema.ts
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -68,6 +68,10 @@ export const emotion = pgTable('emotions', {
 	name: text('name').notNull(),
 	emoji: text('emoji').notNull(),
 	color: text('color').notNull(),
+	valence: integer('valence')
+		.$defaultFn(() => 0)
+		.notNull(), // Score from negative to positive (default emotions use -5 to +5)
+	description: text('description'), // Optional description to help users understand the emotion
 	order: text('order')
 		.$defaultFn(() => '0')
 		.notNull(),

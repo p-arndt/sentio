@@ -50,7 +50,7 @@
 </script>
 
 <Card class={className}>
-	<CardHeader class="pb-4">
+	<CardHeader>
 		<div class="flex items-center justify-between">
 			<CardTitle class="text-lg md:text-xl">Month View</CardTitle>
 			<div class="flex items-center gap-2">
@@ -67,11 +67,11 @@
 		</div>
 	</CardHeader>
 
-	<CardContent class="p-0">
+	<CardContent>
 		<!-- Day Labels -->
 		<div class="grid grid-cols-7 gap-px border-b bg-muted">
 			{#each dayLabels as label}
-				<div class="px-2 py-2 text-center text-xs font-semibold md:px-4 md:py-3">
+				<div class="px-2 py-1 text-center text-[10px] font-semibold md:px-4 md:py-2">
 					{label}
 				</div>
 			{/each}

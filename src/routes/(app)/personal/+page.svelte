@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { ChevronLeft, ChevronRight, Plus, Heart } from '@lucide/svelte';
+	import { ChevronLeft, ChevronRight, Plus, Heart, BarChart3 } from '@lucide/svelte';
 	import WeekNavigator from '$lib/components/WeekNavigator.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
@@ -218,10 +218,16 @@
 			</h1>
 			<p class="text-muted-foreground">Track your personal mood journey</p>
 		</div>
-		<Button onclick={() => openMoodDialog()}>
-			<Plus class="mr-2 h-4 w-4" />
-			Add Mood Entry
-		</Button>
+		<div class="flex gap-2">
+			<Button href="/personal/analytics" variant="outline">
+				<BarChart3 class="mr-2 h-4 w-4" />
+				Analytics
+			</Button>
+			<Button onclick={() => openMoodDialog()}>
+				<Plus class="mr-2 h-4 w-4" />
+				Add Mood Entry
+			</Button>
+		</div>
 	</div>
 
 	<!-- Stats -->

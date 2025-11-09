@@ -11,13 +11,7 @@
 	import StatCard from '$lib/components/StatCard.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
-	import {
-		Settings,
-		Users,
-		ChevronLeft,
-		UserPlus,
-		Calendar
-	} from '@lucide/svelte';
+	import { Settings, Users, ChevronLeft, UserPlus, Calendar, BarChart3 } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
 	import {
 		toDate,
@@ -29,7 +23,12 @@
 		isToday,
 		toYMD
 	} from '$lib/utils/date';
-	import { getUserInitials, getVisibilityIcon } from '$lib/utils';
+	import {
+		getUserInitials,
+		getVisibilityDescription,
+		getVisibilityIcon,
+		getVisibilityValueText
+	} from '$lib/utils';
 	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
@@ -226,6 +225,10 @@
 		</div>
 
 		<div class="flex gap-2">
+			<Button href="/teams/{data.team.id}/analytics" variant="outline">
+				<BarChart3 class="mr-2 h-4 w-4" />
+				Analytics
+			</Button>
 			{#if data.isAdmin}
 				<Button href="/teams/{data.team.id}/members" variant="outline">
 					<UserPlus class="mr-2 h-4 w-4" />
@@ -249,12 +252,8 @@
 		/>
 		<StatCard
 			title="Visibility"
-			value={data.team.visibility}
-			subtitle={data.team.visibility === 'public'
-				? 'Anyone can view'
-				: data.team.visibility === 'private'
-					? 'Only you can view'
-					: 'Team members only'}
+			value={getVisibilityValueText(data.team.visibility)}
+			subtitle={getVisibilityDescription(data.team.visibility)}
 			icon={getVisibilityIcon(data.team.visibility)}
 		/>
 		<StatCard
@@ -276,7 +275,8 @@
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
 		onWeekChange={handleWeekChange}
-		onQuickAdd={(emotionId, date, userId, comment) => handleQuickMood(emotionId, date, userId, comment)}
+		onQuickAdd={(emotionId, date, userId, comment) =>
+			handleQuickMood(emotionId, date, userId, comment)}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}
 	/>

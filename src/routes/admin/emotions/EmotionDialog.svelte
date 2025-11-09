@@ -11,6 +11,7 @@
 	} from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { Slider } from '$lib/components/ui/slider';
 
 	type Props = {
 		open: boolean;
@@ -19,6 +20,8 @@
 			name: string;
 			emoji: string;
 			color: string;
+			valence: number;
+			description?: string | null;
 		} | null;
 	};
 	let { open = $bindable(false), emotion = null }: Props = $props();
@@ -29,6 +32,8 @@
 	let name = $state('');
 	let emoji = $state('');
 	let color = $state('#3b82f6');
+	let valence = $state(0);
+	let description = $state('');
 
 	// Update form when emotion changes or dialog opens
 	$effect(() => {
@@ -36,10 +41,14 @@
 			name = emotion.name;
 			emoji = emotion.emoji;
 			color = emotion.color;
+			valence = emotion.valence;
+			description = emotion.description || '';
 		} else if (!emotion && open) {
 			name = '';
 			emoji = '';
 			color = '#3b82f6';
+			valence = 0;
+			description = '';
 		}
 	});
 
@@ -50,6 +59,8 @@
 			name = '';
 			emoji = '';
 			color = '#3b82f6';
+			valence = 0;
+			description = '';
 		}, 200);
 	}
 
@@ -75,7 +86,7 @@
 </script>
 
 <Dialog bind:open>
-	<DialogContent class="sm:max-w-[425px]">
+	<DialogContent>
 		<form
 			method="POST"
 			action="?/{emotion ? 'updateEmotion' : 'createEmotion'}"
@@ -156,6 +167,63 @@
 						/>
 					</div>
 					<p class="text-xs text-muted-foreground">Choose a color for this emotion's background</p>
+				</div>
+
+				<div class="grid gap-2">
+					<Label for="valence">Valence (Sentiment Score)</Label>
+					<div class="space-y-3">
+						<div class="flex items-center gap-4">
+							<Input
+								id="valence"
+								name="valence"
+								type="number"
+								bind:value={valence}
+								min="-10"
+								max="10"
+								step="1"
+								required
+								class="w-20"
+							/>
+							<div class="flex-1 space-y-2">
+								<Slider type="single" bind:value={valence} min={-10} max={10} step={1} />
+								<div class="flex items-center justify-between text-xs">
+									<div class="flex items-center gap-1">
+										<span>😢</span>
+									</div>
+									<div class="flex items-center gap-1">
+										<span>😐</span>
+									</div>
+									<div class="flex items-center gap-1">
+										<span>😊</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<p class="text-xs text-muted-foreground">
+							Score representing how positive or negative this emotion is. Use for analytics and
+							mood tracking.
+							{#if valence > 0}
+								<span class="text-green-600 dark:text-green-400">(+{valence} Positive)</span>
+							{:else if valence < 0}
+								<span class="text-red-600 dark:text-red-400">({valence} Negative)</span>
+							{:else}
+								<span class="text-muted-foreground">(Neutral)</span>
+							{/if}
+						</p>
+					</div>
+				</div>
+
+				<div class="grid gap-2">
+					<Label for="description">Description (Optional)</Label>
+					<Input
+						id="description"
+						name="description"
+						placeholder="e.g., Feeling great about work progress"
+						bind:value={description}
+					/>
+					<p class="text-xs text-muted-foreground">
+						Help your team understand when to use this emotion
+					</p>
 				</div>
 
 				<div class="rounded-lg border p-4">

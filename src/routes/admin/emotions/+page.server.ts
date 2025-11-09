@@ -18,16 +18,22 @@ export const actions: Actions = {
 		const name = formData.get('name') as string;
 		const emoji = formData.get('emoji') as string;
 		const color = formData.get('color') as string;
+		const valenceStr = formData.get('valence') as string;
+		const description = formData.get('description') as string;
 
 		if (!name || !emoji || !color) {
-			return fail(400, { error: 'All fields are required' });
+			return fail(400, { error: 'Name, emoji, and color are required' });
 		}
+
+		const valence = valenceStr ? parseInt(valenceStr, 10) : 0;
 
 		try {
 			await db.insert(emotion).values({
 				name,
 				emoji,
-				color
+				color,
+				valence,
+				description: description || null
 			});
 
 			return { success: true };
@@ -43,13 +49,27 @@ export const actions: Actions = {
 		const name = formData.get('name') as string;
 		const emoji = formData.get('emoji') as string;
 		const color = formData.get('color') as string;
+		const valenceStr = formData.get('valence') as string;
+		const description = formData.get('description') as string;
 
 		if (!emotionId || !name || !emoji || !color) {
-			return fail(400, { error: 'All fields are required' });
+			return fail(400, { error: 'All required fields must be provided' });
 		}
 
+		const valence = valenceStr ? parseInt(valenceStr, 10) : 0;
+
 		try {
-			await db.update(emotion).set({ name, emoji, color }).where(eq(emotion.id, emotionId));
+			await db
+				.update(emotion)
+				.set({
+					name,
+					emoji,
+					color,
+					valence,
+					description: description || null,
+					updatedAt: new Date()
+				})
+				.where(eq(emotion.id, emotionId));
 
 			return { success: true };
 		} catch (error) {

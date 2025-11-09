@@ -97,8 +97,28 @@
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div class="text-muted-foreground text-xs">
-						Created {formatDate(emotion.createdAt)}
+					<div class="space-y-2">
+						<div class="flex items-center gap-2">
+							<span class="text-xs font-medium text-muted-foreground">Valence:</span>
+							<Badge
+								variant={emotion.valence > 0 ? 'default' : emotion.valence < 0 ? 'destructive' : 'secondary'}
+							>
+								{emotion.valence > 0 ? '+' : ''}{emotion.valence}
+								{#if emotion.valence > 0}
+									Positive
+								{:else if emotion.valence < 0}
+									Negative
+								{:else}
+									Neutral
+								{/if}
+							</Badge>
+						</div>
+						{#if emotion.description}
+							<p class="text-xs text-muted-foreground italic">"{emotion.description}"</p>
+						{/if}
+						<div class="text-muted-foreground text-xs">
+							Created {formatDate(emotion.createdAt)}
+						</div>
 					</div>
 				</CardContent>
 			</Card>

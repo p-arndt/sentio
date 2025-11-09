@@ -42,7 +42,8 @@ export class MoodEntryService {
 					color: emotion.color,
 					order: emotion.order,
 					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt
+					updatedAt: emotion.updatedAt,
+					valence: emotion.valence
 				},
 				user: {
 					id: user.id,
@@ -128,7 +129,8 @@ export class MoodEntryService {
 					color: emotion.color,
 					order: emotion.order,
 					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt
+					updatedAt: emotion.updatedAt,
+					valence: emotion.valence
 				},
 				user: {
 					id: user.id,
@@ -180,7 +182,8 @@ export class MoodEntryService {
 					color: emotion.color,
 					order: emotion.order,
 					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt
+					updatedAt: emotion.updatedAt,
+					valence: emotion.valence
 				},
 				user: {
 					id: user.id,

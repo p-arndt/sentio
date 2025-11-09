@@ -50,6 +50,8 @@ export class EmotionService {
 				name: data.name,
 				emoji: data.emoji,
 				color: data.color,
+				valence: data.valence ?? 0,
+				description: data.description || null,
 				order: data.order || '0'
 			})
 			.returning();
@@ -97,11 +99,11 @@ export class EmotionService {
 		if (existing.length > 0) return;
 
 		const defaultEmotions = [
-			{ name: 'Very Happy', emoji: '😄', color: '#10b981', order: '1' },
-			{ name: 'Happy', emoji: '🙂', color: '#84cc16', order: '2' },
-			{ name: 'Neutral', emoji: '😐', color: '#eab308', order: '3' },
-			{ name: 'Sad', emoji: '🙁', color: '#f97316', order: '4' },
-			{ name: 'Very Sad', emoji: '😢', color: '#ef4444', order: '5' }
+			{ name: 'Very Happy', emoji: '😄', color: '#10b981', valence: 5, order: '1' },
+			{ name: 'Happy', emoji: '🙂', color: '#84cc16', valence: 4, order: '2' },
+			{ name: 'Neutral', emoji: '😐', color: '#eab308', valence: 0, order: '3' },
+			{ name: 'Sad', emoji: '🙁', color: '#f97316', valence: -3, order: '4' },
+			{ name: 'Very Sad', emoji: '😢', color: '#ef4444', valence: -5, order: '5' }
 		];
 
 		for (const emotionData of defaultEmotions) {
