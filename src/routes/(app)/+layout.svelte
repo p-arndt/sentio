@@ -74,12 +74,10 @@
 				{#if data.user}
 					<DropdownMenu>
 						<DropdownMenuTrigger>
-							<Button variant="ghost" class="relative h-10 w-10 rounded-full">
-								<Avatar>
-									<AvatarImage src={data.user.image ?? undefined} alt={data.user.name} />
-									<AvatarFallback>{getUserInitials(data.user.name)}</AvatarFallback>
-								</Avatar>
-							</Button>
+							<Avatar>
+								<AvatarImage src={data.user.image ?? undefined} alt={data.user.name} />
+								<AvatarFallback>{getUserInitials(data.user.name)}</AvatarFallback>
+							</Avatar>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" class="w-56">
 							<DropdownMenuLabel>
@@ -87,7 +85,9 @@
 									<p class="text-sm font-medium">{data.user.name}</p>
 									<p class="text-xs text-muted-foreground">{data.user.email}</p>
 									{#if data.user.isAdmin}
-										<span class="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+										<span
+											class="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground"
+										>
 											Admin
 										</span>
 									{/if}
