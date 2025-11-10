@@ -121,7 +121,7 @@
 		</CardContent>
 	</Card>
 
-	<!-- Calendar Settings -->
+			<!-- Calendar Settings -->
 	<Card>
 		<CardHeader>
 			<CardTitle>Calendar Settings</CardTitle>
@@ -140,26 +140,27 @@
 							Let members log multiple mood entries in a single day
 						</p>
 					</div>
-					<Switch name="allowMultipleMoodsPerDay" bind:checked={allowMultipleMoodsPerDay} />
+					<Switch bind:checked={allowMultipleMoodsPerDay} />
 				</div>
+				<input type="hidden" name="allowMultipleMoodsPerDay" value={allowMultipleMoodsPerDay ? 'true' : 'false'} />
 
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label>Require Comment</Label>
 						<p class="text-sm text-muted-foreground">Make comments mandatory when logging moods</p>
 					</div>
-					<Switch name="requireComment" bind:checked={requireComment} />
+					<Switch bind:checked={requireComment} />
 				</div>
+				<input type="hidden" name="requireComment" value={requireComment ? 'true' : 'false'} />
 
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label>Show Weekends</Label>
 						<p class="text-sm text-muted-foreground">Display Saturday and Sunday in the calendar</p>
 					</div>
-					<Switch name="showWeekends" bind:checked={showWeekends} />
+					<Switch bind:checked={showWeekends} />
 				</div>
-
-				<div class="flex justify-end">
+				<input type="hidden" name="showWeekends" value={showWeekends ? 'true' : 'false'} />				<div class="flex justify-end">
 					<Button type="submit">
 						<Save class="mr-2 h-4 w-4" />
 						Save Calendar Settings
