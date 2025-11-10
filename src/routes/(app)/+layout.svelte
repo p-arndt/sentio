@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import sentiologo from '$lib/assets/logo.png';
+	import { authClient } from '$lib/auth/client';
 	import DarkModeToggle from '$lib/components/common/dark-mode-toggle.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
@@ -35,6 +37,15 @@
 			return page.url.pathname === '/';
 		}
 		return page.url.pathname.startsWith(href);
+	}
+
+	async function onLogout() {
+		try {
+			await authClient.signOut();
+			await goto('/login');
+		} catch (error) {
+			console.error('Logout failed:', error);
+		}
 	}
 </script>
 
@@ -114,10 +125,10 @@
 							{/if}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem>
-								<a href="/api/auth/signout" class="flex w-full items-center">
+								<button onclick={onLogout} class="flex w-full items-center">
 									<LogOut class="mr-2 h-4 w-4" />
 									Log out
-								</a>
+								</button>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
