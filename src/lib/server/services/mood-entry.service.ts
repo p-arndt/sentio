@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { calendarEntry, emotion, user } from '$lib/server/db/schema';
-import { eq, and, gte, lte, desc, isNull } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, isNull, type SQLWrapper } from 'drizzle-orm';
 import type { MoodEntry, MoodEntryWithDetails, MoodEntryCreate, MoodEntryUpdate } from '$lib/types';
 
 export class MoodEntryService {
@@ -89,129 +89,32 @@ export class MoodEntryService {
 			.orderBy(desc(calendarEntry.date))) as MoodEntry[];
 	}
 
-	/**
-	 * Get mood entries for a team within a date range
-	 */
 	static async getTeamMoodEntries(
 		teamId: string,
-		startDate: Date,
-		endDate: Date,
-		includePrivate: boolean = false
+		startDate?: Date,
+		endDate?: Date,
+		includePrivate = false
 	): Promise<MoodEntryWithDetails[]> {
-		// Filter by teamId and date range; exclude private by default
-		const conditions = [
-			eq(calendarEntry.teamId, teamId),
-			gte(calendarEntry.date, startDate),
-			lte(calendarEntry.date, endDate)
-		];
+		const conditions = [eq(calendarEntry.teamId, teamId)];
 
-		if (!includePrivate) {
-			conditions.push(eq(calendarEntry.isPrivate, false));
-		}
+		if (startDate) conditions.push(gte(calendarEntry.date, startDate));
+		if (endDate) conditions.push(lte(calendarEntry.date, endDate));
+		if (!includePrivate) conditions.push(eq(calendarEntry.isPrivate, false));
 
-		const result = await db
-			.select({
-				id: calendarEntry.id,
-				userId: calendarEntry.userId,
-				teamId: calendarEntry.teamId,
-				emotionId: calendarEntry.emotionId,
-				date: calendarEntry.date,
-				timeOfDay: calendarEntry.timeOfDay,
-				comment: calendarEntry.comment,
-				isPrivate: calendarEntry.isPrivate,
-				createdAt: calendarEntry.createdAt,
-				updatedAt: calendarEntry.updatedAt,
-				emotion: {
-					id: emotion.id,
-					teamId: emotion.teamId,
-					name: emotion.name,
-					emoji: emotion.emoji,
-					color: emotion.color,
-					order: emotion.order,
-					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt,
-					valence: emotion.valence
-				},
-				user: {
-					id: user.id,
-					name: user.name,
-					email: user.email,
-					emailVerified: user.emailVerified,
-					image: user.image,
-					timezone: user.timezone,
-					isAdmin: user.isAdmin,
-					personalMode: user.personalMode,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt
-				}
-			})
-			.from(calendarEntry)
-			.innerJoin(emotion, eq(calendarEntry.emotionId, emotion.id))
-			.innerJoin(user, eq(calendarEntry.userId, user.id))
-			.where(and(...conditions))
-			.orderBy(desc(calendarEntry.date));
-
-		return result as MoodEntryWithDetails[];
+		return (await this.baseMoodEntriesQuery(conditions)) as MoodEntryWithDetails[];
 	}
 
-	/**
-	 * Get personal mood entries (no team) for a user within a date range
-	 */
 	static async getPersonalMoodEntries(
 		userId: string,
-		startDate: Date,
-		endDate: Date
+		startDate?: Date,
+		endDate?: Date
 	): Promise<MoodEntryWithDetails[]> {
-		const result = await db
-			.select({
-				id: calendarEntry.id,
-				userId: calendarEntry.userId,
-				teamId: calendarEntry.teamId,
-				emotionId: calendarEntry.emotionId,
-				date: calendarEntry.date,
-				timeOfDay: calendarEntry.timeOfDay,
-				comment: calendarEntry.comment,
-				isPrivate: calendarEntry.isPrivate,
-				createdAt: calendarEntry.createdAt,
-				updatedAt: calendarEntry.updatedAt,
-				emotion: {
-					id: emotion.id,
-					teamId: emotion.teamId,
-					name: emotion.name,
-					emoji: emotion.emoji,
-					color: emotion.color,
-					order: emotion.order,
-					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt,
-					valence: emotion.valence
-				},
-				user: {
-					id: user.id,
-					name: user.name,
-					email: user.email,
-					emailVerified: user.emailVerified,
-					image: user.image,
-					timezone: user.timezone,
-					isAdmin: user.isAdmin,
-					personalMode: user.personalMode,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt
-				}
-			})
-			.from(calendarEntry)
-			.innerJoin(emotion, eq(calendarEntry.emotionId, emotion.id))
-			.innerJoin(user, eq(calendarEntry.userId, user.id))
-			.where(
-				and(
-					eq(calendarEntry.userId, userId),
-					isNull(calendarEntry.teamId),
-					gte(calendarEntry.date, startDate),
-					lte(calendarEntry.date, endDate)
-				)
-			)
-			.orderBy(desc(calendarEntry.date));
+		const conditions = [eq(calendarEntry.userId, userId), isNull(calendarEntry.teamId)];
 
-		return result as MoodEntryWithDetails[];
+		if (startDate) conditions.push(gte(calendarEntry.date, startDate));
+		if (endDate) conditions.push(lte(calendarEntry.date, endDate));
+
+		return (await this.baseMoodEntriesQuery(conditions)) as MoodEntryWithDetails[];
 	}
 
 	/**
@@ -234,7 +137,7 @@ export class MoodEntryService {
 	static async createMoodEntry(data: MoodEntryCreate): Promise<MoodEntry> {
 		// Personal entries (no teamId) are always private
 		const isPersonalEntry = !data.teamId;
-		
+
 		const result = await db
 			.insert(calendarEntry)
 			.values({
@@ -244,7 +147,7 @@ export class MoodEntryService {
 				date: data.date,
 				timeOfDay: data.timeOfDay || null,
 				comment: data.comment || null,
-				isPrivate: isPersonalEntry ? true : (data.isPrivate || false)
+				isPrivate: isPersonalEntry ? true : data.isPrivate || false
 			})
 			.returning();
 
@@ -258,10 +161,10 @@ export class MoodEntryService {
 		// Get the existing entry to check if it's a personal entry
 		const existingEntry = await MoodEntryService.getMoodEntryById(entryId);
 		if (!existingEntry) return null;
-		
+
 		// Personal entries (no teamId) are always private
 		const isPersonalEntry = !existingEntry.teamId;
-		
+
 		const result = await db
 			.update(calendarEntry)
 			.set({
@@ -329,5 +232,49 @@ export class MoodEntryService {
 			.from(calendarEntry)
 			.where(and(...conditions))
 			.orderBy(calendarEntry.createdAt)) as MoodEntry[];
+	}
+
+	static baseMoodEntriesQuery(conditions: (SQLWrapper | undefined)[]) {
+		return db
+			.select({
+				id: calendarEntry.id,
+				userId: calendarEntry.userId,
+				teamId: calendarEntry.teamId,
+				emotionId: calendarEntry.emotionId,
+				date: calendarEntry.date,
+				timeOfDay: calendarEntry.timeOfDay,
+				comment: calendarEntry.comment,
+				isPrivate: calendarEntry.isPrivate,
+				createdAt: calendarEntry.createdAt,
+				updatedAt: calendarEntry.updatedAt,
+				emotion: {
+					id: emotion.id,
+					teamId: emotion.teamId,
+					name: emotion.name,
+					emoji: emotion.emoji,
+					color: emotion.color,
+					order: emotion.order,
+					createdAt: emotion.createdAt,
+					updatedAt: emotion.updatedAt,
+					valence: emotion.valence
+				},
+				user: {
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					emailVerified: user.emailVerified,
+					image: user.image,
+					timezone: user.timezone,
+					isAdmin: user.isAdmin,
+					personalMode: user.personalMode,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt
+				}
+			})
+			.from(calendarEntry)
+			.innerJoin(emotion, eq(calendarEntry.emotionId, emotion.id))
+			.innerJoin(user, eq(calendarEntry.userId, user.id))
+			.where(and(...conditions))
+			.orderBy(desc(calendarEntry.date));
 	}
 }
