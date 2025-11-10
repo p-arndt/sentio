@@ -2,6 +2,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.png';
 	import { ModeWatcher } from 'mode-watcher';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 </script>
@@ -11,6 +12,7 @@
 	<title>Sentio</title>
 </svelte:head>
 
+<Toaster position="top-center" />
 <ModeWatcher />
 <div class="min-h-screen bg-background text-foreground">
 	{@render children()}
