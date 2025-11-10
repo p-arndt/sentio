@@ -81,16 +81,69 @@ For developers: Here are the environment variables you need to set up the applic
 
 ## Required Settings
 
-| Variable              | What it is                             | Example / Default                 |
-| --------------------- | -------------------------------------- | --------------------------------- |
-| `PUBLIC_ALLOW_SIGNUP` | Enable user registration (true/false)  | `"false"`                         |
-| `BETTER_AUTH_SECRET`  | Secret used by the auth/session system | (generate a secure random string) |
-| `BETTER_AUTH_URL`     | URL of the auth service                | `https://auth.example.com`        |
-| `POSTGRES_HOST`       | Where your database lives              | `localhost`                       |
-| `POSTGRES_PORT`       | Database port (optional)               | `5432`                            |
-| `POSTGRES_USER`       | Database username                      | `sentio`                          |
-| `POSTGRES_PASSWORD`   | Database password                      | `sentio`                          |
-| `POSTGRES_DB`         | Database name                          | `sentio`                          |
+| Variable              | What it is                             | Example / Default                                        |
+| --------------------- | -------------------------------------- | -------------------------------------------------------- |
+| `PUBLIC_ALLOW_SIGNUP` | Enable user registration (true/false)  | `"false"`                                                |
+| `BETTER_AUTH_SECRET`  | Secret used by the auth/session system | (generate a secure random string `openssl rand -hex 32`) |
+| `BETTER_AUTH_URL`     | URL of the auth service                | `https://auth.example.com`                               |
+| `POSTGRES_HOST`       | Where your database lives              | `localhost`                                              |
+| `POSTGRES_PORT`       | Database port (optional)               | `5432`                                                   |
+| `POSTGRES_USER`       | Database username                      | `sentio`                                                 |
+| `POSTGRES_PASSWORD`   | Database password                      | `sentio`                                                 |
+| `POSTGRES_DB`         | Database name                          | `sentio`                                                 |
+
+## Auth Settings
+
+| Variable              | What it is                              | Default |
+| --------------------- | --------------------------------------- | ------- |
+| `EMAIL_AUTH_DISABLED` | Disable email/password (OIDC-only mode) | `false` |
+| `AUTH_PROVIDER`       | Choose auth method: `email` or `oidc`   | `email` |
+| `OIDC_CLIENT_ID`      | OIDC Client ID (if using OIDC)          |         |
+| `OIDC_CLIENT_SECRET`  | OIDC Client Secret (if using OIDC)      |         |
+| `OIDC_ISSUER`         | OIDC Issuer URL (if using OIDC)         |         |
+
+# Authentication Provider Configuration
+
+Choose your authentication method by setting `AUTH_PROVIDER`:
+
+## Email/Password (Default)
+
+Traditional email and password authentication:
+
+```bash
+AUTH_PROVIDER=email
+```
+
+**Use when:** You want simple email/password login, or you're unsure which provider to use.
+
+## OIDC Provider (Recommended)
+
+Generic OpenID Connect support for any OIDC-compliant provider:
+
+```bash
+AUTH_PROVIDER=oidc
+OIDC_CLIENT_ID=your-client-id
+OIDC_CLIENT_SECRET=your-client-secret
+OIDC_ISSUER=https://your-oidc-provider.com
+```
+
+## Optional Auth Settings
+
+| Variable              | What it is                              | Default |
+| --------------------- | --------------------------------------- | ------- |
+| `EMAIL_AUTH_DISABLED` | Disable email/password (OIDC-only mode) | `false` |
+
+Set to `true` only if using OIDC and want to force users through OAuth:
+
+```bash
+AUTH_PROVIDER=oidc
+OIDC_CLIENT_ID=...
+OIDC_CLIENT_SECRET=...
+OIDC_ISSUER=...
+EMAIL_AUTH_DISABLED=true
+```
+
+⚠️ **Note:** When `EMAIL_AUTH_DISABLED=true`, users with invitation links must use OIDC to sign up. Make sure their OAuth email matches the invitation email.
 
 ## Common Commands
 
