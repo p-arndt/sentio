@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, sevenDaysAgo, now),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, fourteenDaysAgo, sevenDaysAgo),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, ninetyDaysAgo, now),
-		MoodEntryService.getPersonalMoodEntries(locals.user.id, new Date('2020-01-01'), now)
+		MoodEntryService.getPersonalMoodEntries(locals.user.id)
 	]);
 
 	return {

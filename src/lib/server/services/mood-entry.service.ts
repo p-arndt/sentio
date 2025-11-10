@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { calendarEntry, emotion, user } from '$lib/server/db/schema';
-import { eq, and, gte, lte, desc, isNull, type SQLWrapper } from 'drizzle-orm';
-import type { MoodEntry, MoodEntryWithDetails, MoodEntryCreate, MoodEntryUpdate } from '$lib/types';
+import type { MoodEntry, MoodEntryCreate, MoodEntryUpdate, MoodEntryWithDetails } from '$lib/types';
+import { and, desc, eq, gte, isNull, lte, type SQLWrapper } from 'drizzle-orm';
 
 export class MoodEntryService {
 	/**
@@ -22,71 +22,9 @@ export class MoodEntryService {
 	 * Get mood entry with full details (emotion and user info)
 	 */
 	static async getMoodEntryWithDetails(entryId: string): Promise<MoodEntryWithDetails | null> {
-		const result = await db
-			.select({
-				id: calendarEntry.id,
-				userId: calendarEntry.userId,
-				teamId: calendarEntry.teamId,
-				emotionId: calendarEntry.emotionId,
-				date: calendarEntry.date,
-				timeOfDay: calendarEntry.timeOfDay,
-				comment: calendarEntry.comment,
-				isPrivate: calendarEntry.isPrivate,
-				createdAt: calendarEntry.createdAt,
-				updatedAt: calendarEntry.updatedAt,
-				emotion: {
-					id: emotion.id,
-					teamId: emotion.teamId,
-					name: emotion.name,
-					emoji: emotion.emoji,
-					color: emotion.color,
-					order: emotion.order,
-					createdAt: emotion.createdAt,
-					updatedAt: emotion.updatedAt,
-					valence: emotion.valence
-				},
-				user: {
-					id: user.id,
-					name: user.name,
-					email: user.email,
-					emailVerified: user.emailVerified,
-					image: user.image,
-					timezone: user.timezone,
-					isAdmin: user.isAdmin,
-					personalMode: user.personalMode,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt
-				}
-			})
-			.from(calendarEntry)
-			.innerJoin(emotion, eq(calendarEntry.emotionId, emotion.id))
-			.innerJoin(user, eq(calendarEntry.userId, user.id))
-			.where(eq(calendarEntry.id, entryId))
-			.limit(1);
-
-		if (!result[0]) return null;
-		return result[0] as MoodEntryWithDetails;
-	}
-
-	/**
-	 * Get mood entries for a user within a date range
-	 */
-	static async getUserMoodEntries(
-		userId: string,
-		startDate: Date,
-		endDate: Date
-	): Promise<MoodEntry[]> {
-		return (await db
-			.select()
-			.from(calendarEntry)
-			.where(
-				and(
-					eq(calendarEntry.userId, userId),
-					gte(calendarEntry.date, startDate),
-					lte(calendarEntry.date, endDate)
-				)
-			)
-			.orderBy(desc(calendarEntry.date))) as MoodEntry[];
+		const conditions = [eq(calendarEntry.id, entryId)];
+		const results = (await this.baseMoodEntriesQuery(conditions, true)) as MoodEntryWithDetails[];
+		return results[0] ?? null;
 	}
 
 	static async getTeamMoodEntries(
@@ -234,8 +172,8 @@ export class MoodEntryService {
 			.orderBy(calendarEntry.createdAt)) as MoodEntry[];
 	}
 
-	static baseMoodEntriesQuery(conditions: (SQLWrapper | undefined)[]) {
-		return db
+	static baseMoodEntriesQuery(conditions: (SQLWrapper | undefined)[], single: boolean = false) {
+		const query = db
 			.select({
 				id: calendarEntry.id,
 				userId: calendarEntry.userId,
@@ -276,5 +214,10 @@ export class MoodEntryService {
 			.innerJoin(user, eq(calendarEntry.userId, user.id))
 			.where(and(...conditions))
 			.orderBy(desc(calendarEntry.date));
+
+		if (single) {
+			return query.limit(1);
+		}
+		return query;
 	}
 }

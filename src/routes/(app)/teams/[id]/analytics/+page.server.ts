@@ -47,7 +47,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		MoodEntryService.getTeamMoodEntries(params.id, sevenDaysAgo, now),
 		MoodEntryService.getTeamMoodEntries(params.id, fourteenDaysAgo, sevenDaysAgo),
 		MoodEntryService.getTeamMoodEntries(params.id, ninetyDaysAgo, now),
-		MoodEntryService.getTeamMoodEntries(params.id, new Date('2020-01-01'), now)
+		MoodEntryService.getTeamMoodEntries(params.id)
 	]);
 
 	return {
