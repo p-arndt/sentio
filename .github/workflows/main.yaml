@@ -80,35 +80,44 @@ jobs:
           echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
 
-          PREV_TAG=$(git describe --tags --abbrev=0 --exclude "$VERSION" 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            RANGE="$PREV_TAG..HEAD"
+          # Find previous tag reliably (even for lightweight ones)
+          PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "$VERSION" | tail -n1)
+          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$VERSION" ]; then
+            echo "No previous tag found; using all commits"
+            RANGE=""
           else
-            RANGE="HEAD"
+            echo "Comparing $PREV_TAG → $VERSION"
+            RANGE="$PREV_TAG..$VERSION"
           fi
 
-          # collect by types
-          FEAT=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^feat!?(\(.+\))?:' | sed -E 's/^feat!?(\(.+\))?: /- /')
-          FIX=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^fix!?(\(.+\))?:' | sed -E 's/^fix!?(\(.+\))?: /- /')
-          REFACTOR=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^refactor!?(\(.+\))?:' | sed -E 's/^refactor!?(\(.+\))?: /- /')
-          PERF=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^perf!?(\(.+\))?:' | sed -E 's/^perf!?(\(.+\))?: /- /')
-          STYLE=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^style!?(\(.+\))?:' | sed -E 's/^style!?(\(.+\))?: /- /')
-          BUILD=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^build!?(\(.+\))?:' | sed -E 's/^build!?(\(.+\))?: /- /')
-          OPS=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^ops!?(\(.+\))?:' | sed -E 's/^ops!?(\(.+\))?: /- /')
-          DOCS=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^docs!?(\(.+\))?:' | sed -E 's/^docs!?(\(.+\))?: /- /')
-          OTHER=$(git log $RANGE --pretty=format:"%s (%an)" | grep -vE '^(feat|fix|refactor|perf|style|build|ops|docs)!?(\(.+\))?:' || true)
+          # Extract commit messages in range
+          COMMITS=$(git log $RANGE --pretty=format:"%s (%an)" || true)
 
-          [ -n "$FEAT" ]     && { echo "### ✨ Features"       >> RELEASE_NOTES.md; echo "$FEAT"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$FIX" ]      && { echo "### 🐛 Fixes"           >> RELEASE_NOTES.md; echo "$FIX"        >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$REFACTOR" ] && { echo "### 🔧 Refactors"        >> RELEASE_NOTES.md; echo "$REFACTOR"   >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$PERF" ]     && { echo "### ⚡ Performance"      >> RELEASE_NOTES.md; echo "$PERF"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$STYLE" ]    && { echo "### 🎨 Styles"          >> RELEASE_NOTES.md; echo "$STYLE"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$BUILD" ]    && { echo "### 🛠️ Build"           >> RELEASE_NOTES.md; echo "$BUILD"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$OPS" ]      && { echo "### 🚀 Operations"     >> RELEASE_NOTES.md; echo "$OPS"        >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$DOCS" ]     && { echo "### 📝 Documentation"   >> RELEASE_NOTES.md; echo "$DOCS"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$OTHER" ]    && { echo "### 🔄 Other Changes"   >> RELEASE_NOTES.md; echo "$OTHER"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          FEAT=$(echo "$COMMITS" | grep -E '^feat!?(\(.+\))?:' | sed -E 's/^feat!?(\(.+\))?: /- /' || true)
+          FIX=$(echo "$COMMITS" | grep -E '^fix!?(\(.+\))?:' | sed -E 's/^fix!?(\(.+\))?: /- /' || true)
+          REFACTOR=$(echo "$COMMITS" | grep -E '^refactor!?(\(.+\))?:' | sed -E 's/^refactor!?(\(.+\))?: /- /' || true)
+          PERF=$(echo "$COMMITS" | grep -E '^perf!?(\(.+\))?:' | sed -E 's/^perf!?(\(.+\))?: /- /' || true)
+          STYLE=$(echo "$COMMITS" | grep -E '^style!?(\(.+\))?:' | sed -E 's/^style!?(\(.+\))?: /- /' || true)
+          BUILD=$(echo "$COMMITS" | grep -E '^build!?(\(.+\))?:' | sed -E 's/^build!?(\(.+\))?: /- /' || true)
+          OPS=$(echo "$COMMITS" | grep -E '^ops!?(\(.+\))?:' | sed -E 's/^ops!?(\(.+\))?: /- /' || true)
+          DOCS=$(echo "$COMMITS" | grep -E '^docs!?(\(.+\))?:' | sed -E 's/^docs!?(\(.+\))?: /- /' || true)
+          TEST=$(echo "$COMMITS" | grep -E '^test!?(\(.+\))?:' | sed -E 's/^test!?(\(.+\))?: /- /' || true)
+          OTHER=$(echo "$COMMITS" | grep -vE '^(feat|fix|refactor|perf|style|build|ops|docs|test)!?(\(.+\))?:' || true)
 
+          [ -n "$FEAT" ]     && { echo "### ✨ Features"       >> RELEASE_NOTES.md; echo "$FEAT"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$FIX" ]      && { echo "### 🐛 Fixes"          >> RELEASE_NOTES.md; echo "$FIX"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$REFACTOR" ] && { echo "### 🔧 Refactors"      >> RELEASE_NOTES.md; echo "$REFACTOR" >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$PERF" ]     && { echo "### ⚡ Performance"    >> RELEASE_NOTES.md; echo "$PERF"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$STYLE" ]    && { echo "### 🎨 Styles"        >> RELEASE_NOTES.md; echo "$STYLE"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$BUILD" ]    && { echo "### 🛠️ Build"         >> RELEASE_NOTES.md; echo "$BUILD"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$OPS" ]      && { echo "### 🚀 Operations"    >> RELEASE_NOTES.md; echo "$OPS"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$DOCS" ]     && { echo "### 📝 Docs"          >> RELEASE_NOTES.md; echo "$DOCS"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$TEST" ]     && { echo "### 🧪 Tests"         >> RELEASE_NOTES.md; echo "$TEST"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$OTHER" ]    && { echo "### 🔄 Other"         >> RELEASE_NOTES.md; echo "$OTHER"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+
+          echo "🔖 Generated notes:"
           cat RELEASE_NOTES.md
+
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
