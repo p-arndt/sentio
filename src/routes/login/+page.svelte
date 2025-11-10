@@ -7,7 +7,15 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from '@lucide/svelte';
+	import OAuthButton from '$lib/components/OAuthButton.svelte';
 	import sentiologo from '$lib/assets/logo.png';
+	import type { PageData } from './$types';
+
+	type Props = {
+		data: PageData;
+	};
+
+	let { data }: Props = $props();
 
 	let email = $state('');
 	let password = $state('');
@@ -38,6 +46,8 @@
 			loading = false;
 		}
 	}
+
+	const showOIDCOnly = data.enabledProviders.oidc && !data.enabledProviders.email;
 </script>
 
 <svelte:head>
@@ -55,7 +65,27 @@
 			<p class="mt-2 text-muted-foreground">Sign in to your account</p>
 		</CardHeader>
 		<CardContent class="pt-6">
-			<form onsubmit={login} class="space-y-6">
+			{#if showOIDCOnly}
+				<!-- OIDC Only Mode -->
+				<OAuthButton label="Sign in with Organization" {loading} />
+			{:else if data.enabledProviders.oidc && data.enabledProviders.email}
+				<!-- OIDC + Email Mode -->
+				<div class="mb-6">
+					<OAuthButton label="Sign in with Organization" {loading} />
+				</div>
+
+				<!-- Divider -->
+				<div class="relative mb-6">
+					<div class="absolute inset-0 flex items-center">
+						<div class="w-full border-t border-border"></div>
+					</div>
+					<div class="relative flex justify-center text-xs uppercase">
+						<span class="bg-card px-2 text-muted-foreground">Or continue with email</span>
+					</div>
+				</div>
+			{/if}
+
+			<form onsubmit={login} class="space-y-6" hidden={showOIDCOnly}>
 				<!-- Email Field -->
 				<div class="space-y-2">
 					<Label for="email" class="text-sm font-medium text-foreground">Email Address</Label>

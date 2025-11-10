@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { invitation } from '$lib/server/db/schema';
 import { eq, isNull, and } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+import { getEnabledProviders } from '$lib/server/auth-providers';
 
 export const load: PageServerLoad = async ({ url }) => {
 	let invitationEmail = '';
@@ -41,5 +42,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		throw redirect(303, '/login');
 	}
 
-	return { invitationEmail, hasValidInvitation };
+	const enabledProviders = getEnabledProviders();
+
+	return { invitationEmail, hasValidInvitation, enabledProviders };
 };

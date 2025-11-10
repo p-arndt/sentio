@@ -7,6 +7,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Check, Eye, EyeOff, Lock, Mail, Shield, User, X } from '@lucide/svelte';
+	import OAuthButton from '$lib/components/OAuthButton.svelte';
 	import type { PageData } from './$types';
 
 	type Props = {
@@ -107,6 +108,9 @@
 			loading = false;
 		}
 	}
+
+	const showOIDCOnly = data.enabledProviders.oidc && !data.enabledProviders.email;
+
 </script>
 
 <svelte:head>
@@ -133,7 +137,27 @@
 			{/if}
 		</CardHeader>
 		<CardContent class="pt-6">
-			<form onsubmit={register} class="space-y-6">
+			{#if showOIDCOnly}
+				<!-- OIDC Only Mode -->
+				<OAuthButton label="Sign up with Organization" {loading} />
+			{:else if data.enabledProviders.oidc && data.enabledProviders.email}
+				<!-- OIDC + Email Mode -->
+				<div class="mb-6">
+					<OAuthButton label="Sign up with Organization" {loading} />
+				</div>
+
+				<!-- Divider -->
+				<div class="relative mb-6">
+					<div class="absolute inset-0 flex items-center">
+						<div class="w-full border-t border-border"></div>
+					</div>
+					<div class="relative flex justify-center text-xs uppercase">
+						<span class="bg-card px-2 text-muted-foreground">Or continue with email</span>
+					</div>
+				</div>
+			{/if}
+
+			<form onsubmit={register} class="space-y-6" hidden={showOIDCOnly}>
 				<!-- Name Field -->
 				<div class="space-y-2">
 					<Label for="name" class="text-sm font-medium text-foreground">Full Name</Label>
