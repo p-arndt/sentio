@@ -14,10 +14,18 @@ export async function load({ locals, url }) {
 
 	const { startOfWeek, endOfWeek } = getWeekRange(weekStartParam);
 
+	// Fetch a broader date range to support calendar views
+	// Get the entire month containing the week start date
+	const monthStart = new Date(startOfWeek);
+	monthStart.setDate(1);
+	const monthEnd = new Date(startOfWeek);
+	monthEnd.setMonth(monthEnd.getMonth() + 1);
+	monthEnd.setDate(0);
+
 	const moodEntries = await MoodEntryService.getPersonalMoodEntries(
 		locals.user.id,
-		startOfWeek,
-		endOfWeek
+		monthStart,
+		monthEnd
 	);
 	const emotions = await EmotionService.getGlobalEmotions();
 

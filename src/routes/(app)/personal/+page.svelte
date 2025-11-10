@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
-	import MoodWeekRow from '$lib/components/MoodWeekRow.svelte';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import WeekNavigator from '$lib/components/WeekNavigator.svelte';
+	import PersonalCalendarContainer from '$lib/components/personal/PersonalCalendarContainer.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
-	import { formatDate, formatMonthYear, getWeekDays, toDate, toDateString } from '$lib/utils/date';
+	import { formatDate, getWeekDays, toDate, toDateString } from '$lib/utils/date';
 	import { BarChart3, Heart, Plus } from '@lucide/svelte';
 
 	let { data } = $props();
@@ -85,6 +84,24 @@
 		} finally {
 			isSubmitting = false;
 		}
+	}
+
+	async function handleQuickMoodPersonal(emotionId: string, date: Date, comment?: string) {
+		return handleQuickMood(emotionId, date, data.user.id, comment);
+	}
+
+	async function handleWeekChange(direction: 'prev' | 'next') {
+		const currentWeek = weekStart;
+		const delta = direction === 'prev' ? -7 : 7;
+		const newDate = new Date(currentWeek);
+		newDate.setDate(newDate.getDate() + delta);
+
+		const year = newDate.getFullYear();
+		const month = String(newDate.getMonth() + 1).padStart(2, '0');
+		const day = String(newDate.getDate()).padStart(2, '0');
+		const weekStartParam = `${year}-${month}-${day}`;
+
+		goto(`/personal?weekStart=${weekStartParam}`);
 	}
 
 	async function handleUpdateMood(
@@ -219,29 +236,18 @@
 		<StatCard title="Streak" value="Coming soon" />
 	</div>
 
-	<!-- Week Navigation -->
-	<Card>
-		<CardHeader>
-			<div class="flex items-center justify-between">
-				<CardTitle>{formatMonthYear(weekStart)}</CardTitle>
-				<WeekNavigator weekStart={data.weekStart} basePath={'/personal'} />
-			</div>
-		</CardHeader>
-		<CardContent>
-			<MoodWeekRow
-				days={weekDays}
-				emotions={data.emotions}
-				entries={data.moodEntries}
-				onQuickAdd={handleQuickMood}
-				onEdit={(date, entry) => openMoodDialog(date, entry)}
-				{isSubmitting}
-				allowAdd={true}
-				allowEdit={true}
-				showDayHeader={true}
-				userId={data.user.id}
-			/>
-		</CardContent>
-	</Card>
+	<!-- Calendar Container with Day/Week/Month Views -->
+	<PersonalCalendarContainer
+		{weekStart}
+		{weekDays}
+		emotions={data.emotions}
+		entries={data.moodEntries}
+		userId={data.user.id}
+		onWeekChange={handleWeekChange}
+		onQuickAdd={handleQuickMoodPersonal}
+		onEdit={(date, entry) => openMoodDialog(date, entry)}
+		{isSubmitting}
+	/>
 
 	<!-- Recent Entries with Comments -->
 	{#if entriesWithComments.length > 0}
