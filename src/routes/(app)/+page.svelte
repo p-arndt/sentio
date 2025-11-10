@@ -11,6 +11,7 @@
 	import { Activity, ArrowRight, Calendar, Heart, Plus, Users } from '@lucide/svelte';
 	import { getGreeting, formatDate } from '$lib/utils';
 	import type { PageData } from './$types';
+	import DashboardQuickMoodEntry from '$lib/components/DashboardQuickMoodEntry.svelte';
 
 	type Props = {
 		data: PageData;
@@ -47,9 +48,8 @@
 		</h1>
 		<p class="text-xl text-muted-foreground">How are you feeling today?</p>
 	</div>
-
 	<!-- Quick Actions -->
-	<div class="grid gap-4 md:grid-cols-3">
+	<!-- <div class="grid gap-4 md:grid-cols-3">
 		{#each quickActions.filter((a) => a.show) as action}
 			<Button
 				href={action.href}
@@ -66,7 +66,10 @@
 				<ArrowRight class="h-5 w-5" />
 			</Button>
 		{/each}
-	</div>
+	</div> -->
+
+	<!-- Quick Mood Entry Card -->
+	<DashboardQuickMoodEntry emotions={data.emotions} teams={data.teams} />
 
 	<!-- Stats Grid -->
 	<div class="grid gap-4 md:grid-cols-3">
