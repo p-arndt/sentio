@@ -1,9 +1,20 @@
 <!-- Example usage of emotion analytics -->
 <script lang="ts">
-	import type { MoodEntryWithDetails } from '$lib/types';
-	import { getMoodAnalytics, calculateHappinessIndex } from '$lib/utils/emotion-analytics';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import WeeklyMoodHeatmap from '$lib/components/analytics/WeeklyMoodHeatmap.svelte';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import type { MoodEntryWithDetails } from '$lib/types';
+	import {
+		averageByWeekday,
+		calculateHappinessIndex,
+		consistency,
+		emotionDiversity,
+		entriesByTimeOfDay,
+		getMoodAnalytics,
+		moodStability,
+		moodTrendSlope,
+		mostUsedEmotion
+	} from '$lib/utils/emotion-analytics';
 
 	type Props = {
 		entries: MoodEntryWithDetails[];
@@ -14,6 +25,11 @@
 
 	const analytics = $derived(getMoodAnalytics(entries, previousPeriodEntries));
 	const happinessIndex = $derived(calculateHappinessIndex(entries));
+
+	const stability = $derived(moodStability(entries));
+	const consistencyPct = $derived(consistency(entries));
+	const favorite = $derived(mostUsedEmotion(entries));
+	const diversity = $derived(emotionDiversity(entries));
 </script>
 
 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -27,7 +43,10 @@
 				<span class="text-2xl font-bold" style="color: {analytics.moodScore.color}">
 					{analytics.averageScore.toFixed(1)}
 				</span>
-				<Badge style="background-color: {analytics.moodScore.color}20; color: {analytics.moodScore.color}">
+				<Badge
+					style="background-color: {analytics.moodScore.color}20; color: {analytics.moodScore
+						.color}"
+				>
 					{analytics.moodScore.label}
 				</Badge>
 			</div>
@@ -47,7 +66,7 @@
 		<CardContent>
 			<div class="flex items-baseline gap-2">
 				<span class="text-2xl font-bold">{Math.round(happinessIndex)}</span>
-				<span class="text-muted-foreground text-sm">/ 100</span>
+				<span class="text-sm text-muted-foreground">/ 100</span>
 			</div>
 			<div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
 				<div
@@ -92,28 +111,73 @@
 					<span class="text-2xl">📈</span>
 					<div>
 						<p class="font-semibold text-green-600 dark:text-green-400">Improving</p>
-						<p class="text-muted-foreground text-xs">Mood is getting better</p>
+						<p class="text-xs text-muted-foreground">Mood is getting better</p>
 					</div>
 				{:else if analytics.trend === 'declining'}
 					<span class="text-2xl">📉</span>
 					<div>
 						<p class="font-semibold text-red-600 dark:text-red-400">Declining</p>
-						<p class="text-muted-foreground text-xs">Attention needed</p>
+						<p class="text-xs text-muted-foreground">Attention needed</p>
 					</div>
 				{:else if analytics.trend === 'stable'}
 					<span class="text-2xl">📊</span>
 					<div>
 						<p class="font-semibold">Stable</p>
-						<p class="text-muted-foreground text-xs">Consistent mood</p>
+						<p class="text-xs text-muted-foreground">Consistent mood</p>
 					</div>
 				{:else}
 					<span class="text-2xl">❓</span>
 					<div>
 						<p class="font-semibold text-muted-foreground">No Data</p>
-						<p class="text-muted-foreground text-xs">Need more entries</p>
+						<p class="text-xs text-muted-foreground">Need more entries</p>
 					</div>
 				{/if}
 			</div>
 		</CardContent>
 	</Card>
 </div>
+
+<!-- Additional small stats and charts -->
+<div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+	<Card>
+		<CardHeader class="pb-2">
+			<CardTitle class="text-sm font-medium text-muted-foreground">Stability</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div class="text-2xl font-bold">{stability.toFixed(2)}</div>
+			<div class="text-xs text-muted-foreground">0 (volatile) — 1 (stable)</div>
+		</CardContent>
+	</Card>
+
+	<Card>
+		<CardHeader class="pb-2">
+			<CardTitle class="text-sm font-medium text-muted-foreground">Consistency</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div class="text-2xl font-bold">{consistencyPct.toFixed(0)}%</div>
+			<div class="text-xs text-muted-foreground">Days with entries (last 30d)</div>
+		</CardContent>
+	</Card>
+
+	<Card>
+		<CardHeader class="pb-2">
+			<CardTitle class="text-sm font-medium text-muted-foreground">Top Emotion</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div class="text-2xl font-bold">{favorite}</div>
+			<div class="text-xs text-muted-foreground">Most used emotion</div>
+		</CardContent>
+	</Card>
+
+	<Card>
+		<CardHeader class="pb-2">
+			<CardTitle class="text-sm font-medium text-muted-foreground">Emotional Range</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div class="text-2xl font-bold">{diversity.toFixed(0)}%</div>
+			<div class="text-xs text-muted-foreground">Shannon entropy based</div>
+		</CardContent>
+	</Card>
+</div>
+
+<WeeklyMoodHeatmap {entries} title="Weekly Mood" description="Avg mood per weekday" />

@@ -4,7 +4,18 @@
 	import AnalyticsStatsGrid from '$lib/components/analytics/AnalyticsStatsGrid.svelte';
 	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
 	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
-	import { averageValence30Days, consistency } from '$lib/utils/emotion-analytics';
+	import WeeklyMoodHeatmap from '$lib/components/analytics/WeeklyMoodHeatmap.svelte';
+	import {
+		averageByWeekday,
+		averageValence30Days,
+		averageValence7Days,
+		deltaValence,
+		emotionDiversity,
+		entriesByTimeOfDay,
+		moodStability,
+		moodTrendSlope,
+		mostUsedEmotion
+	} from '$lib/utils/emotion-analytics';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -12,6 +23,11 @@
 	const totalEntries = $derived(data.allEntries.length);
 	const last30DaysCount = $derived(data.last30DaysEntries.length);
 	const last7DaysCount = $derived(data.last7DaysEntries.length);
+
+	// compute analytics
+	const avg7 = averageValence7Days(data.last7DaysEntries);
+	const delta7 = deltaValence(data.allEntries, 7);
+
 </script>
 
 <svelte:head>
@@ -34,11 +50,11 @@
 		averageValence30Days={averageValence30Days(data.last30DaysEntries)}
 		last30DaysEntries={data.last30DaysEntries}
 		additionalStats={[
+			{ label: 'Avg Mood (7 d)', value: avg7.toFixed(1), context: 'Last 7 days' },
 			{
-				label: 'Consistency',
-				description: 'Days with entries',
-				value: `${consistency(data.last30DaysEntries).toFixed(0)}%`,
-				context: 'Out of last 30 days'
+				label: 'Mood Trend',
+				value: `${delta7 >= 0 ? '▲' : '▼'} ${Math.abs(delta7).toFixed(1)}`,
+				description: 'Change vs previous 7 days'
 			}
 		]}
 	/>
@@ -63,6 +79,15 @@
 			entries={data.last30DaysEntries}
 			title="Emotion Distribution"
 			description="Your most used emotions in the last 30 days"
+		/>
+	</div>
+
+	<!-- Weekly Heatmap -->
+	<div class="w-full">
+		<WeeklyMoodHeatmap
+			entries={data.last30DaysEntries}
+			title="Weekly Mood Heatmap"
+			description="Average mood by weekday"
 		/>
 	</div>
 </div>
