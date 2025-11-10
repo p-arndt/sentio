@@ -1,77 +1,119 @@
 name: Build and Publish Release
 permissions:
-    contents: read
-    packages: write
+  contents: write
+  packages: write
 
 on:
-    push:
-        tags: ["*"]
+  push:
+    tags: ["*"]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: "10"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10"
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "22"
-                  cache: "pnpm"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
 
-            - name: Install dependencies
-              run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-            # - name: Run tests
-            #   run: pnpm run test
+      - name: Extract tag name
+        id: get_tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
-            - name: Extract tag name
-              id: get_tag
-              run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Login to GitHub Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker Hub image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:${{ steps.get_tag.outputs.VERSION }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
+          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
+          cache-to: type=inline
 
-            - name: Build and push Docker Hub image
-              uses: docker/build-push-action@v6
-              with:
-                  context: .
-                  push: true
-                  build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
-                  tags: |
-                      docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:${{ steps.get_tag.outputs.VERSION }}
-                      docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
-                  cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
-                  cache-to: type=inline
+      - name: Build and push GHCR image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/sentio:${{ steps.get_tag.outputs.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/sentio:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
+          cache-to: type=inline
 
-            - name: Build and push GHCR image
-              uses: docker/build-push-action@v6
-              with:
-                  context: .
-                  push: true
-                  build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
-                  tags: |
-                      ghcr.io/${{ github.repository_owner }}/sentio:${{ steps.get_tag.outputs.VERSION }}
-                      ghcr.io/${{ github.repository_owner }}/sentio:latest
-                  cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
-                  cache-to: type=inline
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION=${{ steps.get_tag.outputs.VERSION }}
+          echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+          PREV_TAG=$(git describe --tags --abbrev=0 --exclude "$VERSION" 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="$PREV_TAG..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+
+          # collect by types
+          FEAT=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^feat!?(\(.+\))?:' | sed -E 's/^feat!?(\(.+\))?: /- /')
+          FIX=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^fix!?(\(.+\))?:' | sed -E 's/^fix!?(\(.+\))?: /- /')
+          REFACTOR=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^refactor!?(\(.+\))?:' | sed -E 's/^refactor!?(\(.+\))?: /- /')
+          PERF=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^perf!?(\(.+\))?:' | sed -E 's/^perf!?(\(.+\))?: /- /')
+          STYLE=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^style!?(\(.+\))?:' | sed -E 's/^style!?(\(.+\))?: /- /')
+          BUILD=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^build!?(\(.+\))?:' | sed -E 's/^build!?(\(.+\))?: /- /')
+          OPS=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^ops!?(\(.+\))?:' | sed -E 's/^ops!?(\(.+\))?: /- /')
+          DOCS=$(git log $RANGE --pretty=format:"%s (%an)" | grep -E '^docs!?(\(.+\))?:' | sed -E 's/^docs!?(\(.+\))?: /- /')
+          OTHER=$(git log $RANGE --pretty=format:"%s (%an)" | grep -vE '^(feat|fix|refactor|perf|style|build|ops|docs)!?(\(.+\))?:' || true)
+
+          [ -n "$FEAT" ]     && { echo "### ✨ Features"       >> RELEASE_NOTES.md; echo "$FEAT"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$FIX" ]      && { echo "### 🐛 Fixes"           >> RELEASE_NOTES.md; echo "$FIX"        >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$REFACTOR" ] && { echo "### 🔧 Refactors"        >> RELEASE_NOTES.md; echo "$REFACTOR"   >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$PERF" ]     && { echo "### ⚡ Performance"      >> RELEASE_NOTES.md; echo "$PERF"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$STYLE" ]    && { echo "### 🎨 Styles"          >> RELEASE_NOTES.md; echo "$STYLE"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$BUILD" ]    && { echo "### 🛠️ Build"           >> RELEASE_NOTES.md; echo "$BUILD"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$OPS" ]      && { echo "### 🚀 Operations"     >> RELEASE_NOTES.md; echo "$OPS"        >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$DOCS" ]     && { echo "### 📝 Documentation"   >> RELEASE_NOTES.md; echo "$DOCS"       >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+          [ -n "$OTHER" ]    && { echo "### 🔄 Other Changes"   >> RELEASE_NOTES.md; echo "$OTHER"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
+
+          cat RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.VERSION }}
+          body_path: RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
