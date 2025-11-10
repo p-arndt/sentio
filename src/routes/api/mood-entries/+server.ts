@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { TeamService } from '$lib/server/services/team.service';
 
 /**
  * GET /api/mood-entries
@@ -49,6 +50,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (!emotionId || !date) {
 			return json({ error: 'Emotion and date are required' }, { status: 400 });
+		}
+
+		// If teamId is provided, check if comment is required
+		if (teamId) {
+			const teamData = await TeamService.getTeamById(teamId);
+			if (teamData && teamData.requireComment) {
+				if (!comment || comment.trim().length === 0) {
+					return json({ error: 'Comment is required for this team' }, { status: 400 });
+				}
+			}
 		}
 
 		// Expect date as 'YYYY-MM-DD'; fallback to parsing full string

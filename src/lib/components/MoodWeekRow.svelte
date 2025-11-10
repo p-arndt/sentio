@@ -12,6 +12,7 @@
 		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails) => void;
 		isSubmitting?: boolean;
+		requireComment?: boolean;
 		allowAdd?: boolean;
 		allowEdit?: boolean;
 		showDayHeader?: boolean;
@@ -25,6 +26,7 @@
 		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
+		requireComment = false,
 		allowAdd = true,
 		allowEdit = true,
 		showDayHeader = false,
@@ -92,6 +94,7 @@
 								size="sm"
 								variant="ghost"
 								disabled={isSubmitting}
+								{requireComment}
 							/>
 						</div>
 					{/if}
@@ -102,6 +105,7 @@
 								emotions={emotions}
 								onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
 								disabled={isSubmitting}
+								{requireComment}
 							/>
 						</div>
 					{:else}

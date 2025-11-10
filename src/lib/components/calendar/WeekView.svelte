@@ -20,9 +20,10 @@
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
 		showWeekends: boolean;
+		requireComment?: boolean;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
-		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
+		onEdit?: (date: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		className?: string;
 	};
@@ -35,6 +36,7 @@
 		entries,
 		currentUserId,
 		showWeekends,
+		requireComment = false,
 		onWeekChange,
 		onQuickAdd,
 		onEdit,
@@ -121,6 +123,7 @@
 						{onQuickAdd}
 						{onEdit}
 						{isSubmitting}
+						{requireComment}
 						isEven={index % 2 === 0}
 					/>
 				{/each}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import {
 		Tooltip,
@@ -10,7 +10,7 @@
 	} from '$lib/components/ui/tooltip';
 	import type { Emotion } from '$lib/types';
 	import { MessageCircle, Plus } from '@lucide/svelte';
-	import { cn } from '$lib/utils';
+	import { toast } from 'svelte-sonner';
 
 	type Props = {
 		emotions: Emotion[];
@@ -20,6 +20,7 @@
 		disabled?: boolean;
 		open?: boolean;
 		onOpenChange?: (open: boolean) => void;
+		requireComment?: boolean;
 	};
 
 	let {
@@ -29,7 +30,8 @@
 		variant = 'ghost',
 		disabled = false,
 		open = $bindable(false),
-		onOpenChange
+		onOpenChange,
+		requireComment = false
 	}: Props = $props();
 
 	let selectedEmotionId = $state<string | undefined>(undefined);
@@ -46,6 +48,11 @@
 
 	async function handleEmotionSelect(emotionId: string) {
 		selectedEmotionId = emotionId;
+		// If comment is required, show comment field
+		if (requireComment) {
+			showComment = true;
+			return;
+		}
 
 		// If comment field is not open, auto-save immediately for smooth UX
 		if (!showComment) {
@@ -56,6 +63,11 @@
 	async function handleQuickSave(emotionId: string) {
 		if (!emotionId) return;
 
+		// Validate comment if required
+		if (requireComment && !comment.trim()) {
+			return;
+		}
+
 		isSaving = true;
 		try {
 			await onSelect(emotionId, comment || undefined);
@@ -63,8 +75,9 @@
 			selectedEmotionId = undefined;
 			comment = '';
 			showComment = false;
-		} catch (error) {
-			console.error('Failed to save mood:', error);
+		} catch (err) {
+			console.error('Failed to save mood:', err);
+			toast.error('Failed to save mood. Please try again.');
 		} finally {
 			isSaving = false;
 		}
@@ -84,10 +97,7 @@
 		<div class="space-y-4">
 			<div>
 				<h4 class="mb-3 text-sm font-medium">How are you feeling?</h4>
-				<TooltipProvider
-					delayDuration={300}
-					skipDelayDuration={0}
-				>
+				<TooltipProvider delayDuration={300} skipDelayDuration={0}>
 					<div class="flex flex-wrap justify-center gap-2">
 						{#each emotions as emotion (emotion.id)}
 							<Tooltip disableHoverableContent={true}>
@@ -122,9 +132,18 @@
 						<Textarea
 							bind:value={comment}
 							placeholder="How are you feeling? Any thoughts to share?"
-							class="min-h-20 resize-none text-sm"
+							class={[
+								'min-h-20 resize-none text-sm',
+								requireComment && !comment.trim() ? 'border-orange-400' : ''
+							]}
 							autofocus
 						/>
+						{#if requireComment && !comment.trim()}
+							<p class="flex items-center space-x-2 text-xs font-medium text-orange-600">
+								<MessageCircle class="mr-1 inline-block h-3 w-3" />
+								Comment is required
+							</p>
+						{/if}
 						<div class="flex justify-end gap-2">
 							<Button
 								variant="ghost"
@@ -139,7 +158,7 @@
 							<Button
 								size="sm"
 								onclick={handleSaveWithComment}
-								disabled={!selectedEmotionId || isSaving}
+								disabled={!selectedEmotionId || isSaving || (requireComment && !comment.trim())}
 							>
 								{isSaving ? 'Saving...' : 'Save'}
 							</Button>
@@ -152,7 +171,11 @@
 							{comment ? 'Edit comment' : 'Add comment'}
 						</Button>
 						{#if selectedEmotionId}
-							<Button size="sm" onclick={handleSaveWithComment} disabled={isSaving}>
+							<Button
+								size="sm"
+								onclick={handleSaveWithComment}
+								disabled={isSaving || (requireComment && !showComment)}
+							>
 								{isSaving ? 'Saving...' : 'Save'}
 							</Button>
 						{/if}

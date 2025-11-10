@@ -14,6 +14,7 @@
 		onQuickAdd: (emotionId: string, day: Date, userId: string, comment?: string) => void;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
+		requireComment?: boolean;
 		isEven?: boolean;
 	};
 
@@ -26,6 +27,7 @@
 		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
+		requireComment = false,
 		isEven = false
 	}: Props = $props();
 </script>
@@ -57,6 +59,7 @@
 			{onQuickAdd}
 			{onEdit}
 			{isSubmitting}
+			{requireComment}
 		/>
 	{/each}
 </div>

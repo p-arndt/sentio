@@ -17,6 +17,7 @@
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
 		showWeekends: boolean;
+		requireComment?: boolean;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 		onQuickAdd: (
 			emotionId: string,
@@ -37,6 +38,7 @@
 		entries,
 		currentUserId,
 		showWeekends,
+		requireComment = false,
 		onWeekChange,
 		onQuickAdd,
 		onEdit,
@@ -88,6 +90,7 @@
 					{entries}
 					{currentUserId}
 					{showWeekends}
+					{requireComment}
 					onWeekChange={(direction) => {
 						onWeekChange(direction);
 					}}
@@ -116,6 +119,7 @@
 					{onQuickAdd}
 					{onEdit}
 					{isSubmitting}
+					{requireComment}
 				/>
 			{/if}
 		</CardContent>

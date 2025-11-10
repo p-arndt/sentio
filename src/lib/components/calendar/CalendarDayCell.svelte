@@ -20,6 +20,7 @@
 		onQuickAdd: (emotionId: string, day: Date, userId: string, comment?: string) => void;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
+		requireComment?: boolean;
 	};
 
 	let {
@@ -30,7 +31,8 @@
 		currentUserId,
 		onQuickAdd,
 		onEdit,
-		isSubmitting = false
+		isSubmitting = false,
+		requireComment = false
 	}: Props = $props();
 
 	let moods = $derived(
@@ -123,6 +125,7 @@
 						variant="ghost"
 						disabled={isSubmitting}
 						bind:open={popoverOpen}
+						{requireComment}
 					/>
 				</div>
 			{/if}
@@ -144,6 +147,7 @@
 			onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
 			disabled={isSubmitting}
 			bind:open={popoverOpen}
+			{requireComment}
 		/>
 	</button>
 {:else}

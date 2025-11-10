@@ -278,6 +278,7 @@
 		entries={data.entries}
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
+		requireComment={data.team.requireComment}
 		onWeekChange={handleWeekChange}
 		onQuickAdd={(emotionId, date, userId, comment) =>
 			handleQuickMood(emotionId, date, userId, comment)}

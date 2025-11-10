@@ -66,9 +66,11 @@
 	let timeOfDay = $state<string | undefined>(undefined);
 	let isPrivate = $state(false);
 	let saving = $state(false);
+	let error = $state<string | null>(null);
 
 	// When editing, prefill fields when entry changes or dialog opens
 	$effect(() => {
+		error = null; // Clear error when dialog state changes
 		if (open && entry) {
 			selectedEmotionId = entry.emotionId;
 			comment = entry.comment ?? '';
@@ -109,6 +111,7 @@
 			open = false;
 		} catch (error) {
 			console.error('Failed to save/update mood entry:', error);
+			error = error instanceof Error ? error.message : 'Failed to save mood entry';
 		} finally {
 			saving = false;
 		}
@@ -156,6 +159,12 @@
 		</DialogHeader>
 
 		<div class="space-y-6 py-4">
+			<!-- Error Message -->
+			{#if error}
+				<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+					{error}
+				</div>
+			{/if}
 			<!-- Emotion Selection -->
 			<div class="space-y-3">
 				<Label>How do you feel?</Label>
@@ -202,7 +211,13 @@
 					placeholder="What's on your mind?"
 					rows={4}
 					required={requireComment}
+					class={requireComment && !comment.trim() ? 'border-orange-400' : ''}
 				/>
+				{#if requireComment && !comment.trim()}
+					<p class="text-sm font-medium text-orange-600">
+						💬 Please add a comment before saving
+					</p>
+				{/if}
 			</div>
 
 			<!-- Privacy Toggle -->

@@ -26,6 +26,7 @@
 		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
+		requireComment?: boolean;
 		className?: string;
 	};
 
@@ -39,6 +40,7 @@
 		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
+		requireComment = false,
 		className = ''
 	}: Props = $props();
 
@@ -186,6 +188,7 @@
 								{emotions}
 								onSelect={(emotionId, comment) => onQuickAdd(emotionId, selectedDate, member.userId, comment)}
 								disabled={isSubmitting}
+								{requireComment}
 							/>
 						{/if}
 					</div>
