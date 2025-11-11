@@ -61,8 +61,8 @@
 
 	<!-- Main Analytics Component -->
 	<MoodAnalytics
-		entries={data.last7DaysEntries}
-		previousPeriodEntries={data.previous7DaysEntries}
+		entries={data.currentWeekEntries}
+		previousPeriodEntries={data.currentWeekEntries}
 	/>
 
 	<!-- Mood Trend Chart -->

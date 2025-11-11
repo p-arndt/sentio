@@ -1,28 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
 	import MoodAnalytics from '$lib/components/MoodAnalytics.svelte';
-	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
-	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
-	import MemberActivityChart from '$lib/components/analytics/MemberActivityChart.svelte';
 	import AnalyticsHeader from '$lib/components/analytics/AnalyticsHeader.svelte';
 	import AnalyticsStatsGrid from '$lib/components/analytics/AnalyticsStatsGrid.svelte';
-	import WeeklyMoodHeatmap from '$lib/components/analytics/WeeklyMoodHeatmap.svelte';
-	import {
-		averageValence7Days,
-		deltaValence,
-		moodStability,
-		mostUsedEmotion,
-		emotionDiversity,
-		consistency
-	} from '$lib/utils/emotion-analytics';
+	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
+	import MemberActivityChart from '$lib/components/analytics/MemberActivityChart.svelte';
+	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -36,12 +18,6 @@
 		const total = data.last30DaysEntries.reduce((sum, e) => sum + e.emotion.valence, 0);
 		return total / data.last30DaysEntries.length;
 	});
-
-	const avg7 = averageValence7Days(data.last7DaysEntries);
-	const delta7 = deltaValence(data.allEntries, 7);
-	const stability30 = moodStability(data.last30DaysEntries);
-	const mostUsed30 = mostUsedEmotion(data.last30DaysEntries);
-	const diversity30 = emotionDiversity(data.last30DaysEntries);
 
 	const participationRate = $derived(() => {
 		if (data.team.memberCount === 0) return 0;
@@ -80,7 +56,7 @@
 
 	<!-- Main Analytics Component -->
 	<MoodAnalytics
-		entries={data.last7DaysEntries}
+		entries={data.currentWeekEntries}
 		previousPeriodEntries={data.previous7DaysEntries}
 	/>
 

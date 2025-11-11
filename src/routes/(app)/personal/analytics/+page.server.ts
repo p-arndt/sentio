@@ -1,4 +1,4 @@
-import { getDaysBefore } from '$lib';
+import { getCurrentWeekEnd, getCurrentWeekStart, getDaysBefore } from '$lib';
 import { EmotionService } from '$lib/server/services/emotion.service';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { redirect } from '@sveltejs/kit';
@@ -22,14 +22,20 @@ export const load: PageServerLoad = async ({ locals }) => {
 		last7DaysEntries,
 		previous7DaysEntries,
 		last90DaysEntries,
-		allEntries
+		allEntries,
+		currentWeekEntries
 	] = await Promise.all([
 		EmotionService.getGlobalEmotions(),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, thirtyDaysAgo, now),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, sevenDaysAgo, now),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, fourteenDaysAgo, sevenDaysAgo),
 		MoodEntryService.getPersonalMoodEntries(locals.user.id, ninetyDaysAgo, now),
-		MoodEntryService.getPersonalMoodEntries(locals.user.id)
+		MoodEntryService.getPersonalMoodEntries(locals.user.id),
+		MoodEntryService.getPersonalMoodEntries(
+			locals.user.id,
+			getCurrentWeekStart(),
+			getCurrentWeekEnd()
+		)
 	]);
 
 	return {
@@ -39,6 +45,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		last7DaysEntries,
 		previous7DaysEntries,
 		last90DaysEntries,
-		allEntries
+		allEntries,
+		currentWeekEntries
 	};
 };

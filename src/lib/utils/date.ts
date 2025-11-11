@@ -66,6 +66,19 @@ export function getWeekDays(startDate: Date | string): Date[] {
 	return days;
 }
 
+export function getCurrentWeekStart(): Date {
+	return getWeekStart(new Date());
+}
+
+
+export function getCurrentWeekEnd(): Date {
+	const start = getCurrentWeekStart();
+	const end = new Date(start);
+	end.setDate(start.getDate() + 6);
+	end.setHours(23, 59, 59, 999);
+	return end;
+}
+
 /**
  * Get the previous week's start date
  */

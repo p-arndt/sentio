@@ -1,4 +1,4 @@
-import { getDaysBefore } from '$lib';
+import { getCurrentWeekEnd, getCurrentWeekStart, getDaysBefore } from '$lib';
 import { EmotionService } from '$lib/server/services/emotion.service';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { TeamService } from '$lib/server/services/team.service';
@@ -39,7 +39,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		last7DaysEntries,
 		previous7DaysEntries,
 		last90DaysEntries,
-		allEntries
+		allEntries,
+		currentWeekEntries
 	] = await Promise.all([
 		TeamService.isUserTeamAdmin(params.id, locals.user.id),
 		EmotionService.getTeamEmotions(params.id),
@@ -47,7 +48,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		MoodEntryService.getTeamMoodEntries(params.id, sevenDaysAgo, now),
 		MoodEntryService.getTeamMoodEntries(params.id, fourteenDaysAgo, sevenDaysAgo),
 		MoodEntryService.getTeamMoodEntries(params.id, ninetyDaysAgo, now),
-		MoodEntryService.getTeamMoodEntries(params.id)
+		MoodEntryService.getTeamMoodEntries(params.id),
+		MoodEntryService.getTeamMoodEntries(params.id, getCurrentWeekStart(), getCurrentWeekEnd())
 	]);
 
 	return {
@@ -59,6 +61,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		last7DaysEntries,
 		previous7DaysEntries,
 		last90DaysEntries,
-		allEntries
+		allEntries,
+		currentWeekEntries
 	};
 };
