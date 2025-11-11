@@ -81,13 +81,4 @@
 			description="Your most used emotions in the last 30 days"
 		/>
 	</div>
-
-	<!-- Weekly Heatmap -->
-	<div class="w-full">
-		<WeeklyMoodHeatmap
-			entries={data.last30DaysEntries}
-			title="Weekly Mood Heatmap"
-			description="Average mood by weekday"
-		/>
-	</div>
 </div>
