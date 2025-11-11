@@ -70,7 +70,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Invalid date format' }, { status: 400 });
 		}
 		// Create UTC date at noon to avoid timezone shifting across locales
-		const entryDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0));
+		// Determine entry datetime: if the target date is today, use current time; otherwise use UTC noon to avoid timezone shifts
+		const now = new Date();
+		let entryDate: Date;
+		if (now.getFullYear() === y && now.getMonth() + 1 === m && now.getDate() === d) {
+			entryDate = now;
+		} else {
+			entryDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0));
+		}
 
 		// Always create a new entry (allowing multiple moods per day)
 		const result = await MoodEntryService.createMoodEntry({
