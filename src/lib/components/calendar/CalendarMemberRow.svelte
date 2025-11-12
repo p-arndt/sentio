@@ -15,7 +15,6 @@
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
-		isEven?: boolean;
 		showWeekends?: boolean;
 	};
 
@@ -29,13 +28,12 @@
 		onEdit,
 		isSubmitting = false,
 		requireComment = false,
-		isEven = false,
 		showWeekends = true
 	}: Props = $props();
 </script>
 
 <div
-	class="grid gap-2 md:gap-4 {isEven ? 'bg-muted/20' : ''} rounded-lg border p-2 md:p-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
+	class="grid gap-2 md:gap-4 rounded-lg border p-2 md:p-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
 >
 	<div class="flex items-center gap-2">
 		<Avatar class="h-8 w-8">

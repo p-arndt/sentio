@@ -115,8 +115,8 @@
 
 		<!-- Team Member Rows -->
 		<div class="px-3 py-2 md:px-6 md:py-6">
-			<div class="space-y-2 md:space-y-4">
-				{#each sortedMembers as member, index (member.userId)}
+			<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
+				{#each sortedMembers as member (member.userId)}
 					<CalendarMemberRow
 						{member}
 						days={displayDays}
@@ -128,7 +128,6 @@
 						{isSubmitting}
 						{requireComment}
 						{showWeekends}
-						isEven={index % 2 === 0}
 					/>
 				{/each}
 			</div>
