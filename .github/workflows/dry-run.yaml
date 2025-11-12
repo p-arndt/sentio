@@ -49,7 +49,6 @@ jobs:
                   push: true
                   build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
                   tags: |
-                      ghcr.io/${{ github.repository_owner }}/sentio:${{ steps.get_tag.outputs.VERSION }}
                       ghcr.io/${{ github.repository_owner }}/sentio:latest
                   cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
                   cache-to: type=inline
