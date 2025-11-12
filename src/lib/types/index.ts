@@ -12,12 +12,26 @@ export interface User {
 	updatedAt: Date;
 }
 
+/**
+ * User settings stored as JSONB. Structure is flexible to support any future settings.
+ * Current known settings:
+ * - theme: 'light' | 'dark' | 'system' (default: 'system')
+ * - defaultView: 'day' | 'week' | 'month' (default: 'week')
+ * - startPage: string, path like '/', '/personal', '/teams', '/teams/<id>' (default: '/')
+ * - enableNotifications: boolean (default: true)
+ */
+export interface UserSettings {
+	theme?: 'light' | 'dark' | 'system';
+	defaultView?: 'day' | 'week' | 'month';
+	startPage?: string;
+	enableNotifications?: boolean;
+	[key: string]: string | number | boolean | undefined;
+}
+
 export interface UserPreferences {
 	id: string;
 	userId: string;
-	theme: 'light' | 'dark' | 'system';
-	defaultView: 'day' | 'week' | 'month';
-	enableNotifications: boolean;
+	settings: UserSettings;
 	createdAt: Date;
 	updatedAt: Date;
 }

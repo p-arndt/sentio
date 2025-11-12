@@ -1,5 +1,6 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { UserService } from '$lib/server/services/user.service';
+import { TeamService } from '$lib/server/services/team.service';
 
 export async function load({ locals }) {
 	if (!locals.user) {
@@ -8,10 +9,12 @@ export async function load({ locals }) {
 
 	const user = await UserService.getUserById(locals.user.id);
 	const preferences = await UserService.getUserPreferences(locals.user.id);
+	const teams = await TeamService.getUserTeams(locals.user.id);
 
 	return {
 		user,
-		preferences
+		preferences,
+		teams
 	};
 }
 
@@ -43,15 +46,18 @@ export const actions = {
 		}
 
 		const data = await request.formData();
-		const theme = data.get('theme')?.toString() as 'light' | 'dark' | 'system';
-		const defaultView = data.get('defaultView')?.toString() as 'day' | 'week' | 'month';
-		const enableNotifications = data.get('enableNotifications') === 'true';
+		const theme = data.get('theme')?.toString() as 'light' | 'dark' | 'system' | undefined;
+		const defaultView = data.get('defaultView')?.toString() as 'day' | 'week' | 'month' | undefined;
+		const enableNotificationsStr = data.get('enableNotifications')?.toString();
+		const startPage = data.get('startPage')?.toString();
 
-		await UserService.upsertUserPreferences(locals.user.id, {
-			theme,
-			defaultView,
-			enableNotifications
-		});
+		const settings: Record<string, string | boolean> = {};
+		if (theme) settings.theme = theme;
+		if (defaultView) settings.defaultView = defaultView;
+		if (enableNotificationsStr !== undefined) settings.enableNotifications = enableNotificationsStr === 'true';
+		if (startPage) settings.startPage = startPage;
+
+		await UserService.upsertUserPreferences(locals.user.id, settings);
 
 		return { success: true, message: 'Preferences updated successfully' };
 	},

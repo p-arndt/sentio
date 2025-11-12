@@ -1,7 +1,8 @@
 import { db } from '$lib/server/db';
 import { user, userPreferences } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import type { User, UserPreferences, UserProfileUpdate } from '$lib/types';
+import type { User, UserPreferences, UserProfileUpdate, UserSettings } from '$lib/types';
+import { getDefaultSettings } from '$lib/settings/settings';
 
 export class UserService {
 	/**
@@ -56,7 +57,7 @@ export class UserService {
 	}
 
 	/**
-	 * Get user preferences
+	 * Get user preferences with defaults applied from settings config
 	 */
 	static async getUserPreferences(userId: string): Promise<UserPreferences | null> {
 		const result = await db
@@ -65,23 +66,46 @@ export class UserService {
 			.where(eq(userPreferences.userId, userId))
 			.limit(1);
 
-		return (result[0] as UserPreferences) || null;
+		if (!result[0]) return null;
+
+		const pref = result[0] as UserPreferences;
+		// Ensure settings object exists and has defaults
+		if (!pref.settings || typeof pref.settings !== 'object') {
+			pref.settings = {};
+		}
+
+		const defaults = getDefaultSettings();
+		pref.settings = {
+			...defaults,
+			...pref.settings // Preserve any existing user settings
+		};
+		return pref;
 	}
 
 	/**
-	 * Create or update user preferences
+	 * Create or update user preferences, merging new settings with existing ones.
+	 * Uses default settings for any missing values.
+	 * This allows partial updates without losing other settings.
 	 */
 	static async upsertUserPreferences(
 		userId: string,
-		data: Partial<Omit<UserPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>
+		newSettings: Partial<UserSettings>
 	): Promise<UserPreferences> {
 		const existing = await this.getUserPreferences(userId);
+		const defaults = getDefaultSettings();
+
+		// Merge new settings with existing ones
+		const mergedSettings = {
+			...defaults,
+			...(existing?.settings || {}),
+			...newSettings
+		};
 
 		if (existing) {
 			const result = await db
 				.update(userPreferences)
 				.set({
-					...data,
+					settings: mergedSettings,
 					updatedAt: new Date()
 				})
 				.where(eq(userPreferences.userId, userId))
@@ -93,7 +117,7 @@ export class UserService {
 				.insert(userPreferences)
 				.values({
 					userId,
-					...data
+					settings: mergedSettings
 				})
 				.returning();
 

@@ -1,5 +1,5 @@
 // src/lib/server/db/schema.ts
-import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, text, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -151,14 +151,16 @@ export const userPreferences = pgTable('user_preferences', {
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' })
 		.unique(),
-	theme: text('theme')
-		.$defaultFn(() => 'system')
-		.notNull(), // 'light', 'dark', 'system'
-	defaultView: text('default_view')
-		.$defaultFn(() => 'week')
-		.notNull(), // 'day', 'week', 'month'
-	enableNotifications: boolean('enable_notifications')
-		.$defaultFn(() => true)
+	// Extensible JSONB settings object. Example structure:
+	// { "theme": "dark", "defaultView": "week", "enableNotifications": true, "startPage": "/" }
+	// New settings can be added without schema changes.
+	settings: jsonb('settings')
+		.$defaultFn(() => ({
+			theme: 'system',
+			defaultView: 'week',
+			enableNotifications: true,
+			startPage: '/'
+		}))
 		.notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()

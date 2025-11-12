@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { UserService } from '$lib/server/services/user.service';
+import type { UserSettings } from '$lib/types';
 
 /**
  * GET /api/user/preferences
@@ -22,7 +23,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 /**
  * PATCH /api/user/preferences
- * Update current user's preferences
+ * Update current user's preferences (merges with existing settings)
  */
 export const PATCH: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -30,14 +31,8 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 	}
 
 	try {
-		const body = await request.json();
-		const { theme, defaultView, enableNotifications } = body;
-
-		const preferences = await UserService.upsertUserPreferences(locals.user.id, {
-			theme,
-			defaultView,
-			enableNotifications
-		});
+		const body = (await request.json()) as Partial<UserSettings>;
+		const preferences = await UserService.upsertUserPreferences(locals.user.id, body);
 
 		return json({ success: true, data: preferences });
 	} catch (error) {

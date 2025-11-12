@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
 		CardContent,
@@ -6,26 +9,17 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Switch } from '$lib/components/ui/switch';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
-	import { User, Bell, Palette, Calendar, Heart, Save } from '@lucide/svelte';
 	import { getUserInitials } from '$lib/utils/user';
-	import { enhance } from '$app/forms';
+	import { Save, User } from '@lucide/svelte';
 
 	let { data, form } = $props();
 
 	let name = $state(data.user?.name || '');
 	let timezone = $state(data.user?.timezone || 'UTC');
-	let theme = $state(data.preferences?.theme || 'system');
-	let defaultView = $state(data.preferences?.defaultView || 'week');
-	let enableNotifications = $state(data.preferences?.enableNotifications ?? true);
-	let personalMode = $state(data.user?.personalMode ?? false);
-
 	const timezones = [
 		'UTC',
 		'America/New_York',
@@ -118,144 +112,6 @@
 						<Save class="mr-2 h-4 w-4" />
 						Save Profile
 					</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
-
-	<!-- Appearance -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
-				<Palette class="h-5 w-5" />
-				Appearance
-			</CardTitle>
-			<CardDescription>Customize how the app looks</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<form method="POST" action="?/updatePreferences" use:enhance class="space-y-6">
-				<div class="space-y-2">
-					<Label for="theme">Theme</Label>
-					<Select name="theme" type="single" bind:value={theme}>
-						<SelectTrigger>
-							{theme ? theme : 'Select theme'}
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="light">Light</SelectItem>
-							<SelectItem value="dark">Dark</SelectItem>
-							<SelectItem value="system">System</SelectItem>
-						</SelectContent>
-					</Select>
-					<p class="text-xs text-muted-foreground">Choose your preferred color theme</p>
-				</div>
-
-				<input type="hidden" name="defaultView" value={defaultView} />
-				<input type="hidden" name="enableNotifications" value={enableNotifications} />
-
-				<div class="flex justify-end">
-					<Button type="submit">
-						<Save class="mr-2 h-4 w-4" />
-						Save Appearance
-					</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
-
-	<!-- Calendar Preferences -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
-				<Calendar class="h-5 w-5" />
-				Calendar Preferences
-			</CardTitle>
-			<CardDescription>Customize your calendar view</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<form method="POST" action="?/updatePreferences" use:enhance class="space-y-6">
-				<div class="space-y-2">
-					<Label for="defaultView">Default View</Label>
-					<Select name="defaultView" type="single" bind:value={defaultView}>
-						<SelectTrigger>
-							{defaultView ? defaultView : 'Select default view'}
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="day">Day View</SelectItem>
-							<SelectItem value="week">Week View</SelectItem>
-							<SelectItem value="month">Month View</SelectItem>
-						</SelectContent>
-					</Select>
-					<p class="text-xs text-muted-foreground">
-						Your preferred calendar view when opening the app
-					</p>
-				</div>
-
-				<input type="hidden" name="theme" value={theme} />
-				<input type="hidden" name="enableNotifications" value={enableNotifications} />
-
-				<div class="flex justify-end">
-					<Button type="submit">
-						<Save class="mr-2 h-4 w-4" />
-						Save Preferences
-					</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
-
-	<!-- Notifications -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
-				<Bell class="h-5 w-5" />
-				Notifications
-			</CardTitle>
-			<CardDescription>Manage your notification preferences</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<form method="POST" action="?/updatePreferences" use:enhance class="space-y-6">
-				<div class="flex items-center justify-between">
-					<div class="space-y-0.5">
-						<Label>Enable Notifications</Label>
-						<p class="text-sm text-muted-foreground">Receive reminders to log your daily mood</p>
-					</div>
-					<Switch name="enableNotifications" bind:checked={enableNotifications} />
-				</div>
-
-				<input type="hidden" name="theme" value={theme} />
-				<input type="hidden" name="defaultView" value={defaultView} />
-
-				<div class="flex justify-end">
-					<Button type="submit">
-						<Save class="mr-2 h-4 w-4" />
-						Save Notifications
-					</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
-
-	<!-- Personal Mode -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
-				<Heart class="h-5 w-5" />
-				Personal Mode
-			</CardTitle>
-			<CardDescription>Use the calendar for personal mood tracking</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<form method="POST" action="?/togglePersonalMode" use:enhance class="space-y-6">
-				<div class="flex items-center justify-between">
-					<div class="space-y-0.5">
-						<Label>Enable Personal Mode</Label>
-						<p class="text-sm text-muted-foreground">Track your moods privately without teams</p>
-					</div>
-					<Switch name="enabled" bind:checked={personalMode} />
-					<!-- onchange={(e) => {
-							personalMode = e.currentTarget.checked;
-							e.currentTarget.form?.requestSubmit();
-						}} -->
 				</div>
 			</form>
 		</CardContent>
