@@ -103,7 +103,7 @@
 
 	<CardContent>
 		<div class="space-y-4">
-			{#each sortedMembers as member}
+			{#each sortedMembers as member (member.userId)}
 				{@const moods = getMoodsForMember(member.userId)}
 				{@const isCurrentUser = member.userId === currentUserId}
 				<div class="rounded-lg border p-4">
@@ -130,32 +130,30 @@
 					<div class="space-y-2">
 						{#if moods.length > 0}
 							<div class="flex flex-wrap gap-2">
-								{#each moods as mood}
+								{#each moods as mood (mood.id)}
 									{@const emotion = getEmotionById(mood.emotionId)}
 									{#if emotion}
 										<TooltipProvider>
 											<Tooltip>
-												<TooltipTrigger>
-													<button
-														onclick={() =>
-															isCurrentUser && onEdit
-																? onEdit(selectedDate, mood, member.userId)
-																: null}
-														disabled={!isCurrentUser}
-														class={cn(
-															'relative flex h-12 w-12 items-center justify-center rounded-full transition-all',
-															isCurrentUser && 'cursor-pointer hover:scale-105',
-															!isCurrentUser && 'cursor-default opacity-75'
-														)}
-														style="background-color: {emotion.color}40;"
-													>
-														<span class="text-2xl">{emotion.emoji}</span>
-														{#if mood.comment}
-															<MessageCircle
-																class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
-															/>
-														{/if}
-													</button>
+												<TooltipTrigger
+													onclick={() =>
+														isCurrentUser && onEdit
+															? onEdit(selectedDate, mood, member.userId)
+															: null}
+													disabled={!isCurrentUser}
+													class={cn(
+														'relative flex h-12 w-12 items-center justify-center rounded-full transition-all',
+														isCurrentUser && 'cursor-pointer hover:scale-105',
+														!isCurrentUser && 'cursor-default opacity-75'
+													)}
+													style="background-color: {emotion.color}40;"
+												>
+													<span class="text-2xl">{emotion.emoji}</span>
+													{#if mood.comment}
+														<MessageCircle
+															class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
+														/>
+													{/if}
 												</TooltipTrigger>
 												<TooltipContent>
 													<div class="space-y-1 text-xs">
