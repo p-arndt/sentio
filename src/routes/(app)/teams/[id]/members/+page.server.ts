@@ -1,5 +1,6 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { isEmailConfigured } from '$lib/server/services/email.js';
 import { TeamService } from '$lib/server/services/team.service';
+import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ params, locals }) {
 	if (!locals.user) {
@@ -22,9 +23,11 @@ export async function load({ params, locals }) {
 	if (!isAdmin) {
 		throw redirect(303, `/teams/${params.id}`);
 	}
+	const emailConfigured = await isEmailConfigured();
 
 	return {
-		team
+		team,
+		emailConfigured
 	};
 }
 

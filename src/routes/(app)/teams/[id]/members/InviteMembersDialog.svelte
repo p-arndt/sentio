@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Alert } from '$lib/components/ui/alert';
+	import AlertDescription from '$lib/components/ui/alert/alert-description.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Dialog,
@@ -15,9 +17,14 @@
 	type Props = {
 		teamId: string;
 		open: boolean;
+		emailConfigured?: boolean;
 	};
 
-	let { teamId, open = $bindable() } = $props();
+	let {
+		teamId,
+		open = $bindable(),
+		emailConfigured = true
+	}: Props & { emailConfigured?: boolean } = $props();
 
 	let mode = $state<'existing' | 'email'>('existing');
 	let searchQuery = $state('');
@@ -68,7 +75,7 @@
 	function addEmailToSelection() {
 		if (!emailInput.trim()) return;
 		const email = emailInput.trim().toLowerCase();
-		
+
 		// Validate email format
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			error = 'Invalid email format';
@@ -93,7 +100,7 @@
 	async function inviteMembers() {
 		isLoading = true;
 		error = '';
-		
+
 		try {
 			// Add existing users to team
 			for (const user of selectedUsers) {
@@ -151,22 +158,34 @@
 
 		<!-- Mode Tabs -->
 		<div class="flex gap-2">
-			<Button 
+			<Button
 				variant={mode === 'existing' ? 'default' : 'outline'}
-				onclick={() => mode = 'existing'}
+				onclick={() => (mode = 'existing')}
 				class="flex-1"
 			>
 				Existing Members
 			</Button>
-			<Button 
+			<Button
 				variant={mode === 'email' ? 'default' : 'outline'}
-				onclick={() => mode = 'email'}
+				onclick={() => {
+					if (emailConfigured) mode = 'email';
+				}}
+				aria-disabled={!emailConfigured}
+				disabled={!emailConfigured}
 				class="flex-1"
 			>
 				<Mail class="mr-2 h-4 w-4" />
 				Invite by Email
 			</Button>
 		</div>
+
+		{#if !emailConfigured}
+			<Alert variant="warning" class="mt-2">
+				<AlertDescription>
+					Email provider is not configured. Inviting by email is disabled.
+				</AlertDescription>
+			</Alert>
+		{/if}
 
 		{#if error}
 			<div class="rounded-md bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950 dark:text-red-100">
@@ -195,7 +214,7 @@
 							{#each selectedUsers as user (user.id)}
 								<div class="flex items-center justify-between rounded-md border p-2">
 									<div>
-										<div class="font-medium text-sm">{user.name}</div>
+										<div class="text-sm font-medium">{user.name}</div>
 										<div class="text-xs text-muted-foreground">{user.email}</div>
 									</div>
 									<Button
@@ -216,22 +235,22 @@
 				{#if filteredUsers.length > 0}
 					<div class="grid gap-2">
 						<Label>Available Users</Label>
-						<div class="space-y-1 max-h-48 overflow-y-auto border rounded-md p-2">
+						<div class="max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
 							{#each filteredUsers as user (user.id)}
 								<button
 									type="button"
 									onclick={() => addUserToSelection(user)}
 									disabled={isLoading}
-									class="w-full text-left rounded-md p-2 hover:bg-muted disabled:opacity-50 transition-colors"
+									class="w-full rounded-md p-2 text-left transition-colors hover:bg-muted disabled:opacity-50"
 								>
-									<div class="font-medium text-sm">{user.name}</div>
+									<div class="text-sm font-medium">{user.name}</div>
 									<div class="text-xs text-muted-foreground">{user.email}</div>
 								</button>
 							{/each}
 						</div>
 					</div>
 				{:else if searchQuery && filteredUsers.length === 0}
-					<div class="text-sm text-muted-foreground text-center py-4">
+					<div class="py-4 text-center text-sm text-muted-foreground">
 						No users found matching your search
 					</div>
 				{/if}
@@ -252,10 +271,7 @@
 								}
 							}}
 						/>
-						<Button 
-							onclick={addEmailToSelection}
-							disabled={isLoading || !emailInput.trim()}
-						>
+						<Button onclick={addEmailToSelection} disabled={isLoading || !emailInput.trim()}>
 							Add
 						</Button>
 					</div>
@@ -286,9 +302,7 @@
 		</div>
 
 		<DialogFooter>
-			<Button variant="outline" onclick={handleClose} disabled={isLoading}>
-				Cancel
-			</Button>
+			<Button variant="outline" onclick={handleClose} disabled={isLoading}>Cancel</Button>
 			<Button
 				onclick={inviteMembers}
 				disabled={(selectedUsers.length === 0 && selectedEmails.length === 0) || isLoading}
@@ -296,7 +310,8 @@
 				{#if isLoading}
 					Inviting...
 				{:else}
-					Invite {selectedUsers.length + selectedEmails.length} {selectedUsers.length + selectedEmails.length === 1 ? 'Member' : 'Members'}
+					Invite {selectedUsers.length + selectedEmails.length}
+					{selectedUsers.length + selectedEmails.length === 1 ? 'Member' : 'Members'}
 				{/if}
 			</Button>
 		</DialogFooter>

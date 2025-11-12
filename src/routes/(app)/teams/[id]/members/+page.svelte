@@ -32,7 +32,6 @@
 	let { data, form } = $props();
 
 	let showInviteDialog = $state(false);
-
 </script>
 
 <svelte:head>
@@ -68,7 +67,11 @@
 	{/if}
 
 	<!-- Invite Members Dialog Component -->
-	<InviteMembersDialog teamId={data.team.id} bind:open={showInviteDialog} />
+	<InviteMembersDialog
+		teamId={data.team.id}
+		bind:open={showInviteDialog}
+		emailConfigured={data.emailConfigured}
+	/>
 
 	<!-- Members List -->
 	<Card>
@@ -126,9 +129,7 @@
 								<TableCell>
 									<DropdownMenu>
 										<DropdownMenuTrigger>
-											<Button variant="ghost" size="icon">
-												<MoreVertical class="h-4 w-4" />
-											</Button>
+											<MoreVertical class="h-4 w-4" />
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align="end">
 											<form method="POST" action="?/updateRole" use:enhance>
