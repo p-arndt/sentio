@@ -2,23 +2,38 @@
 
 ## General Coding Practices
 
-- Write idiomatic Svelte 5 code, using modern best practices.
-- Prefer concise, readable, and maintainable code.
-- Always use TypeScript for new components and utilities.
-- Add clear type annotations for all props and variables.
-- Write components as function modules (not class-based).
+* Generate idiomatic Svelte 5 runes code.
+* Keep logic server-first, typed, testable, and secure.
+* Use Tailwind for styling; shadcn-svelte for primitives.
+* Use proper TypeScript types throughout.
+* Favor composition over inheritance.
 
 ## Svelte 5 Specifics
 
-- Use the new Svelte 5 syntax, including:
-- `$state(value)` for state variables (do not import `$state`—assume it is globally available).
-- `$effect(() => { ... })` for effects instead of `$:`. But don't overuse it; prefer `$derived` for derived state if possible.
-- `$derived()` or `$derived.by(()=>{ /* complex logic */ return result})` for derived state.
-- Component props: declare props with types using the new `type Props = { ... }` and `let { prop } = $props();` pattern.
-- Use normal HTML element events (e.g., `on:click` is now `onclick`).
-- Avoid legacy Svelte 3/4 patterns.
-- Instead of `onclick|preventDefault`, use `onclick={(event) => { event.preventDefault(); ... }}` for event handling.
-- `<svelte:component>` is deprecated in runes mode — components are dynamic by default like `<MyComponent />` or as attributes `<props.icon/>`
+* State: use `let x = $state(initial)`. **Do not import `$state`.**
+* Derived: `let y = $derived(expr)` or `let y = $derived.by(() => { ... })`.
+* Effects: `$effect(() => { ... })` sparingly; avoid for pure derivations.
+* Props:
+
+  ```ts
+  type Props = { title: string }
+  let { title }:Props = $props()
+  ```
+* DOM events are native: `onclick`, `oninput`, etc.
+* For preventDefault: `onclick={(e)=>{ e.preventDefault(); ... }}`.
+* Dynamic components: use variables directly (no `<svelte:component>` in runes). 
+  ```svelte
+  <script lang="ts">
+	import MyComponent from '$lib/components/MyComponent.svelte';
+	import { Bot } from '@lucide/svelte';
+	let object = {
+		icon: Bot
+	}
+  </script>
+
+  <object.icon prop={value} />
+  ```
+* Checkout the [Svelte 5 llms.txt](https://svelte.dev/llms.txt) for more details. Use this as entry point to navigate to different llm.txt files
 
 ## Imports & Structure
 
@@ -68,7 +83,8 @@
 	let doubled = $derived(count * 2);
 	let complexValue = $derived.by(() => {
 		// Some complex logic that returns a value
-		return count * 3; // Example logic
+		const computed = count + 5;
+		return computed * 3; // Example logic
 	});
 
 	$effect(() => {
