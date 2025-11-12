@@ -57,10 +57,8 @@ jobs:
               id: gen_changelog
               uses: bdashrad/git-chglog-action@v2.0.3
               with:
-                  # next_version is required by the action - set it to the tag we're releasing
-                  next_version: ${{ steps.get_tag.outputs.VERSION }}
-                  # also target the same tag for generating the changelog
-                  tag: ${{ steps.get_tag.outputs.VERSION }}
+                  # Use the resolved version (tag if present, last tag, or "dry")
+                  next_version: "dry" 
 
             - name: Write RELEASE_NOTES.md
               run: |
