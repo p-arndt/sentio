@@ -14,6 +14,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -73,51 +76,24 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
           cache-to: type=inline
 
+      - name: Install git-chglog
+        run: |
+          curl -sSL https://github.com/git-chglog/git-chglog/releases/latest/download/git-chglog_linux_amd64.tar.gz \
+          | tar -xz -C /usr/local/bin
+          chmod +x /usr/local/bin/git-chglog
+
       - name: Generate changelog
         id: changelog
         run: |
-          VERSION=${{ steps.get_tag.outputs.VERSION }}
-          echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
+              VERSION=${{ steps.get_tag.outputs.VERSION }}
+              echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
+              echo "" >> RELEASE_NOTES.md
 
-          # Find previous tag reliably (even for lightweight ones)
-          PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "$VERSION" | tail -n1)
-          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$VERSION" ]; then
-            echo "No previous tag found; using all commits"
-            RANGE=""
-          else
-            echo "Comparing $PREV_TAG → $VERSION"
-            RANGE="$PREV_TAG..$VERSION"
-          fi
+              # Generate categorized changelog since previous tag
+              git-chglog --next-tag "$VERSION" -o - "$VERSION" >> RELEASE_NOTES.md
 
-          # Extract commit messages in range
-          COMMITS=$(git log $RANGE --pretty=format:"%s (%an)" || true)
-
-          FEAT=$(echo "$COMMITS" | grep -E '^feat!?(\(.+\))?:' | sed -E 's/^feat!?(\(.+\))?: /- /' || true)
-          FIX=$(echo "$COMMITS" | grep -E '^fix!?(\(.+\))?:' | sed -E 's/^fix!?(\(.+\))?: /- /' || true)
-          REFACTOR=$(echo "$COMMITS" | grep -E '^refactor!?(\(.+\))?:' | sed -E 's/^refactor!?(\(.+\))?: /- /' || true)
-          PERF=$(echo "$COMMITS" | grep -E '^perf!?(\(.+\))?:' | sed -E 's/^perf!?(\(.+\))?: /- /' || true)
-          STYLE=$(echo "$COMMITS" | grep -E '^style!?(\(.+\))?:' | sed -E 's/^style!?(\(.+\))?: /- /' || true)
-          BUILD=$(echo "$COMMITS" | grep -E '^build!?(\(.+\))?:' | sed -E 's/^build!?(\(.+\))?: /- /' || true)
-          OPS=$(echo "$COMMITS" | grep -E '^ops!?(\(.+\))?:' | sed -E 's/^ops!?(\(.+\))?: /- /' || true)
-          DOCS=$(echo "$COMMITS" | grep -E '^docs!?(\(.+\))?:' | sed -E 's/^docs!?(\(.+\))?: /- /' || true)
-          TEST=$(echo "$COMMITS" | grep -E '^test!?(\(.+\))?:' | sed -E 's/^test!?(\(.+\))?: /- /' || true)
-          OTHER=$(echo "$COMMITS" | grep -vE '^(feat|fix|refactor|perf|style|build|ops|docs|test)!?(\(.+\))?:' || true)
-
-          [ -n "$FEAT" ]     && { echo "### ✨ Features"       >> RELEASE_NOTES.md; echo "$FEAT"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$FIX" ]      && { echo "### 🐛 Fixes"          >> RELEASE_NOTES.md; echo "$FIX"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$REFACTOR" ] && { echo "### 🔧 Refactors"      >> RELEASE_NOTES.md; echo "$REFACTOR" >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$PERF" ]     && { echo "### ⚡ Performance"    >> RELEASE_NOTES.md; echo "$PERF"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$STYLE" ]    && { echo "### 🎨 Styles"        >> RELEASE_NOTES.md; echo "$STYLE"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$BUILD" ]    && { echo "### 🛠️ Build"         >> RELEASE_NOTES.md; echo "$BUILD"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$OPS" ]      && { echo "### 🚀 Operations"    >> RELEASE_NOTES.md; echo "$OPS"      >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$DOCS" ]     && { echo "### 📝 Docs"          >> RELEASE_NOTES.md; echo "$DOCS"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$TEST" ]     && { echo "### 🧪 Tests"         >> RELEASE_NOTES.md; echo "$TEST"     >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-          [ -n "$OTHER" ]    && { echo "### 🔄 Other"         >> RELEASE_NOTES.md; echo "$OTHER"    >> RELEASE_NOTES.md; echo "" >> RELEASE_NOTES.md; }
-
-          echo "🔖 Generated notes:"
-          cat RELEASE_NOTES.md
-
+              echo "🔖 Generated notes:"
+              cat RELEASE_NOTES.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

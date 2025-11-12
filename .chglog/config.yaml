@@ -1,0 +1,19 @@
+commit_groups:
+  - title: ✨ Features
+    regexp: "^feat"
+  - title: 🐛 Fixes
+    regexp: "^fix"
+  - title: 🔧 Refactors
+    regexp: "^refactor"
+  - title: 🧪 Tests
+    regexp: "^test"
+  - title: 📝 Docs
+    regexp: "^docs"
+  - title: 🛠 Build
+    regexp: "^build"
+  - title: 🚀 Ops
+    regexp: "^ops"
+  - title: 🎨 Styles
+    regexp: "^style"
+  - title: 🔄 Other
+    regexp: ""
