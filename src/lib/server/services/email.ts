@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { settings } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
@@ -41,22 +42,47 @@ async function getEmailConfig(): Promise<EmailConfig | null> {
 				.then((result) => result[0]?.value)
 		]);
 
-		if (!host || !port || !username || !password || !fromEmail) {
-			console.warn('Email configuration incomplete');
+		// Allow environment variables to provide defaults when DB entries are missing.
+		const envHost = env.SMTP_HOST;
+		const envPort = env.SMTP_PORT;
+		// support SMTP_USER or SMTP_USERNAME env names
+		const envUsername = env.SMTP_USERNAME;
+		const envPassword = env.SMTP_PASSWORD;
+		const envFrom = env.SMTP_FROM;
+
+		const finalHost = host || envHost || '';
+		const finalPort = port || envPort || '';
+		const finalUsername = username || envUsername || '';
+		const finalPassword = password || envPassword || '';
+		const finalFromEmail = fromEmail || envFrom || '';
+
+		if (!finalHost || !finalPort || !finalFromEmail) {
+			console.warn('Email configuration incomplete (missing host/port/from)');
+			return null;
+		}
+
+		// require auth if username/password provided in either source
+		if (!finalUsername || !finalPassword) {
+			console.warn('Email configuration missing username/password');
 			return null;
 		}
 
 		return {
-			host,
-			port: parseInt(port),
-			username,
-			password,
-			fromEmail
+			host: finalHost,
+			port: parseInt(finalPort),
+			username: finalUsername,
+			password: finalPassword,
+			fromEmail: finalFromEmail
 		};
 	} catch (error) {
 		console.error('Error loading email config:', error);
 		return null;
 	}
+}
+
+export async function isEmailConfigured(): Promise<boolean> {
+  const config = await getEmailConfig();
+  return config !== null;
 }
 
 export async function sendInvitationEmail(
@@ -88,7 +114,7 @@ export async function sendInvitationEmail(
 
 		if (isGeneralInvitation) {
 			// General platform invitation
-            htmlContent = `
+			htmlContent = `
 <!doctype html>
 <html lang="en">
   <head>
@@ -184,7 +210,7 @@ export async function sendInvitationEmail(
   </body>
 </html>
             `;
-			subject = 'You\'re invited to join our platform';
+			subject = "You're invited to join our platform";
 		} else {
 			// Team-specific invitation
 			htmlContent = `

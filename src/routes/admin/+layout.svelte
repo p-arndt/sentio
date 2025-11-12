@@ -63,7 +63,7 @@
 		</div>
 		{#if !data?.emailConfigured}
 			<div class="p-6">
-				<Alert>
+				<Alert variant="warning">
 					<AlertTitle>Emails not configured</AlertTitle>
 					<AlertDescription>
 						An email provider is not configured. Invitation-related functionality is disabled.

@@ -39,7 +39,12 @@
 
 		loading = true;
 		try {
-			await authClient.signIn.email({ email, password, callbackURL: '/' });
+			const response = await authClient.signIn.email({ email, password, callbackURL: '/' });
+			if(response.error) {
+				error = response.error.message || 'Login failed';
+			} else {
+				await goto('/');
+			}
 		} catch (e: any) {
 			error = e.message || 'Login failed';
 		} finally {

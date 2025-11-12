@@ -1,8 +1,10 @@
-import type { LayoutServerLoad } from './$types';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { settings, user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+import type { LayoutServerLoad } from './$types';
+import { isEmailConfigured } from '$lib/server/services/email';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	// Check minimal SMTP config presence
@@ -17,30 +19,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		throw redirect(303, '/');
 	}
 
-	const smtpHostResult = await db
-		.select()
-		.from(settings)
-		.where(eq(settings.key, 'smtpHost'))
-		.limit(1);
-
-	const smtpPortResult = await db
-		.select()
-		.from(settings)
-		.where(eq(settings.key, 'smtpPort'))
-		.limit(1);
-
-	const smtpFromEmailResult = await db
-		.select()
-		.from(settings)
-		.where(eq(settings.key, 'smtpFromEmail'))
-		.limit(1);
-
-	const hasSmtpHost = Boolean(smtpHostResult[0]?.value);
-	const hasSmtpPort = Boolean(smtpPortResult[0]?.value);
-	const hasFromEmail = Boolean(smtpFromEmailResult[0]?.value);
-
-	const emailConfigured = hasSmtpHost && hasSmtpPort && hasFromEmail;
-
+	const emailConfigured = await isEmailConfigured();
 	return {
 		user: locals.user,
 		isAdmin: dbUser[0].isAdmin,

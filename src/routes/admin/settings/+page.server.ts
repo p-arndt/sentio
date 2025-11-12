@@ -3,6 +3,7 @@ import { settings } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 export const load: PageServerLoad = async () => {
 	// Get settings from database
@@ -55,14 +56,35 @@ export const load: PageServerLoad = async () => {
 		.where(eq(settings.key, 'smtpFromEmail'))
 		.limit(1);
 
+	// Allow environment variables to provide defaults when DB entries are not set.
+	const envHost = env.SMTP_HOST;
+	const envPort = env.SMTP_PORT;
+	const envUsername = env.SMTP_USERNAME;
+	const envPassword = env.SMTP_PASSWORD;
+	const envFrom = env.SMTP_FROM;
+
+	const smtpHostValue = smtpHostResult[0]?.value || envHost || '';
+	const smtpPortValue = smtpPortResult[0]?.value || envPort || '587';
+	const smtpUsernameValue = smtpUsernameResult[0]?.value || envUsername || '';
+	const smtpFromEmailValue = smtpFromEmailResult[0]?.value || envFrom || '';
+
+	const smtpFromEnv = {
+		host: !smtpHostResult[0]?.value && Boolean(envHost),
+		port: !smtpPortResult[0]?.value && Boolean(envPort),
+		username: !smtpUsernameResult[0]?.value && Boolean(envUsername),
+		password: !smtpPasswordResult[0]?.value && Boolean(envPassword),
+		fromEmail: !smtpFromEmailResult[0]?.value && Boolean(envFrom)
+	};
+
 	return {
 		settings: {
 			showWeekends,
-			smtpHost: smtpHostResult[0]?.value || '',
-			smtpPort: smtpPortResult[0]?.value || '587',
-			smtpUsername: smtpUsernameResult[0]?.value || '',
-			smtpPassword: smtpPasswordResult[0]?.value || '',
-			smtpFromEmail: smtpFromEmailResult[0]?.value || ''
+			smtpHost: smtpHostValue,
+			smtpPort: smtpPortValue,
+			smtpUsername: smtpUsernameValue,
+			smtpPassword: '',
+			smtpFromEmail: smtpFromEmailValue,
+			smtpFromEnv
 		}
 	};
 };
@@ -111,13 +133,23 @@ export const actions: Actions = {
 		const smtpPassword = formData.get('smtpPassword')?.toString() || '';
 		const smtpFromEmail = formData.get('smtpFromEmail')?.toString() || '';
 
+		// Accept either plain email or "Name <email@example.com>". Validate the inner email.
+		// This regex captures the email part from either format.
+		const emailMatch = smtpFromEmail.match(/(?:.*<)?\s*([^<>\s@]+@[^<>\s@]+\.[^<>\s@]+)\s*>?$/);
+		if (!emailMatch) {
+			console.warn('Invalid from email format provided:', smtpFromEmail);
+			return fail(400, { error: 'Invalid From address. Use email or "Name <email@example.com>".' });
+		}
+		// store the original string (may include display name) but validate email part is ok
+		const fromEmailNormalized = smtpFromEmail;
+
 		try {
 			const settingsToUpdate = [
 				{ key: 'smtpHost', value: smtpHost },
 				{ key: 'smtpPort', value: smtpPort },
 				{ key: 'smtpUsername', value: smtpUsername },
 				{ key: 'smtpPassword', value: smtpPassword },
-				{ key: 'smtpFromEmail', value: smtpFromEmail }
+				{ key: 'smtpFromEmail', value: fromEmailNormalized }
 			];
 
 			for (const setting of settingsToUpdate) {
