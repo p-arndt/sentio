@@ -3,12 +3,12 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import CalendarMemberRow from './CalendarMemberRow.svelte';
-	import { 
-		formatDayName, 
-		formatDayDate, 
-		formatDate, 
-		isToday, 
-		filterWeekDays 
+	import {
+		formatDayName,
+		formatDayDate,
+		formatDate,
+		isToday,
+		filterWeekDays
 	} from '$lib/utils/date';
 	import type { Emotion, MoodEntryWithDetails, TeamMember, TeamMemberWithUser } from '$lib/types';
 
@@ -22,7 +22,12 @@
 		showWeekends: boolean;
 		requireComment?: boolean;
 		onWeekChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
+		onQuickAdd: (
+			emotionId: string,
+			date: Date,
+			userId: string,
+			comment?: string
+		) => Promise<void> | void;
 		onEdit?: (date: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		className?: string;
@@ -57,7 +62,6 @@
 		}
 		return sorted;
 	});
-
 </script>
 
 <Card class="overflow-hidden {className}">
@@ -86,8 +90,7 @@
 		<!-- Day Headers -->
 		<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
 			<div
-				class="grid gap-2 md:gap-4"
-				style="grid-template-columns: 200px repeat({displayDays.length}, 1fr)"
+				class="grid gap-2 md:gap-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
 			>
 				<div class="text-sm font-semibold">Team Members</div>
 				{#each displayDays as day (day.toISOString())}
@@ -113,7 +116,7 @@
 		<!-- Team Member Rows -->
 		<div class="px-3 py-2 md:px-6 md:py-6">
 			<div class="space-y-2 md:space-y-4">
-				{#each sortedMembers as member, index}
+				{#each sortedMembers as member, index (member.userId)}
 					<CalendarMemberRow
 						{member}
 						days={displayDays}
@@ -124,6 +127,7 @@
 						{onEdit}
 						{isSubmitting}
 						{requireComment}
+						{showWeekends}
 						isEven={index % 2 === 0}
 					/>
 				{/each}

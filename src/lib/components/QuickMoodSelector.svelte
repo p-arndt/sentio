@@ -90,9 +90,11 @@
 </script>
 
 <Popover {open} onOpenChange={handleOpenChange}>
-	<PopoverTrigger disabled={disabled || isSaving} class={buttonVariants({ variant, size })}>
-		<Plus class="h-4 w-4" />
-	</PopoverTrigger>
+	<div style="display: inline-flex; align-items: center; justify-content: center;">
+		<PopoverTrigger disabled={disabled || isSaving} class={buttonVariants({ variant, size })} style="display: flex; align-items: center; justify-content: center;">
+			<Plus class="h-4 w-4" />
+		</PopoverTrigger>
+	</div>
 	<PopoverContent class="w-80 p-4" align="center">
 		<div class="space-y-4">
 			<div>

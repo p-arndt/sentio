@@ -1,4 +1,11 @@
 <script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
+	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
+	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
+	import StatCard from '$lib/components/StatCard.svelte';
+	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
 		CardContent,
@@ -6,32 +13,15 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import StatCard from '$lib/components/StatCard.svelte';
-	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Settings, Users, ChevronLeft, UserPlus, Calendar, BarChart3 } from '@lucide/svelte';
-	import { invalidateAll } from '$app/navigation';
-	import {
-		toDate,
-		toDateString,
-		isSameDay,
-		getWeekDays,
-		formatDayName,
-		formatDayDate,
-		isToday,
-		toYMD
-	} from '$lib/utils/date';
+	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
 		getUserInitials,
 		getVisibilityDescription,
 		getVisibilityIcon,
 		getVisibilityValueText
 	} from '$lib/utils';
-	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
-	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
-	import type { MoodEntryWithDetails } from '$lib/types';
+	import { getWeekDays, toDate, toDateString, toYMD } from '$lib/utils/date';
+	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
 
 	let { data } = $props();
 
@@ -42,21 +32,6 @@
 	let selectedDate = $state(new Date());
 	let selectedMood: MoodEntryWithDetails | null = $state(null);
 	let isSubmitting = $state(false);
-
-	function getMoodForUserAndDate(userId: string, date: Date): MoodEntryWithDetails | undefined {
-		const dateStr = toDateString(date);
-		const result = data.entries.find((e: MoodEntryWithDetails) => {
-			const entryDateStr = toDateString(e.date);
-			const userMatch = e.userId === userId;
-			const dateMatch = entryDateStr === dateStr;
-
-			return userMatch && dateMatch;
-		});
-
-		return result;
-	}
-
-	import { goto } from '$app/navigation';
 
 	async function handleWeekChange(direction: 'prev' | 'next') {
 		const base = weekStart;
@@ -298,7 +273,7 @@
 		</CardHeader>
 		<CardContent>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each data.team.members as member}
+				{#each data.team.members as member (member.userId)}
 					<div class="flex items-center gap-3 rounded-lg border p-3">
 						<Avatar>
 							<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />

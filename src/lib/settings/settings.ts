@@ -1,5 +1,5 @@
 import type { UserSettings } from '$lib/types';
-import { Bell, Calendar, Heart, Palette } from '@lucide/svelte';
+import { Calendar, Palette } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
 export type SettingType = 'select' | 'toggle' | 'text';
@@ -79,7 +79,7 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
 				]
 			}
 		]
-	},
+	}
 	// {
 	// 	id: 'notifications',
 	// 	title: 'Notifications',

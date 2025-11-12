@@ -56,18 +56,29 @@
 			popoverOpen = true;
 		}
 	}
+
+	function handleCellKeyDown(e: KeyboardEvent) {
+		if (isCurrentUser && (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+			e.preventDefault();
+			popoverOpen = true;
+		}
+	}
 </script>
 
 {#if moods.length > 0}
-	<button
+	<div
 		onclick={handleCellClick}
+		onkeydown={handleCellKeyDown}
 		class={cn(
-			'relative min-h-[100px] w-full rounded-lg border-2 p-2 transition-all duration-200',
+			'relative min-h-[100px] w-full rounded-lg border-2 p-2',
 			today && 'border-primary ring-2 ring-primary/50 ring-offset-2',
-			!today && 'hover:border-primary/40 hover:shadow-md',
+			!today &&
+				'hover:border-primary/40 hover:shadow-md hover:transition-shadow hover:duration-200',
 			isWeekend && 'bg-muted/30',
 			isCurrentUser && 'cursor-pointer'
 		)}
+		role="button"
+		tabindex="0"
 	>
 		<div class="flex flex-col gap-1.5">
 			{#each moods as mood}
@@ -75,32 +86,30 @@
 				{#if emotion}
 					<TooltipProvider>
 						<Tooltip>
-							<TooltipTrigger>
-								<button
-									class={cn(
-										'group relative w-full rounded-lg p-2 transition-all duration-200',
-										isCurrentUser && 'cursor-pointer hover:scale-[1.01] hover:shadow-sm',
-										!isCurrentUser && 'cursor-default'
-									)}
-									style="background-color: {emotion.color}15; border: 1px solid {emotion.color}30;"
-									disabled={!isCurrentUser}
-									onclick={() => handleMoodClick(mood)}
-								>
-									<div class="flex items-center justify-center">
-										<div
-											class="rounded-full p-1.5 transition-all group-hover:scale-105"
-											style="background-color: {emotion.color}20;"
-										>
-											<div class="text-2xl">{emotion.emoji}</div>
-										</div>
-										{#if mood.comment}
-											<MessageCircle
-												size={12}
-												class="absolute top-1.5 right-1.5 text-muted-foreground/60"
-											/>
-										{/if}
+							<TooltipTrigger
+								class={cn(
+									'group relative w-full rounded-lg p-2 transition-all duration-200',
+									isCurrentUser && 'cursor-pointer hover:scale-[1.01] hover:shadow-sm',
+									!isCurrentUser && 'cursor-default'
+								)}
+								style="background-color: {emotion.color}15; border: 1px solid {emotion.color}30;"
+								disabled={!isCurrentUser}
+								onclick={() => handleMoodClick(mood)}
+							>
+								<div class="flex items-center justify-center">
+									<div
+										class="rounded-full p-1.5 transition-all group-hover:scale-105"
+										style="background-color: {emotion.color}20;"
+									>
+										<div class="text-2xl">{emotion.emoji}</div>
 									</div>
-								</button>
+									{#if mood.comment}
+										<MessageCircle
+											size={12}
+											class="absolute top-1.5 right-1.5 text-muted-foreground/60"
+										/>
+									{/if}
+								</div>
 							</TooltipTrigger>
 							<TooltipContent side="top" class="max-w-xs">
 								<p class="font-medium">{emotion.name}</p>
@@ -118,38 +127,45 @@
 
 			{#if isCurrentUser}
 				<div class="flex justify-center">
-					<QuickMoodSelector
-						{emotions}
-						onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
-						size="sm"
-						variant="ghost"
-						disabled={isSubmitting}
-						bind:open={popoverOpen}
-						{requireComment}
-					/>
+					<div class="flex h-8 w-8 items-center justify-center">
+						<QuickMoodSelector
+							{emotions}
+							onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
+							size="sm"
+							variant="ghost"
+							disabled={isSubmitting}
+							bind:open={popoverOpen}
+							{requireComment}
+						/>
+					</div>
 				</div>
 			{/if}
 		</div>
-	</button>
+	</div>
 {:else if isCurrentUser}
-	<button
+	<div
 		onclick={handleCellClick}
+		onkeydown={handleCellKeyDown}
 		class={cn(
-			'flex min-h-[100px] w-full items-center justify-center rounded-lg border-2 transition-all duration-200',
-			'cursor-pointer hover:border-primary/40 hover:shadow-md',
+			'flex min-h-[100px] w-full items-center justify-center rounded-lg border-2',
+			'cursor-pointer hover:border-primary/40 hover:shadow-md hover:transition-shadow hover:duration-200',
 			today && 'border-primary ring-2 ring-primary/50 ring-offset-2',
 			!today && 'border-dashed',
 			isWeekend && 'bg-muted/30'
 		)}
+		role="button"
+		tabindex="0"
 	>
-		<QuickMoodSelector
-			{emotions}
-			onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
-			disabled={isSubmitting}
-			bind:open={popoverOpen}
-			{requireComment}
-		/>
-	</button>
+		<div class="flex h-10 w-10 items-center justify-center">
+			<QuickMoodSelector
+				{emotions}
+				onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
+				disabled={isSubmitting}
+				bind:open={popoverOpen}
+				{requireComment}
+			/>
+		</div>
+	</div>
 {:else}
 	<div
 		class={cn(

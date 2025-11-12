@@ -16,6 +16,7 @@
 		isSubmitting?: boolean;
 		requireComment?: boolean;
 		isEven?: boolean;
+		showWeekends?: boolean;
 	};
 
 	let {
@@ -28,13 +29,13 @@
 		onEdit,
 		isSubmitting = false,
 		requireComment = false,
-		isEven = false
+		isEven = false,
+		showWeekends = true
 	}: Props = $props();
 </script>
 
 <div
-	class="grid gap-2 md:gap-4 {isEven ? 'bg-muted/20' : ''} rounded-lg border p-2 md:p-4"
-	style="grid-template-columns: 200px repeat({days.length}, 1fr)"
+	class="grid gap-2 md:gap-4 {isEven ? 'bg-muted/20' : ''} rounded-lg border p-2 md:p-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
 >
 	<div class="flex items-center gap-2">
 		<Avatar class="h-8 w-8">
@@ -42,14 +43,14 @@
 			<AvatarFallback>{getUserInitials(member.user.name)}</AvatarFallback>
 		</Avatar>
 		<div class="min-w-0 flex-1">
-			<div class="truncate text-xs md:text-sm font-medium">{member.user.name}</div>
+			<div class="truncate text-xs font-medium md:text-sm">{member.user.name}</div>
 			{#if member.role === 'admin'}
-				<Badge variant="secondary" class="text-xs mt-1">Admin</Badge>
+				<Badge variant="secondary" class="mt-1 text-xs">Admin</Badge>
 			{/if}
 		</div>
 	</div>
 
-	{#each days as day}
+	{#each days as day (day.toISOString())}
 		<CalendarDayCell
 			{day}
 			{emotions}
