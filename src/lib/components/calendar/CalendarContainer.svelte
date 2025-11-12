@@ -18,6 +18,7 @@
 		currentUserId?: string;
 		showWeekends: boolean;
 		requireComment?: boolean;
+		defaultView?: CalendarViewMode;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 		onQuickAdd: (
 			emotionId: string,
@@ -39,13 +40,14 @@
 		currentUserId,
 		showWeekends,
 		requireComment = false,
+		defaultView = 'week',
 		onWeekChange,
 		onQuickAdd,
 		onEdit,
 		isSubmitting = false
 	}: Props = $props();
 
-	let mode = $state<CalendarViewMode>('week');
+	let mode = $state<CalendarViewMode>(defaultView);
 	let selectedDate = $state(new Date());
 
 	function handleViewModeChange(newMode: CalendarViewMode) {

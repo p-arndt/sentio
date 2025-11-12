@@ -16,6 +16,7 @@
 		entries: MoodEntryWithDetails[];
 		userId: string;
 		requireComment?: boolean;
+		defaultView?: CalendarViewMode;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 		onQuickAdd: (emotionId: string, date: Date, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails) => void;
@@ -29,13 +30,14 @@
 		entries,
 		userId,
 		requireComment = false,
+		defaultView = 'week',
 		onWeekChange,
 		onQuickAdd,
 		onEdit,
 		isSubmitting = false
 	}: Props = $props();
 
-	let mode = $state<CalendarViewMode>('week');
+	let mode = $state<CalendarViewMode>(defaultView);
 	let selectedDate = $state(new Date());
 
 	// Create a dummy team member for the current user to work with existing components

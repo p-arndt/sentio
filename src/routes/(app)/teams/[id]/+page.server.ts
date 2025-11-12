@@ -2,6 +2,7 @@ import { redirect, error } from '@sveltejs/kit';
 import { TeamService } from '$lib/server/services/team.service';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { UserService } from '$lib/server/services/user.service';
 import { getWeekRange, toYMD } from '$lib/utils/date';
 
 export async function load({ params, locals, url }) {
@@ -47,6 +48,8 @@ export async function load({ params, locals, url }) {
 		}
 	}
 
+	const preferences = await UserService.getUserPreferences(locals.user.id);
+
 	return {
 		team,
 		isAdmin,
@@ -54,6 +57,7 @@ export async function load({ params, locals, url }) {
 		entries,
 		currentUserId: locals.user.id,
 		weekStart: startOfWeek.toISOString(),
-		weekEnd: endOfWeek.toISOString()
+		weekEnd: endOfWeek.toISOString(),
+		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week'
 	};
 }

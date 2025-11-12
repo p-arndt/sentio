@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { UserService } from '$lib/server/services/user.service';
 import { getWeekRange } from '$lib/utils/date';
 import type { User } from '$lib/types';
 
@@ -28,12 +29,14 @@ export async function load({ locals, url }) {
 		monthEnd
 	);
 	const emotions = await EmotionService.getGlobalEmotions();
+	const preferences = await UserService.getUserPreferences(locals.user.id);
 
 	return {
 		user: locals.user as User,
 		moodEntries,
 		emotions,
 		weekStart: startOfWeek.toISOString(),
-		weekEnd: endOfWeek.toISOString()
+		weekEnd: endOfWeek.toISOString(),
+		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week'
 	};
 }

@@ -279,6 +279,7 @@
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
 		requireComment={data.team.requireComment}
+		defaultView={data.defaultView}
 		onWeekChange={handleWeekChange}
 		onQuickAdd={(emotionId, date, userId, comment) =>
 			handleQuickMood(emotionId, date, userId, comment)}

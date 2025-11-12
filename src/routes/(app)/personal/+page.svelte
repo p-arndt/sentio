@@ -243,6 +243,7 @@
 		emotions={data.emotions}
 		entries={data.moodEntries}
 		userId={data.user.id}
+		defaultView={data.defaultView}
 		onWeekChange={handleWeekChange}
 		onQuickAdd={handleQuickMoodPersonal}
 		onEdit={(date, entry) => openMoodDialog(date, entry)}
