@@ -1,0 +1,67 @@
+name: Dry Run
+
+on:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: "10"
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Extract tag name
+              id: get_tag
+              run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build and push Docker Hub image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: false
+                  build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
+                  tags: |
+                      docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:${{ steps.get_tag.outputs.VERSION }}
+                      docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
+                  cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
+                  cache-to: type=inline
+
+            - name: Generate changelog (git-chglog action)
+              id: gen_changelog
+              uses: bdashrad/git-chglog-action@v2.0.3
+              with:
+                  # next_version is required by the action - set it to the tag we're releasing
+                  next_version: ${{ steps.get_tag.outputs.VERSION }}
+                  # also target the same tag for generating the changelog
+                  tag: ${{ steps.get_tag.outputs.VERSION }}
+
+            - name: Write RELEASE_NOTES.md
+              run: |
+                  VERSION=${{ steps.get_tag.outputs.VERSION }}
+                  echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
+                  echo "" >> RELEASE_NOTES.md
+                  # Append changelog from the action output
+                  echo "${{ steps.gen_changelog.outputs.changelog }}" >> RELEASE_NOTES.md
+                  echo "🔖 Generated notes:"
+                  cat RELEASE_NOTES.md
