@@ -16,34 +16,40 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, Team } from '$lib/types';
+	import type { Emotion, Team, UserPreferences } from '$lib/types';
 	import { Heart, MessageCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
 		emotions: Emotion[];
 		teams: Team[];
+		preferences?: UserPreferences | null;
 		onEntryAdded?: () => void | Promise<void>;
 	};
 
-	let { emotions, teams, onEntryAdded }: Props = $props();
+	let { emotions, teams, preferences, onEntryAdded }: Props = $props();
 
 	let selectedEmotionId = $state<string | undefined>(undefined);
 	let comment = $state('');
 	let showComment = $state(false);
 	let isLoading = $state(false);
 
-	// Initialize teams state with all team IDs set to false
+	// Load last used targets from preferences, or use defaults
+	const lastTargets = preferences?.settings?.lastQuickMoodTargets;
+	const initialPersonal = lastTargets?.personal ?? true;
+	const initialTeamIds = lastTargets?.teamIds ?? [];
+
+	// Initialize teams state with last used selections
 	const initialTeams: Record<string, boolean> = {};
 	teams.forEach((team) => {
-		initialTeams[team.id] = false;
+		initialTeams[team.id] = initialTeamIds.includes(team.id);
 	});
 
 	let selectedTargets = $state<{
 		personal: boolean;
 		teams: Record<string, boolean>;
 	}>({
-		personal: true,
+		personal: initialPersonal,
 		teams: initialTeams
 	});
 
@@ -135,6 +141,29 @@
 				}
 			}
 
+			// Save selected targets to user preferences only if they changed
+			const selectedTeamIds = Object.entries(teamSelectionMap)
+				.filter(([_, isSelected]) => isSelected === true)
+				.map(([teamId]) => teamId);
+
+			const hasChanged =
+				selectedTargets.personal !== initialPersonal ||
+				selectedTeamIds.length !== initialTeamIds.length ||
+				!selectedTeamIds.every((id) => initialTeamIds.includes(id));
+
+			if (hasChanged) {
+				await fetch('/api/user/preferences', {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						lastQuickMoodTargets: {
+							personal: selectedTargets.personal,
+							teamIds: selectedTeamIds
+						}
+					})
+				});
+			}
+
 			// Success
 			const targetNames = [];
 			if (selectedTargets.personal) targetNames.push('personal calendar');
@@ -167,10 +196,6 @@
 		selectedEmotionId = undefined;
 		comment = '';
 		showComment = false;
-		const newTeams = Object.fromEntries(
-			Object.keys(selectedTargets.teams).map((teamId) => [teamId, false])
-		) as Record<string, boolean>;
-		selectedTargets = { personal: true, teams: newTeams };
 	}
 </script>
 

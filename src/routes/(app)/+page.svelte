@@ -48,28 +48,14 @@
 		</h1>
 		<p class="text-xl text-muted-foreground">How are you feeling today?</p>
 	</div>
-	<!-- Quick Actions -->
-	<!-- <div class="grid gap-4 md:grid-cols-3">
-		{#each quickActions.filter((a) => a.show) as action}
-			<Button
-				href={action.href}
-				variant={action.variant}
-				size="lg"
-				class="h-auto justify-start gap-3 p-6 text-left"
-			>
-				<div class="rounded-lg bg-primary/10 p-3">
-					<action.icon class="h-6 w-6" />
-				</div>
-				<div class="flex-1">
-					<div class="font-semibold">{action.label}</div>
-				</div>
-				<ArrowRight class="h-5 w-5" />
-			</Button>
-		{/each}
-	</div> -->
+
 
 	<!-- Quick Mood Entry Card -->
-	<DashboardQuickMoodEntry emotions={data.emotions} teams={data.teams} />
+	<DashboardQuickMoodEntry
+		emotions={data.emotions}
+		teams={data.teams}
+		preferences={data.preferences}
+	/>
 
 	<!-- Stats Grid -->
 	<div class="grid gap-4 md:grid-cols-3">

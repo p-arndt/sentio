@@ -19,13 +19,18 @@ export interface User {
  * - defaultView: 'day' | 'week' | 'month' (default: 'week')
  * - startPage: string, path like '/', '/personal', '/teams', '/teams/<id>' (default: '/')
  * - enableNotifications: boolean (default: true)
+ * - lastQuickMoodTargets: { personal: boolean, teamIds: string[] } - Last selected targets for quick mood entry
  */
 export interface UserSettings {
 	theme?: 'light' | 'dark' | 'system';
 	defaultView?: 'day' | 'week' | 'month';
 	startPage?: string;
 	enableNotifications?: boolean;
-	[key: string]: string | number | boolean | undefined;
+	lastQuickMoodTargets?: {
+		personal: boolean;
+		teamIds: string[];
+	};
+	[key: string]: string | number | boolean | object | undefined;
 }
 
 export interface UserPreferences {
