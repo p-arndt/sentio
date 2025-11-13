@@ -82,8 +82,6 @@ jobs:
         with:
           # next_version is required by the action - set it to the tag we're releasing
           next_version: ${{ steps.get_tag.outputs.VERSION }}
-          # also target the same tag for generating the changelog
-          tag: ${{ steps.get_tag.outputs.VERSION }}
 
       - name: Write RELEASE_NOTES.md
         run: |
