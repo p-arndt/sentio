@@ -62,6 +62,11 @@
 		}
 		return sorted;
 	});
+
+	let gridTemplate = $derived.by(() => {
+		const n = displayDays.length;
+		return `200px repeat(${n}, minmax(80px, 1fr))`;
+	});
 </script>
 
 <Card class="overflow-hidden {className}">
@@ -87,11 +92,10 @@
 	</CardHeader>
 
 	<CardContent>
-		<!-- Day Headers -->
-		<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
-			<div
-				class="grid gap-2 md:gap-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
-			>
+		<div class="overflow-x-auto" style="--calendar-grid-template: {gridTemplate}">
+			<!-- Day Headers -->
+			<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
+				<div class="grid gap-2 md:gap-4" style="grid-template-columns: var(--calendar-grid-template)">
 				<div class="text-sm font-semibold">Team Members</div>
 				{#each displayDays as day (day.toISOString())}
 					<div class="min-w-0 text-center">
@@ -111,11 +115,11 @@
 					</div>
 				{/each}
 			</div>
-		</div>
+			</div>
 
-		<!-- Team Member Rows -->
-		<div class="px-3 py-2 md:px-6 md:py-6">
-			<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
+			<!-- Team Member Rows -->
+			<div class="px-3 py-2 md:px-6 md:py-6">
+				<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
 				{#each sortedMembers as member (member.userId)}
 					<CalendarMemberRow
 						{member}
@@ -130,6 +134,7 @@
 						{showWeekends}
 					/>
 				{/each}
+				</div>
 			</div>
 		</div>
 	</CardContent>

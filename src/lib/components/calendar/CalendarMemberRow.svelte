@@ -32,9 +32,8 @@
 	}: Props = $props();
 </script>
 
-<div
-	class="grid gap-2 md:gap-4 rounded-lg border p-2 md:p-4 {showWeekends ? 'grid-cols-[200px_repeat(7,1fr)]' : 'grid-cols-[200px_repeat(5,1fr)]'}"
->
+<div class="grid gap-2 md:gap-4 rounded-lg border p-2 md:p-4" style="grid-template-columns: var(--calendar-grid-template, 200px repeat(7,1fr))">
+
 	<div class="flex items-center gap-2">
 		<Avatar class="h-8 w-8">
 			<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
