@@ -1,11 +1,11 @@
 <script lang="ts">
+	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import {
 		Tooltip,
 		TooltipContent,
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import type { Emotion, MoodEntryWithDetails } from '$lib/types';
 	import { cn } from '$lib/utils';
 	import { isToday, toDateString } from '$lib/utils/date';
@@ -89,12 +89,10 @@
 							<TooltipTrigger
 								class={cn(
 									'group relative w-full rounded-lg p-2 transition-all duration-200',
-									isCurrentUser && 'cursor-pointer hover:scale-[1.01] hover:shadow-sm',
-									!isCurrentUser && 'cursor-default'
+									'cursor-pointer hover:scale-[1.01] hover:shadow-sm'
 								)}
 								style="background-color: {emotion.color}15; border: 1px solid {emotion.color}30;"
-								disabled={!isCurrentUser}
-								onclick={() => handleMoodClick(mood)}
+								onclick={() => isCurrentUser && handleMoodClick(mood)}
 							>
 								<div class="flex items-center justify-center">
 									<div

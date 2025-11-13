@@ -12,6 +12,8 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { SETTINGS_SECTIONS, getSettingLabel } from '$lib/settings/settings.js';
 	import { ArrowLeft, Check } from '@lucide/svelte';
+	import RemindersManager from '$lib/components/RemindersManager.svelte';
+	import NotificationSettings from '$lib/components/NotificationSettings.svelte';
 
 	let { data } = $props();
 
@@ -184,5 +186,9 @@
 				</CardContent>
 			</Card>
 		{/each}
+
+		<NotificationSettings vapidPublicKey={data.vapidPublicKey} />
+
+		<RemindersManager reminders={data.reminders} />
 	</div>
 </div>

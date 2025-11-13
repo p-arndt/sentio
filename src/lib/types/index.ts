@@ -265,6 +265,65 @@ export interface EmotionUpdateInput {
 	order?: string;
 }
 
+// ==================== PUSH NOTIFICATION TYPES ====================
+export interface PushSubscription {
+	id: string;
+	userId: string;
+	endpoint: string;
+	auth: string;
+	p256dh: string;
+	userAgent?: string | null;
+	isActive: boolean;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface PushSubscriptionInput {
+	endpoint: string;
+	keys: {
+		auth: string;
+		p256dh: string;
+	};
+}
+
+export interface VapidKeys {
+	publicKey: string;
+	privateKey: string;
+}
+
+// ==================== MOOD REMINDER TYPES ====================
+export interface MoodReminder {
+	id: string;
+	userId: string;
+	title: string;
+	message: string;
+	time: string; // HH:MM format
+	daysOfWeek: string; // Comma-separated days (0-6) or 'all'
+	isActive: boolean;
+	lastTriggered?: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface MoodReminderCreate {
+	title: string;
+	message: string;
+	time: string; // HH:MM in user's local time
+	daysOfWeek?: string;
+}
+
+export interface MoodReminderUpdate {
+	title?: string;
+	message?: string;
+	time?: string; // HH:MM in user's local time
+	daysOfWeek?: string;
+	isActive?: boolean;
+}
+
+export interface MoodReminderWithDetails extends MoodReminder {
+	nextTrigger?: Date; // Client-side calculated
+}
+
 // ==================== API RESPONSE TYPES ====================
 export interface ApiResponse<T = unknown> {
 	success: boolean;

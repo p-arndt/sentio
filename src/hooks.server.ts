@@ -8,6 +8,7 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
+import { initializeReminderScheduler } from '$lib/server/reminder-scheduler';
 
 let initialized = false;
 let hasAdmin = false;
@@ -51,6 +52,13 @@ export const init: ServerInit = async () => {
 			console.log('⚠ No admin user found - initialization required');
 		}
 		initialized = true;
+
+		// Initialize reminder scheduler
+		try {
+			initializeReminderScheduler();
+		} catch (error) {
+			console.error('Failed to initialize reminder scheduler:', error);
+		}
 	}
 };
 
