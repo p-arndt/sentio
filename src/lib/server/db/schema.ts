@@ -183,3 +183,42 @@ export const invitation = pgTable('invitations', {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// Push subscriptions for web push notifications
+export const pushSubscription = pgTable('push_subscriptions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	endpoint: text('endpoint').notNull(),
+	auth: text('auth').notNull(), // Base64-encoded auth secret
+	p256dh: text('p256dh').notNull(), // Base64-encoded P-256 public key
+	userAgent: text('user_agent'),
+	isActive: boolean('is_active')
+		.$defaultFn(() => true)
+		.notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Mood reminders for users
+export const moodReminder = pgTable('mood_reminders', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	message: text('message').notNull(),
+	// Time of day in HH:MM format (e.g., "09:00", "14:30")
+	time: text('time').notNull(),
+	// Days of week: 0-6 (0 = Sunday), comma-separated or all for daily
+	daysOfWeek: text('days_of_week')
+		.$defaultFn(() => '0,1,2,3,4,5,6')
+		.notNull(),
+	isActive: boolean('is_active')
+		.$defaultFn(() => true)
+		.notNull(),
+	lastTriggered: timestamp('last_triggered'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});

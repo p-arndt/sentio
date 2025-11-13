@@ -1,0 +1,1 @@
+ALTER TABLE "mood_reminders" DROP COLUMN "emotion_emoji";

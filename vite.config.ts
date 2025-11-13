@@ -4,7 +4,11 @@ import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		devtoolsJson()
+	],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
@@ -34,8 +38,7 @@ export default defineConfig({
 		]
 	},
 	optimizeDeps: {
-		
-		entries: ['src/**/*.svelte'], 
+		entries: ['src/**/*.svelte'],
 		include: ['better-auth/svelte-kit', '@lucide/svelte'],
 		holdUntilCrawlEnd: false
 	}

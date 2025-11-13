@@ -40,7 +40,7 @@
 		loading = true;
 		try {
 			const response = await authClient.signIn.email({ email, password, callbackURL: '/' });
-			if(response.error) {
+			if (response.error) {
 				error = response.error.message || 'Login failed';
 			} else {
 				await goto('/');
@@ -63,7 +63,7 @@
 >
 	<Card class="w-full max-w-md border-border bg-card/80 shadow-2xl backdrop-blur-sm">
 		<CardHeader class="pb-2 text-center">
-			<div class="mx-auto mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-primary">
+			<div class="mx-auto mb-4 flex items-center justify-center">
 				<img src={sentiologo} alt="Senoti logo" class="h-32 w-auto" />
 			</div>
 			<CardTitle class="text-2xl font-bold text-primary">Welcome</CardTitle>
