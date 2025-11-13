@@ -9,6 +9,8 @@ import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
 import { initializeReminderScheduler } from '$lib/server/reminder-scheduler';
+import { initializeCalendarJobHandlers } from '$lib/server/calendar/sync-job-queue';
+import { initializeEventNotificationHandler } from '$lib/server/calendar/event-notification.processor';
 
 let initialized = false;
 let hasAdmin = false;
@@ -58,6 +60,20 @@ export const init: ServerInit = async () => {
 			initializeReminderScheduler();
 		} catch (error) {
 			console.error('Failed to initialize reminder scheduler:', error);
+		}
+
+		// Initialize calendar job handlers
+		try {
+			await initializeCalendarJobHandlers();
+		} catch (error) {
+			console.error('Failed to initialize calendar job handlers:', error);
+		}
+
+		// Initialize event notification job handler
+		try {
+			await initializeEventNotificationHandler();
+		} catch (error) {
+			console.error('Failed to initialize event notification handler:', error);
 		}
 	}
 };

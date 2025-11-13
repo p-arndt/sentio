@@ -222,3 +222,85 @@ export const moodReminder = pgTable('mood_reminders', {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// Calendar integration tables
+export const calendarAccount = pgTable('calendar_accounts', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	provider: text('provider').notNull(), // 'google', 'microsoft', etc.
+	email: text('email').notNull(),
+	calendarId: text('calendar_id'), // e.g., 'primary' for Google, resource ID for Outlook
+	isEnabled: boolean('is_enabled')
+		.$defaultFn(() => true)
+		.notNull(),
+	lastSyncedAt: timestamp('last_synced_at'),
+	nextSyncAt: timestamp('next_sync_at'),
+	syncToken: text('sync_token'), // Google Calendar incremental sync token
+	metadata: jsonb('metadata')
+		.$defaultFn(() => ({}))
+		.notNull(), // Provider-specific data (timezone, display name, etc.)
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const calendarEvent = pgTable('calendar_events', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	calendarAccountId: uuid('calendar_account_id')
+		.notNull()
+		.references(() => calendarAccount.id, { onDelete: 'cascade' }),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	externalEventId: text('external_event_id').notNull(), // e.g., Google event ID
+	provider: text('provider').notNull(), // 'google', 'microsoft'
+	title: text('title').notNull(),
+	description: text('description'),
+	startTime: timestamp('start_time').notNull(),
+	endTime: timestamp('end_time').notNull(),
+	duration: integer('duration'), // in minutes
+	isAllDay: boolean('is_all_day')
+		.$defaultFn(() => false)
+		.notNull(),
+	location: text('location'),
+	attendeeCount: integer('attendee_count'),
+	moodPromptSent: boolean('mood_prompt_sent')
+		.$defaultFn(() => false)
+		.notNull(),
+	moodPromptSentAt: timestamp('mood_prompt_sent_at'),
+	moodLogged: boolean('mood_logged')
+		.$defaultFn(() => false)
+		.notNull(),
+	moodEntryId: uuid('mood_entry_id').references(() => calendarEntry.id, { onDelete: 'set null' }),
+	externalMetadata: jsonb('external_metadata')
+		.$defaultFn(() => ({}))
+		.notNull(), // Full event data from provider
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const calendarSync = pgTable('calendar_syncs', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	calendarAccountId: uuid('calendar_account_id').references(() => calendarAccount.id, { onDelete: 'cascade' }),
+	status: text('status')
+		.$defaultFn(() => 'pending')
+		.notNull(), // 'pending', 'in_progress', 'completed', 'failed'
+	error: text('error'),
+	eventsImported: integer('events_imported')
+		.$defaultFn(() => 0)
+		.notNull(),
+	eventsUpdated: integer('events_updated')
+		.$defaultFn(() => 0)
+		.notNull(),
+	eventsDeleted: integer('events_deleted')
+		.$defaultFn(() => 0)
+		.notNull(),
+	startedAt: timestamp('started_at').defaultNow().notNull(),
+	completedAt: timestamp('completed_at'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});

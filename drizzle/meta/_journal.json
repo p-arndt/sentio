@@ -71,6 +71,13 @@
       "when": 1762983848365,
       "tag": "0009_remove_emotion_emoji_from_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763073816344,
+      "tag": "0010_true_infant_terrible",
+      "breakpoints": true
     }
   ]
 }
