@@ -9,7 +9,7 @@
 	import type { Emotion, MoodEntryWithDetails } from '$lib/types';
 	import { cn } from '$lib/utils';
 	import { isToday, toDateString } from '$lib/utils/date';
-	import { MessageCircle } from '@lucide/svelte';
+	import { MessageCircle, ChevronDown } from '@lucide/svelte';
 
 	type Props = {
 		day: Date;
@@ -43,10 +43,15 @@
 	let isWeekend = $derived(day.getDay() === 0 || day.getDay() === 6);
 
 	let popoverOpen = $state(false);
+	let expandedMoodId = $state<string | null>(null);
 
-	function handleMoodClick(mood: MoodEntryWithDetails) {
+	function handleMoodClick(mood: MoodEntryWithDetails, e: MouseEvent) {
+		e.stopPropagation();
+
 		if (isCurrentUser && onEdit) {
 			onEdit(day, mood, userId);
+		} else if (mood.comment) {
+			expandedMoodId = expandedMoodId === mood.id ? null : mood.id;
 		}
 	}
 
@@ -88,24 +93,45 @@
 						<Tooltip>
 							<TooltipTrigger
 								class={cn(
-									'group relative w-full rounded-lg p-2 transition-all duration-200',
-									'cursor-pointer hover:scale-[1.01] hover:shadow-sm'
+									'group relative w-full rounded-lg transition-all duration-200',
+									'cursor-pointer hover:scale-[1.01] hover:shadow-sm',
+									mood.comment ? 'p-1.5' : 'p-2'
 								)}
 								style="background-color: {emotion.color}15; border: 1px solid {emotion.color}30;"
-								onclick={() => isCurrentUser && handleMoodClick(mood)}
+								onclick={(e) => handleMoodClick(mood, e)}
 							>
-								<div class="flex items-center justify-center">
-									<div
-										class="rounded-full p-1.5 transition-all group-hover:scale-105"
-										style="background-color: {emotion.color}20;"
-									>
-										<div class="text-2xl">{emotion.emoji}</div>
+								<div class="flex flex-col gap-1.5">
+									<div class="flex items-center gap-1.5 {!mood.comment && 'justify-center'}">
+										<div
+											class="rounded-full p-1 transition-all group-hover:scale-105"
+											style="background-color: {emotion.color}20;"
+										>
+											<div class="text-xl">{emotion.emoji}</div>
+										</div>
+										{#if mood.comment}
+											<div class="flex min-w-0 flex-1 items-center gap-1">
+												<MessageCircle size={12} class="shrink-0 text-muted-foreground/60" />
+												<p class="line-clamp-1 text-xs leading-tight text-muted-foreground">
+													{mood.comment}
+												</p>
+											</div>
+											{#if !isCurrentUser}
+												<ChevronDown
+													size={14}
+													class={cn(
+														'shrink-0 text-muted-foreground/60 transition-transform',
+														expandedMoodId === mood.id && 'rotate-180'
+													)}
+												/>
+											{/if}
+										{/if}
 									</div>
-									{#if mood.comment}
-										<MessageCircle
-											size={12}
-											class="absolute top-1.5 right-1.5 text-muted-foreground/60"
-										/>
+									{#if mood.comment && expandedMoodId === mood.id}
+										<div class="mt-1 rounded-md bg-background/50 p-2">
+											<p class="text-xs whitespace-pre-wrap text-foreground">
+												{mood.comment}
+											</p>
+										</div>
 									{/if}
 								</div>
 							</TooltipTrigger>
@@ -114,15 +140,11 @@
 								{#if mood.timeOfDay}
 									<p class="text-xs text-muted-foreground capitalize">{mood.timeOfDay}</p>
 								{/if}
-								{#if mood.comment}
-									<p class="mt-1 text-sm text-muted-foreground">{mood.comment}</p>
-								{/if}
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
 				{/if}
 			{/each}
-
 			{#if isCurrentUser}
 				<div class="flex justify-center">
 					<div class="flex h-8 w-8 items-center justify-center">
