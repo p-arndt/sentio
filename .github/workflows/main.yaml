@@ -52,7 +52,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker Hub image
+      - name: Build and push Docker images (Docker Hub + GHCR)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -61,19 +61,11 @@ jobs:
           tags: |
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:${{ steps.get_tag.outputs.VERSION }}
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
-          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
-          cache-to: type=inline
-
-      - name: Build and push GHCR image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          build-args: VERSION=${{ steps.get_tag.outputs.VERSION }}
-          tags: |
             ghcr.io/${{ github.repository_owner }}/sentio:${{ steps.get_tag.outputs.VERSION }}
             ghcr.io/${{ github.repository_owner }}/sentio:latest
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
+          cache-from: |
+            type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/sentio:latest
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
           cache-to: type=inline
 
       - name: Generate changelog (git-chglog action)
