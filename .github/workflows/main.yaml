@@ -32,9 +32,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Extract tag name
+      - name: Get Tags
         id: get_tag
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+        run: |
+          cur=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=0 --max-count=1))
+          echo "VERSION=$cur" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -68,20 +70,21 @@ jobs:
             type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentio:latest
           cache-to: type=inline
 
-      - name: Generate changelog (git-chglog action)
-        id: gen_changelog
-        uses: bdashrad/git-chglog-action@v2.0.3
-        with:
-          # next_version is required by the action - set it to the tag we're releasing
-          next_version: ${{ steps.get_tag.outputs.VERSION }}
-
-      - name: Write RELEASE_NOTES.md
+      - name: Install git-chglog
         run: |
-          VERSION=${{ steps.get_tag.outputs.VERSION }}
-          echo "## 🚀 Release $VERSION" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          # Append changelog from the action output
-          echo "${{ steps.gen_changelog.outputs.changelog }}" >> RELEASE_NOTES.md
+          curl -sSL https://github.com/git-chglog/git-chglog/releases/download/v0.15.4/git-chglog_0.15.4_linux_amd64.tar.gz \
+            | tar -xz
+          sudo mv git-chglog /usr/local/bin/
+
+      - name: Generate changelog
+        run: |
+          CUR=${{ steps.get_tag.outputs.VERSION }}
+          
+          echo "## 🚀 Release $CUR" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md           
+          
+          git-chglog $CUR >> RELEASE_NOTES.md
+
           echo "🔖 Generated notes:"
           cat RELEASE_NOTES.md
 
