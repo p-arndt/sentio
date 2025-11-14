@@ -6,13 +6,19 @@
 import { env } from '$env/dynamic/private';
 import type { CalendarEvent, GoogleCalendarEvent } from './types';
 
+export type RefreshTokenResult = {
+	accessToken: string;
+	refreshToken?: string;
+	expiresIn?: number;
+};
+
 /**
  * Refresh OAuth token if expired
  */
 export async function refreshAccessToken(
 	refreshToken: string,
 	provider: 'google' | 'microsoft'
-): Promise<string> {
+): Promise<RefreshTokenResult> {
 	if (provider === 'google') {
 		return refreshGoogleToken(refreshToken);
 	} else if (provider === 'microsoft') {
@@ -25,7 +31,7 @@ export async function refreshAccessToken(
 /**
  * Refresh Google OAuth token
  */
-async function refreshGoogleToken(refreshToken: string): Promise<string> {
+async function refreshGoogleToken(refreshToken: string): Promise<RefreshTokenResult> {
 	const response = await fetch('https://oauth2.googleapis.com/token', {
 		method: 'POST',
 		headers: {
@@ -45,15 +51,21 @@ async function refreshGoogleToken(refreshToken: string): Promise<string> {
 
 	const data = (await response.json()) as {
 		access_token: string;
+		refresh_token?: string;
 		expires_in: number;
 	};
-	return data.access_token;
+
+	return {
+		accessToken: data.access_token,
+		refreshToken: data.refresh_token,
+		expiresIn: data.expires_in
+	};
 }
 
 /**
  * Refresh Microsoft OAuth token
  */
-async function refreshMicrosoftToken(refreshToken: string): Promise<string> {
+async function refreshMicrosoftToken(refreshToken: string): Promise<RefreshTokenResult> {
 	const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
 		method: 'POST',
 		headers: {
@@ -74,9 +86,15 @@ async function refreshMicrosoftToken(refreshToken: string): Promise<string> {
 
 	const data = (await response.json()) as {
 		access_token: string;
+		refresh_token?: string;
 		expires_in: number;
 	};
-	return data.access_token;
+
+	return {
+		accessToken: data.access_token,
+		refreshToken: data.refresh_token,
+		expiresIn: data.expires_in
+	};
 }
 
 /**

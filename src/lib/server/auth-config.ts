@@ -102,7 +102,11 @@ function getGoogleOAuthConfig(): { config: unknown[] } | null {
 				clientId,
 				clientSecret,
 				redirectURI: redirectUri,
-				scopes: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/calendar.readonly']
+				scopes: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/calendar.readonly'],
+				authorizationParams: {
+					access_type: 'offline',
+					prompt: 'consent'
+				}
 			}
 		]
 	};
@@ -131,7 +135,12 @@ function getMicrosoftOAuthConfig(): { config: unknown[] } | null {
 				clientId,
 				clientSecret,
 				redirectURI: redirectUri,
-				scopes: ['openid', 'email', 'profile', 'Calendars.Read']
+				scopes: ['openid', 'email', 'profile', 'offline_access', 'Calendars.Read'],
+
+				authorizationParams: {
+					response_mode: 'query',
+					prompt: 'consent' 
+				}
 			}
 		]
 	};

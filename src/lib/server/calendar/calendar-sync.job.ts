@@ -6,18 +6,19 @@
 
 import { db } from '$lib/server/db';
 import {
+	account as authAccount,
 	calendarAccount,
 	calendarEvent,
-	calendarSync,
-	account as authAccount
+	calendarSync
 } from '$lib/server/db/schema';
+import { and, eq } from 'drizzle-orm';
 import {
+	calculateEventDuration,
 	fetchGoogleCalendarEvents,
 	fetchMicrosoftCalendarEvents,
 	refreshAccessToken,
-	calculateEventDuration
+	type RefreshTokenResult
 } from './calendar.service';
-import { eq, and } from 'drizzle-orm';
 import type { CalendarEvent } from './types';
 
 /**
@@ -61,32 +62,73 @@ export async function syncCalendarAccount(cal: typeof calendarAccount.$inferSele
 		await createSyncRecord(syncId, cal.userId, cal.id, 'in_progress');
 
 		// Get OAuth account (stores access/refresh tokens)
-		const oauthAccount = await db
+		const metadata = cal.metadata as { microsoftId?: string } | null;
+
+		const whereConditions = [
+			eq(authAccount.userId, cal.userId),
+			eq(authAccount.providerId, cal.provider)
+		];
+
+		if (cal.provider === 'google' && cal.email) {
+			whereConditions.push(eq(authAccount.accountId, cal.email));
+		} else if (cal.provider === 'microsoft' && metadata?.microsoftId) {
+			whereConditions.push(eq(authAccount.accountId, metadata.microsoftId));
+		}
+
+		const oauthAccountResult = await db
 			.select()
 			.from(authAccount)
-			.where(and(eq(authAccount.userId, cal.userId), eq(authAccount.providerId, cal.provider)))
+			.where(and(...whereConditions))
 			.limit(1);
 
-		if (!oauthAccount || oauthAccount.length === 0) {
+		if (!oauthAccountResult || oauthAccountResult.length === 0) {
 			throw new Error(`No OAuth account found for user ${cal.userId} and provider ${cal.provider}`);
 		}
 
-		const oauth = oauthAccount[0];
-
+		const oauth = oauthAccountResult[0];
 		// Refresh access token if needed
 		let accessToken = oauth.accessToken;
+		let refreshedTokens: RefreshTokenResult | null = null;
+
 		if (!accessToken || (oauth.accessTokenExpiresAt && oauth.accessTokenExpiresAt < new Date())) {
 			if (!oauth.refreshToken) {
 				throw new Error('No refresh token available');
 			}
-			accessToken = await refreshAccessToken(
+			refreshedTokens = await refreshAccessToken(
 				oauth.refreshToken,
 				cal.provider as 'google' | 'microsoft'
 			);
+			accessToken = refreshedTokens.accessToken;
 		}
 
 		if (!accessToken) {
 			throw new Error('Failed to obtain access token');
+		}
+
+		if (refreshedTokens) {
+			const updatePayload: {
+				accessToken: string;
+				updatedAt: Date;
+				accessTokenExpiresAt?: Date;
+				refreshToken?: string;
+				refreshTokenExpiresAt?: Date;
+			} = {
+				accessToken: refreshedTokens.accessToken,
+				updatedAt: new Date()
+			};
+
+			if (typeof refreshedTokens.expiresIn === 'number') {
+				updatePayload.accessTokenExpiresAt = new Date(
+					Date.now() + refreshedTokens.expiresIn * 1000
+				);
+			}
+
+			if (refreshedTokens.refreshToken) {
+				updatePayload.refreshToken = refreshedTokens.refreshToken;
+				updatePayload.refreshTokenExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+			}
+
+			await db.update(authAccount).set(updatePayload).where(eq(authAccount.id, oauth.id));
 		}
 
 		// Fetch events from provider
