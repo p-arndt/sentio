@@ -1,8 +1,8 @@
-import { redirect } from '@sveltejs/kit';
-import { UserService } from '$lib/server/services/user.service';
-import { TeamService } from '$lib/server/services/team.service';
 import { db } from '$lib/server/db';
 import { moodReminder } from '$lib/server/db/schema';
+import { TeamService } from '$lib/server/services/team.service';
+import { UserService } from '$lib/server/services/user.service';
+import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 export async function load({ locals }) {
@@ -11,9 +11,15 @@ export async function load({ locals }) {
 	}
 
 	const user = await UserService.getUserById(locals.user.id);
-	const preferences = await UserService.getUserPreferences(locals.user.id);
-	const teams = await TeamService.getUserTeams(locals.user.id);
-	
+	if (!user) {
+		throw redirect(303, '/login');
+	}
+
+	const [preferences, teams] = await Promise.all([
+		UserService.getUserPreferences(locals.user.id),
+		TeamService.getUserTeams(locals.user.id)
+	]);
+
 	// Load reminders
 	const reminders = await db
 		.select()

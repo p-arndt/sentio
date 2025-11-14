@@ -8,16 +8,11 @@ import webpush from 'web-push';
 
 /**
  * POST /api/push/send
- * Send a test push notification (admin only)
+ * Send a test push notification 
  */
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
 		return json({ error: 'Unauthorized' }, { status: 401 });
-	}
-
-	// Only admins can send notifications
-	if (!locals.user.isAdmin) {
-		return json({ error: 'Only admins can send push notifications' }, { status: 403 });
 	}
 
 	try {
@@ -51,7 +46,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			body,
 			icon: icon || '/favicon.png',
 			badge: badge || '/badge-72.png',
-			tag: tag || 'mood-reminder',
+			tag: tag || Date.now(),
 			data: data || {}
 		});
 

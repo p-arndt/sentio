@@ -15,8 +15,9 @@
 	import { ArrowLeft, Check } from '@lucide/svelte';
 	import RemindersManager from '$lib/components/RemindersManager.svelte';
 	import NotificationSettings from '$lib/components/NotificationSettings.svelte';
+	import type { PageData } from './$types';
 
-	let { data } = $props();
+	let { data }: { data: PageData } = $props();
 
 	// Create a reactive state object for all settings with proper typing
 	const settings: Record<string, string | boolean> = $state({
@@ -188,7 +189,7 @@
 			</Card>
 		{/each}
 
-		<NotificationSettings vapidPublicKey={data.vapidPublicKey} />
+		<NotificationSettings vapidPublicKey={data.vapidPublicKey} currentUser={data.user} />
 
 		<RemindersManager reminders={data.reminders} />
 
