@@ -34,8 +34,13 @@ export function calculateAverageValence(
 ): number {
 	if (entries.length === 0) return 0;
 
-	const total = entries.reduce((sum, entry) => sum + entry.emotion.valence, 0);
-	return total / entries.length;
+	const dailyGroups = groupByDay(entries);
+	const dailyAverages = Array.from(dailyGroups.values()).map((dayEntries) => {
+		const total = dayEntries.reduce((sum, entry) => sum + entry.emotion.valence, 0);
+		return total / dayEntries.length;
+	});
+
+	return dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
 }
 
 /**
