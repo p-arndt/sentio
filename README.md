@@ -100,6 +100,16 @@ Environment variable names supported:
 
 > [!NOTE] Database SMTP settings (set over UI) take precedence; missing values fall back to env vars. UI changes are saved to the DB and override env defaults.
 
+#### **VAPID / Web Push Configuration**
+
+Setup web push notifications by providing VAPID keys and subject in environment variables:
+
+| Variable          | Purpose                                                                |
+| ----------------- | ---------------------------------------------------------------------- |
+| VAPID_PUBLIC_KEY  | VAPID public key for web push notifications                            |
+| VAPID_PRIVATE_KEY | VAPID private key for web push notifications                           |
+| VAPID_SUBJECT     | Contact email or URL for VAPID subject (mailto:your-email@example.com) |
+
 ## Authentication
 
 Use `AUTH_PROVIDER=email` for classic email/password. For OIDC (SaaS SSO) set `AUTH_PROVIDER=oidc` and provide the client ID, secret and issuer.
