@@ -26,12 +26,13 @@
 	type Props = {
 		vapidPublicKey: string | null;
 		currentUser: User;
+		initialIsSubscribed?: boolean;
 	};
-	let { vapidPublicKey, currentUser }: Props = $props();
+	let { vapidPublicKey, currentUser, initialIsSubscribed = false }: Props = $props();
 
 	let hasNotificationSupport = $state(false);
 	let notificationPermission = $state<NotificationPermission>('default');
-	let isSubscribed = $state(false);
+	let isSubscribed = $state(initialIsSubscribed);
 	let isInitializing = $state(true);
 	let isToggling = $state(false);
 
@@ -160,86 +161,66 @@
 			</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-6">
-			{#if isInitializing}
-				<div class="py-8 text-center text-sm text-muted-foreground">Loading settings...</div>
-			{:else}
-				<!-- Permission Status -->
-				<div class="space-y-2">
-					<h3 class="font-semibold">Permission Status</h3>
-					<div class="flex items-center gap-2">
-						{#if notificationPermission === 'granted'}
-							<Badge class="bg-green-600 hover:bg-green-700">
-								<Check class="mr-1 h-3 w-3" />
-								Granted
-							</Badge>
-							<span class="text-sm text-muted-foreground"> You have allowed notifications </span>
-						{:else if notificationPermission === 'denied'}
-							<Badge variant="destructive">
-								<AlertTriangle class="mr-1 h-3 w-3" />
-								Denied
-							</Badge>
-							<span class="text-sm text-muted-foreground">
-								You have denied notifications. Change browser settings to allow them.
-							</span>
-						{:else}
-							<Badge variant="secondary">Prompt</Badge>
-							<span class="text-sm text-muted-foreground">
-								Click enable to request permission
-							</span>
-						{/if}
-					</div>
+			<!-- Permission Status -->
+			<div class="space-y-2">
+				<h3 class="font-semibold">Permission Status</h3>
+				<div class="flex items-center gap-2">
+					{#if notificationPermission === 'granted'}
+						<Badge class="bg-green-600 hover:bg-green-700">
+							<Check class="mr-1 h-3 w-3" />
+							Granted
+						</Badge>
+						<span class="text-sm text-muted-foreground"> You have allowed notifications </span>
+					{:else if notificationPermission === 'denied'}
+						<Badge variant="destructive">
+							<AlertTriangle class="mr-1 h-3 w-3" />
+							Denied
+						</Badge>
+						<span class="text-sm text-muted-foreground">
+							You have denied notifications. Change browser settings to allow them.
+						</span>
+					{:else}
+						<Badge variant="secondary">Prompt</Badge>
+						<span class="text-sm text-muted-foreground"> Click enable to request permission </span>
+					{/if}
 				</div>
+			</div>
 
-				<!-- Subscription Status -->
-				<div class="space-y-3">
-					<h3 class="font-semibold">Subscription Status</h3>
-					<div class="flex items-center justify-between rounded-lg border p-4">
-						<div>
-							<p class="font-medium">Push Notifications</p>
-							<p class="text-sm text-muted-foreground">
-								{isSubscribed ? 'Active on this device' : 'Not active on this device'}
-							</p>
-						</div>
-						<Switch
-							checked={isSubscribed}
-							disabled={isToggling || !hasNotificationSupport}
-							onCheckedChange={(e) => {
-								if (e) {
-									handleSubscribe();
-								} else {
-									handleUnsubscribe();
-								}
-							}}
-						/>
-					</div>
-				</div>
-
-				<!-- Test Notification -->
-				{#if isSubscribed}
-					<div class="space-y-3">
-						<h3 class="font-semibold">Test Notification</h3>
+			<!-- Subscription Status -->
+			<div class="space-y-3">
+				<h3 class="font-semibold">Subscription Status</h3>
+				<div class="flex items-center justify-between rounded-lg border p-4">
+					<div>
+						<p class="font-medium">Push Notifications</p>
 						<p class="text-sm text-muted-foreground">
-							Send yourself a test notification to verify everything is working
+							{isSubscribed ? 'Active on this device' : 'Not active on this device'}
 						</p>
-						<Button onclick={handleTestNotification} variant="outline" disabled={isToggling}>
-							Send Test Notification
-						</Button>
 					</div>
-				{/if}
+					<Switch
+						checked={isSubscribed}
+						disabled={isToggling || !hasNotificationSupport}
+						onCheckedChange={(e) => {
+							if (e) {
+								handleSubscribe();
+							} else {
+								handleUnsubscribe();
+							}
+						}}
+					/>
+				</div>
+			</div>
 
-				<!-- Information -->
-				<Alert>
-					<AlertCircle class="h-4 w-4" />
-					<AlertDescription>
-						<p class="mb-2 font-semibold">About Notifications</p>
-						<ul class="ml-2 list-disc space-y-1 text-sm">
-							<li>Notifications will be sent even if the app is closed</li>
-							<li>Make sure your device's notification settings allow this app</li>
-							<li>Push notifications require an active internet connection</li>
-							<li>You can manage this permission in your browser settings</li>
-						</ul>
-					</AlertDescription>
-				</Alert>
+			<!-- Test Notification -->
+			{#if isSubscribed}
+				<div class="space-y-3">
+					<h3 class="font-semibold">Test Notification</h3>
+					<p class="text-sm text-muted-foreground">
+						Send yourself a test notification to verify everything is working
+					</p>
+					<Button onclick={handleTestNotification} variant="outline" disabled={isToggling}>
+						Send Test Notification
+					</Button>
+				</div>
 			{/if}
 		</CardContent>
 	</Card>

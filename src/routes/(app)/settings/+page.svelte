@@ -189,10 +189,18 @@
 			</Card>
 		{/each}
 
-		<NotificationSettings vapidPublicKey={data.vapidPublicKey} currentUser={data.user} />
+		<NotificationSettings
+			vapidPublicKey={data.vapidPublicKey}
+			currentUser={data.user}
+			initialIsSubscribed={data.hasPushSubscription}
+		/>
 
 		<RemindersManager reminders={data.reminders} />
 
-		<CalendarSettings userId={data.user.id} />
+		<CalendarSettings
+			userId={data.user.id}
+			calendarAccounts={data.calendarAccounts}
+			enableEventNotifications={data.enableEventNotifications}
+		/>
 	</div>
 </div>

@@ -12,15 +12,21 @@
 
 	type Props = {
 		userId: string;
+		calendarAccounts: CalendarAccount[];
+		enableEventNotifications: boolean;
 	};
 
-	const { userId } = $props();
+	let {
+		userId,
+		calendarAccounts: initialCalendarAccounts,
+		enableEventNotifications: initialEnableEventNotifications
+	}: Props = $props();
 
-	let calendarAccounts: CalendarAccount[] = $state([]);
+	let calendarAccounts: CalendarAccount[] = $state(initialCalendarAccounts ?? []);
 	let isLoading = $state(false);
 	let isSyncing = $state(false);
 	let syncingAccountId: string | null = $state(null);
-	let enableEventNotifications = $state(false);
+	let enableEventNotifications = $state(initialEnableEventNotifications ?? false);
 	let isSavingPreferences = $state(false);
 	let pageError: string | null = $state(page.url.searchParams.get('error') || null);
 	let pageSuccess: string | null = $state(page.url.searchParams.get('success') || null);
@@ -32,43 +38,15 @@
 	let isCheckingPushStatus = $state(false);
 
 	onMount(async () => {
-		await loadCalendarAccounts();
-		await loadEventNotificationPreference();
 		await loadPushStatus();
 
 		// Auto-dismiss success message after 5 seconds
 		if (pageSuccess) {
 			setTimeout(() => {
 				pageSuccess = null;
-			}, 5000);
+			}, 3000);
 		}
 	});
-
-	async function loadCalendarAccounts() {
-		try {
-			const response = await fetch('/api/calendar');
-			if (!response.ok) throw new Error('Failed to load calendar accounts');
-			const data = (await response.json()) as { accounts: CalendarAccount[] };
-			calendarAccounts = data.accounts;
-		} catch (err) {
-			pageError = err instanceof Error ? err.message : 'Failed to load calendar accounts';
-		}
-	}
-
-	async function loadEventNotificationPreference() {
-		try {
-			const response = await fetch('/api/settings');
-			if (!response.ok) return;
-			const data = (await response.json()) as {
-				preferences?: { settings?: Record<string, unknown> };
-			};
-			if (data.preferences?.settings?.enableEventNotifications === true) {
-				enableEventNotifications = true;
-			}
-		} catch (err) {
-			console.error('Failed to load event notification preference:', err);
-		}
-	}
 
 	async function loadPushStatus() {
 		if (typeof window === 'undefined') return;
@@ -86,7 +64,9 @@
 			}
 
 			const subscription = await getPushSubscription();
+			console.log(subscription);
 			pushSubscribed = Boolean(subscription);
+			console.log(subscription, pushSubscribed);
 		} catch (err) {
 			console.error('Failed to determine push status:', err);
 			pushSubscribed = false;
@@ -211,20 +191,15 @@
 
 <div class="space-y-6">
 	{#if pageError}
-		<Alert variant="destructive" class="animate-in slide-in-from-top-2 duration-300">
+		<Alert variant="destructive" class="animate-in duration-300 slide-in-from-top-2">
 			<AlertCircle class="h-4 w-4" />
 			<AlertDescription>{pageError}</AlertDescription>
 			<button
 				onclick={() => (pageError = null)}
-				class="absolute right-4 top-4 text-destructive hover:opacity-70"
+				class="absolute top-4 right-4 text-destructive hover:opacity-70"
 				aria-label="Close alert"
 			>
-				<svg
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -236,37 +211,28 @@
 		</Alert>
 	{/if}
 
-
 	<!-- Calendar integration (connected + connect UI combined) -->
 	<CalendarIntegration
 		accounts={calendarAccounts}
-		isLoading={isLoading}
-		isSyncing={isSyncing}
-		syncingAccountId={syncingAccountId}
-		pageSuccess={pageSuccess}
+		{isLoading}
+		{isSyncing}
+		{syncingAccountId}
+		{pageSuccess}
 		clearPageSuccess={() => (pageSuccess = null)}
-		syncCalendar={syncCalendar}
-		disconnectCalendar={disconnectCalendar}
-		initiateGoogleOAuth={initiateGoogleOAuth}
-		initiateMicrosoftOAuth={initiateMicrosoftOAuth}
+		{syncCalendar}
+		{disconnectCalendar}
+		{initiateGoogleOAuth}
+		{initiateMicrosoftOAuth}
 	/>
 
 	<!-- Sync + Notifications (refactored into smaller components) -->
-	<SyncSettings
-		isSyncing={isSyncing}
-		syncSuccess={syncSuccess}
-		syncError={syncError}
-		syncCalendar={syncCalendar}
-	/>
+	<SyncSettings {isSyncing} {syncSuccess} {syncError} {syncCalendar} />
 
 	<NotificationsCard
-		enableEventNotifications={enableEventNotifications}
-		isSavingPreferences={isSavingPreferences}
-		pushSupported={pushSupported}
-		pushSubscribed={pushSubscribed}
-		notificationPermission={notificationPermission}
-		isCheckingPushStatus={isCheckingPushStatus}
-		updateEventNotificationPreference={updateEventNotificationPreference}
-		scrollToNotificationSettings={scrollToNotificationSettings}
+		{enableEventNotifications}
+		{isSavingPreferences}
+		bind:pushSubscribed
+		{updateEventNotificationPreference}
+		{scrollToNotificationSettings}
 	/>
 </div>
