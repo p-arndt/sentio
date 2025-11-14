@@ -3,7 +3,7 @@ import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url, request }) => {
-	if (url.pathname === '/' && !url.searchParams.has('init')) {
+	if (url.pathname === '/' && !url.searchParams.has('init') && locals.user) {
 		// Only redirect if this appears to be a fresh entry (no internal referer)
 		// This prevents redirect loops when navigating within the app
 		const referer = request.headers.get('referer');

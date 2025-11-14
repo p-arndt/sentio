@@ -4,10 +4,10 @@
  */
 
 import { env } from '$env/dynamic/private';
+import { and, eq } from 'drizzle-orm';
+import webpush from 'web-push';
 import { db } from './db';
 import { moodReminder, pushSubscription } from './db/schema';
-import { eq, and } from 'drizzle-orm';
-import webpush from 'web-push';
 import { getPgBoss } from './pg-boss-service';
 
 const QUEUE_NAME = 'mood-reminder';
@@ -34,12 +34,10 @@ export async function initializeReminderScheduler(): Promise<void> {
 
 	// Register worker to process reminder jobs
 	await boss.work(QUEUE_NAME, async (jobs) => {
-		console.log(`[Reminder] Worker triggered with ${jobs.length} job(s)`);
-		
+
 		for (const job of jobs) {
-			console.log(`[Reminder] Processing job:`, job.data);
 			const { reminderId } = job.data as { reminderId: string };
-			
+
 			try {
 				const [reminder] = await db
 					.select()
@@ -59,19 +57,16 @@ export async function initializeReminderScheduler(): Promise<void> {
 				});
 
 				if (!reminder.isActive) {
-					console.log(`[Reminder] Inactive, skipping: ${reminderId}`);
 					continue;
 				}
 
-				console.log(`[Reminder] Sending notification for: ${reminder.title}`);
 				await sendNotification(reminder);
-				
+
 				await db
 					.update(moodReminder)
 					.set({ lastTriggered: new Date() })
 					.where(eq(moodReminder.id, reminderId));
 
-				console.log(`[Reminder] Sent: ${reminder.title}`);
 			} catch (error) {
 				console.error(`[Reminder] Error processing ${reminderId}:`, error);
 				throw error;
@@ -81,8 +76,6 @@ export async function initializeReminderScheduler(): Promise<void> {
 
 	// Reschedule all active reminders
 	await rescheduleAll();
-	
-	console.log('[Reminder] Scheduler initialized');
 }
 
 /**
@@ -96,20 +89,16 @@ export async function scheduleReminder(reminder: {
 	const boss = await getPgBoss();
 	const cron = toCron(reminder.time, reminder.daysOfWeek);
 
-	console.log(`[Reminder] Scheduling reminder ${reminder.id}:`, {
-		time: reminder.time,
-		days: reminder.daysOfWeek,
+
+	await boss.schedule(
+		QUEUE_NAME,
 		cron,
-		timezone: 'UTC',
-		data: { reminderId: reminder.id }
-	});
-
-	await boss.schedule(QUEUE_NAME, cron, { reminderId: reminder.id }, {
-		key: reminder.id,
-		tz: 'UTC'
-	});
-
-	console.log(`[Reminder] Successfully scheduled ${reminder.id} with cron: ${cron} (UTC)`);
+		{ reminderId: reminder.id },
+		{
+			key: reminder.id,
+			tz: 'UTC'
+		}
+	);
 }
 
 /**
@@ -118,17 +107,13 @@ export async function scheduleReminder(reminder: {
 export async function unscheduleReminder(reminderId: string): Promise<void> {
 	const boss = await getPgBoss();
 	await boss.unschedule(QUEUE_NAME, reminderId);
-	console.log(`[Reminder] Unscheduled ${reminderId}`);
 }
 
 /**
  * Reschedule all active reminders
  */
 async function rescheduleAll(): Promise<void> {
-	const reminders = await db
-		.select()
-		.from(moodReminder)
-		.where(eq(moodReminder.isActive, true));
+	const reminders = await db.select().from(moodReminder).where(eq(moodReminder.isActive, true));
 
 	for (const reminder of reminders) {
 		await scheduleReminder({
@@ -137,8 +122,6 @@ async function rescheduleAll(): Promise<void> {
 			daysOfWeek: reminder.daysOfWeek
 		});
 	}
-
-	console.log(`[Reminder] Rescheduled ${reminders.length} active reminders`);
 }
 
 /**
@@ -151,8 +134,6 @@ async function sendNotification(reminder: {
 	message: string;
 	emotionEmoji?: string | null;
 }): Promise<void> {
-	console.log(`[Reminder] sendNotification called for user ${reminder.userId}`);
-	
 	const vapidPublicKey = env.VAPID_PUBLIC_KEY;
 	const vapidPrivateKey = env.VAPID_PRIVATE_KEY;
 	const vapidSubject = env.VAPID_SUBJECT;
@@ -167,17 +148,9 @@ async function sendNotification(reminder: {
 	const subscriptions = await db
 		.select()
 		.from(pushSubscription)
-		.where(
-			and(
-				eq(pushSubscription.userId, reminder.userId),
-				eq(pushSubscription.isActive, true)
-			)
-		);
-
-	console.log(`[Reminder] Found ${subscriptions.length} subscription(s) for user ${reminder.userId}`);
+		.where(and(eq(pushSubscription.userId, reminder.userId), eq(pushSubscription.isActive, true)));
 
 	if (subscriptions.length === 0) {
-		console.log(`[Reminder] No subscriptions for user ${reminder.userId}`);
 		return;
 	}
 
@@ -218,22 +191,24 @@ async function sendNotification(reminder: {
 	);
 
 	const successful = results.filter((r) => r.status === 'fulfilled').length;
-	console.log(`[Reminder] Sent to ${successful}/${subscriptions.length} devices`);
+	if (successful < subscriptions.length) {
+		console.warn(
+			`[Reminder] Some notifications failed: ${subscriptions.length - successful}/${
+				subscriptions.length
+			}`
+		);
+	}
 }
 
 /**
  * Manually trigger a reminder (for testing)
  */
 export async function triggerReminder(reminderId: string): Promise<void> {
-	const [reminder] = await db
-		.select()
-		.from(moodReminder)
-		.where(eq(moodReminder.id, reminderId));
+	const [reminder] = await db.select().from(moodReminder).where(eq(moodReminder.id, reminderId));
 
 	if (!reminder) {
 		throw new Error('Reminder not found');
 	}
 
 	await sendNotification(reminder);
-	console.log(`[Reminder] Manually triggered ${reminderId}`);
 }
