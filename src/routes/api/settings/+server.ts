@@ -3,6 +3,26 @@ import { SETTINGS_SECTIONS } from '$lib/settings/settings';
 import { UserService } from '$lib/server/services/user.service';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
+export const GET: RequestHandler = async ({ locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
+	try {
+		const preferences = await UserService.getUserPreferences(locals.user.id);
+
+		return json({
+			success: true,
+			preferences: {
+				settings: preferences?.settings || {}
+			}
+		});
+	} catch (error) {
+		console.error('Failed to fetch settings:', error);
+		return json({ error: 'Failed to fetch settings' }, { status: 500 });
+	}
+};
+
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
 		return json({ error: 'Unauthorized' }, { status: 401 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CalendarSettings from '$lib/components/settings/calendar/CalendarSettings.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -188,8 +189,18 @@
 			</Card>
 		{/each}
 
-		<NotificationSettings vapidPublicKey={data.vapidPublicKey} currentUser={data.user} />
+		<NotificationSettings
+			vapidPublicKey={data.vapidPublicKey}
+			currentUser={data.user}
+			initialIsSubscribed={data.hasPushSubscription}
+		/>
 
 		<RemindersManager reminders={data.reminders} />
+
+		<CalendarSettings
+			userId={data.user.id}
+			calendarAccounts={data.calendarAccounts}
+			enableEventNotifications={data.enableEventNotifications}
+		/>
 	</div>
 </div>

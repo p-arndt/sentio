@@ -38,6 +38,7 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
   --warning: oklch(0.694 0.198 97.129);
+  --success: oklch(0.628 0.211 136.611);
 }
 
 .dark {
@@ -73,6 +74,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
   --warning: oklch(0.927 0.202 91.317);
+  --success: oklch(0.827 0.233 139.317);
 }
 
 @theme inline {
@@ -112,6 +114,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-warning: var(--warning);
+  --color-success: var(--success);
 }
 
 @layer base {

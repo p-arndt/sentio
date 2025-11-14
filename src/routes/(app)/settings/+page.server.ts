@@ -1,9 +1,7 @@
-import { db } from '$lib/server/db';
-import { moodReminder } from '$lib/server/db/schema';
 import { TeamService } from '$lib/server/services/team.service';
 import { UserService } from '$lib/server/services/user.service';
+import { SettingsService } from '$lib/server/services/settings.service';
 import { redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
 export async function load({ locals }) {
 	if (!locals.user) {
@@ -15,22 +13,26 @@ export async function load({ locals }) {
 		throw redirect(303, '/login');
 	}
 
-	const [preferences, teams] = await Promise.all([
-		UserService.getUserPreferences(locals.user.id),
-		TeamService.getUserTeams(locals.user.id)
-	]);
+	const [preferences, teams, reminders, calendarAccounts, pushSubscriptionRecord] =
+		await Promise.all([
+			UserService.getUserPreferences(locals.user.id),
+			TeamService.getUserTeams(locals.user.id),
+			SettingsService.getMoodReminders(locals.user.id),
+			SettingsService.getCalendarAccounts(locals.user.id),
+			SettingsService.getActivePushSubscription(locals.user.id)
+		]);
 
-	// Load reminders
-	const reminders = await db
-		.select()
-		.from(moodReminder)
-		.where(eq(moodReminder.userId, locals.user.id))
-		.orderBy(moodReminder.time);
+	const enableEventNotifications = Boolean(preferences?.settings?.enableEventNotifications);
+
+	const hasPushSubscription = Boolean(pushSubscriptionRecord);
 
 	return {
 		user,
 		preferences,
 		teams,
-		reminders
+		reminders,
+		calendarAccounts,
+		enableEventNotifications,
+		hasPushSubscription
 	};
 }
