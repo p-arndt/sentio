@@ -18,6 +18,10 @@ And that is exactly what Sentio is about. It helps teams to track and improve th
 - 🔍 Spot emerging issues early - detect dips in morale and recurring negative trends
 - 🔐 Team Management - invite members, roles, and permissions
 - 📊 Personal mood history & insights
+- ⏰ Reminders - schedule recurring mood reminders (time + days-of-week)
+- 🔔 Notifications - browser push notifications for reminders and event alerts
+- 📆 Google Calendar - connect and sync (read-only) to show events and avoid conflicts
+- 🔜 MS Outlook - Microsoft calendar integration is **coming soon**
 
 ## Quickstart
 
@@ -104,11 +108,13 @@ Environment variable names supported:
 
 Setup web push notifications by providing VAPID keys and subject in environment variables:
 
-| Variable          | Purpose                                                                |
-| ----------------- | ---------------------------------------------------------------------- |
-| VAPID_PUBLIC_KEY  | VAPID public key for web push notifications                            |
-| VAPID_PRIVATE_KEY | VAPID private key for web push notifications                           |
-| VAPID_SUBJECT     | Contact email or URL for VAPID subject (mailto:your-email@example.com) |
+| Variable                 | Purpose                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| VAPID_PUBLIC_KEY         | VAPID public key for web push notifications                                                                  |
+| VAPID_PRIVATE_KEY        | VAPID private key for web push notifications                                                                 |
+| VAPID_SUBJECT            | Contact email or URL for VAPID subject (mailto:your-email@example.com)                                       |
+| PUBLIC_GOOGLE_CLIENT_ID  | Public Google OAuth client ID used for Google Calendar connect (set the OAuth client as authorized redirect) |
+| VITE_MICROSOFT_CLIENT_ID | Microsoft OAuth client ID for Outlook/Calendar connect (set on Vite/environment and server-side)             |
 
 ## Authentication
 
@@ -124,6 +130,34 @@ OIDC_ISSUER=https://accounts.example.com
 ```
 
 ---
+
+## Reminders & Notifications
+
+Sentio supports recurring mood reminders and browser push notifications so individuals and teams can stay consistent with their check-ins.
+
+- Create reminders in Settings → Reminders with a title, message, time, and days-of-week (e.g., Mon-Fri 09:00).
+- Reminders respect your timezone and show a next trigger time in the UI.
+- Push notifications use VAPID keys (web push). Generate VAPID keys and set them in your environment or Admin settings (see the VAPID section above).
+
+Create VAPID keys (a one-liner):
+
+```pwsh
+pnpx web-push generate-vapid-keys
+```
+
+Once VAPID keys are configured, go to Settings → Notifications to enable push notifications and send a test notification.
+
+## Calendar Integration
+
+Sentio allows users to connect calendars for display and optional event-based notifications. Google Calendar is supported today, and Microsoft Outlook calendar support is coming soon.
+
+How to connect Google Calendar:
+
+1. Create a Google OAuth client ID in the Google Cloud Console and add the redirect URL: `https://<your-host>/api/oauth/google/callback`.
+2. Set the `PUBLIC_GOOGLE_CLIENT_ID` environment variable to your Google client ID (or enter it into the Admin settings if your instance supports it).
+3. Visit Settings → Calendar and connect your Google account. Sentio requests read-only calendar access.
+
+For Microsoft Outlook/Office 365, the sign-in flow is in development and will be available soon. When ready, configure the Microsoft OAuth client ID through your environment or Admin settings using the key `VITE_MICROSOFT_CLIENT_ID`.
 
 ## Useful commands
 
