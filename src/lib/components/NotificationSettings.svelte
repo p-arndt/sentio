@@ -152,7 +152,7 @@
 		</Alert>
 	{/if}
 
-	<Card>
+	<Card id="notification-settings">
 		<CardHeader>
 			<CardTitle>Notification Settings</CardTitle>
 			<CardDescription>

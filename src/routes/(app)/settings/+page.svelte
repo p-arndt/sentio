@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CalendarSettings from '$lib/components/calendar-settings.svelte';
+	import CalendarSettings from '$lib/components/settings/calendar/CalendarSettings.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -193,6 +193,6 @@
 
 		<RemindersManager reminders={data.reminders} />
 
-		<CalendarSettings userId={data.user?.id} />
+		<CalendarSettings userId={data.user.id} />
 	</div>
 </div>
