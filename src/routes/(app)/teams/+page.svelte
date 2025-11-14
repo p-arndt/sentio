@@ -68,9 +68,11 @@
 								<Calendar class="mr-2 h-4 w-4" />
 								View Calendar
 							</Button>
-							<Button href="/teams/{team.id}/settings" variant="outline" size="icon">
-								<Settings class="h-4 w-4" />
-							</Button>
+							{#if team.createdBy === data.user.id}
+								<Button href="/teams/{team.id}/settings" variant="outline" size="icon">
+									<Settings class="h-4 w-4" />
+								</Button>
+							{/if}
 						</div>
 					</CardContent>
 				</Card>
