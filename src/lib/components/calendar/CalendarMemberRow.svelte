@@ -11,7 +11,7 @@
 		emotions: Emotion[];
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
-		onQuickAdd: (emotionId: string, day: Date, userId: string, comment?: string) => void;
+		teamId?: string;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -24,16 +24,18 @@
 		emotions,
 		entries,
 		currentUserId,
-		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
 		requireComment = false,
-		showWeekends = true
+		showWeekends = true,
+		teamId
 	}: Props = $props();
 </script>
 
-<div class="grid gap-2 md:gap-4 rounded-lg border p-2 md:p-4" style="grid-template-columns: var(--calendar-grid-template, 200px repeat(7,1fr))">
-
+<div
+	class="grid gap-2 rounded-lg border p-2 md:gap-4 md:p-4"
+	style="grid-template-columns: var(--calendar-grid-template, 200px repeat(7,1fr))"
+>
 	<div class="flex items-center gap-2">
 		<Avatar class="h-8 w-8">
 			<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
@@ -54,10 +56,10 @@
 			{entries}
 			userId={member.userId}
 			{currentUserId}
-			{onQuickAdd}
 			{onEdit}
 			{isSubmitting}
 			{requireComment}
+			{teamId}
 		/>
 	{/each}
 </div>

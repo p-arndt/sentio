@@ -20,16 +20,6 @@
 	let selectedMood = $state<MoodEntryWithDetails | undefined>(undefined);
 	let isSubmitting = $state(false);
 
-	function getMoodForDate(date: Date): MoodEntryWithDetails[] {
-		const dateStr = toDateString(date);
-		if (!dateStr) return [];
-
-		return data.moodEntries.filter((entry: MoodEntryWithDetails) => {
-			const entryDateStr = toDateString(entry.date);
-			return entryDateStr === dateStr;
-		});
-	}
-
 	function getEmotionById(id: string) {
 		return data.emotions.find((e) => e.id === id);
 	}
@@ -50,44 +40,6 @@
 		selectedDate = date || new Date();
 		selectedMood = mood;
 		showMoodDialog = true;
-	}
-
-	async function handleQuickMood(emotionId: string, date: Date, userId: string, comment?: string) {
-		if (isSubmitting) return;
-
-		isSubmitting = true;
-		try {
-			const response = await fetch('/api/mood-entries', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					emotionId,
-					// Send local date string to avoid timezone drift
-					date: toDateString(date),
-					teamId: null,
-					...(comment && { comment })
-				})
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				console.error('Failed to save mood entry:', errorData);
-				throw new Error(errorData.error || 'Failed to save mood entry');
-			}
-
-			await invalidateAll();
-		} catch (error) {
-			console.error('Error saving mood:', error);
-			throw error;
-		} finally {
-			isSubmitting = false;
-		}
-	}
-
-	async function handleQuickMoodPersonal(emotionId: string, date: Date, comment?: string) {
-		return handleQuickMood(emotionId, date, data.user.id, comment);
 	}
 
 	async function handleWeekChange(direction: 'prev' | 'next') {
@@ -245,7 +197,6 @@
 		userId={data.user.id}
 		defaultView={data.defaultView}
 		onWeekChange={handleWeekChange}
-		onQuickAdd={handleQuickMoodPersonal}
 		onEdit={(date, entry) => openMoodDialog(date, entry)}
 		{isSubmitting}
 	/>

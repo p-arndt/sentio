@@ -42,44 +42,6 @@
 		await goto(`/teams/${data.team.id}?weekStart=${ymd}`);
 	}
 
-	async function handleQuickMood(emotionId: string, date: Date, userId: string, comment?: string) {
-		if (isSubmitting) return;
-
-		isSubmitting = true;
-		try {
-			const payload = {
-				emotionId,
-				// Send local date string to avoid TZ drift
-				date: toDateString(date),
-				teamId: data.team.id,
-				...(comment && { comment })
-			};
-
-			const response = await fetch('/api/mood-entries', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(payload)
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				console.error('Failed to save mood entry:', errorData);
-				throw new Error(errorData.error || 'Failed to save mood entry');
-			}
-
-			const result = await response.json();
-
-			await invalidateAll();
-		} catch (error) {
-			console.error('Error saving mood:', error);
-			throw error;
-		} finally {
-			isSubmitting = false;
-		}
-	}
-
 	function openMoodDialog(date: Date, mood?: MoodEntryWithDetails) {
 		selectedDate = date;
 		selectedMood = mood || null;
@@ -256,8 +218,6 @@
 		requireComment={data.team.requireComment}
 		defaultView={data.defaultView}
 		onWeekChange={handleWeekChange}
-		onQuickAdd={(emotionId, date, userId, comment) =>
-			handleQuickMood(emotionId, date, userId, comment)}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}
 	/>

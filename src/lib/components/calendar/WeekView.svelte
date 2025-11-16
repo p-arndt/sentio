@@ -22,12 +22,8 @@
 		showWeekends: boolean;
 		requireComment?: boolean;
 		onWeekChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (
-			emotionId: string,
-			date: Date,
-			userId: string,
-			comment?: string
-		) => Promise<void> | void;
+
+		teamId?: string;
 		onEdit?: (date: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		className?: string;
@@ -43,9 +39,9 @@
 		showWeekends,
 		requireComment = false,
 		onWeekChange,
-		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
+		teamId,
 		className = ''
 	}: Props = $props();
 
@@ -95,45 +91,48 @@
 		<div class="overflow-x-auto" style="--calendar-grid-template: {gridTemplate}">
 			<!-- Day Headers -->
 			<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
-				<div class="grid gap-2 md:gap-4" style="grid-template-columns: var(--calendar-grid-template)">
-				<div class="text-sm font-semibold">Team Members</div>
-				{#each displayDays as day (day.toISOString())}
-					<div class="min-w-0 text-center">
-						<div class="truncate text-[10px] font-semibold text-foreground md:text-sm">
-							{formatDayName(day).slice(0, 3)}
+				<div
+					class="grid gap-2 md:gap-4"
+					style="grid-template-columns: var(--calendar-grid-template)"
+				>
+					<div class="text-sm font-semibold">Team Members</div>
+					{#each displayDays as day (day.toISOString())}
+						<div class="min-w-0 text-center">
+							<div class="truncate text-[10px] font-semibold text-foreground md:text-sm">
+								{formatDayName(day).slice(0, 3)}
+							</div>
+							<div
+								class="{isToday(day)
+									? 'font-semibold text-primary'
+									: 'text-muted-foreground'} mt-0.5 text-[9px] md:mt-1 md:text-xs"
+							>
+								{formatDayDate(day).replace(' ', '\u00A0')}
+								{#if isToday(day)}
+									<span class="ml-0.5 text-primary md:ml-1">•</span>
+								{/if}
+							</div>
 						</div>
-						<div
-							class="{isToday(day)
-								? 'font-semibold text-primary'
-								: 'text-muted-foreground'} mt-0.5 text-[9px] md:mt-1 md:text-xs"
-						>
-							{formatDayDate(day).replace(' ', '\u00A0')}
-							{#if isToday(day)}
-								<span class="ml-0.5 text-primary md:ml-1">•</span>
-							{/if}
-						</div>
-					</div>
-				{/each}
-			</div>
+					{/each}
+				</div>
 			</div>
 
 			<!-- Team Member Rows -->
 			<div class="px-3 py-2 md:px-6 md:py-6">
 				<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
-				{#each sortedMembers as member (member.userId)}
-					<CalendarMemberRow
-						{member}
-						days={displayDays}
-						{emotions}
-						{entries}
-						{currentUserId}
-						{onQuickAdd}
-						{onEdit}
-						{isSubmitting}
-						{requireComment}
-						{showWeekends}
-					/>
-				{/each}
+					{#each sortedMembers as member (member.userId)}
+						<CalendarMemberRow
+							{member}
+							days={displayDays}
+							{emotions}
+							{entries}
+							{currentUserId}
+							{onEdit}
+							{isSubmitting}
+							{requireComment}
+							{showWeekends}
+							{teamId}
+						/>
+					{/each}
 				</div>
 			</div>
 		</div>

@@ -17,7 +17,7 @@
 		entries: MoodEntryWithDetails[];
 		userId: string;
 		currentUserId?: string;
-		onQuickAdd: (emotionId: string, day: Date, userId: string, comment?: string) => void;
+		teamId?: string;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -29,10 +29,10 @@
 		entries,
 		userId,
 		currentUserId,
-		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
-		requireComment = false
+		requireComment = false,
+		teamId
 	}: Props = $props();
 
 	let moods = $derived(
@@ -150,7 +150,8 @@
 					<div class="flex h-8 w-8 items-center justify-center">
 						<QuickMoodSelector
 							{emotions}
-							onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
+							date={day}
+							{teamId}
 							size="sm"
 							variant="ghost"
 							disabled={isSubmitting}
@@ -179,7 +180,8 @@
 		<div class="flex h-10 w-10 items-center justify-center">
 			<QuickMoodSelector
 				{emotions}
-				onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
+				date={day}
+				{teamId}
 				disabled={isSubmitting}
 				bind:open={popoverOpen}
 				{requireComment}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { createReminder, deleteReminder, updateReminder } from '$lib/client/reminders';
+	import { api } from '$lib/client/api';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import {
@@ -102,7 +102,7 @@
 
 	async function handleToggleActive(reminder: MoodReminder) {
 		try {
-			await updateReminder(reminder.id, { isActive: !reminder.isActive });
+			await api.reminders.update(reminder.id, { isActive: !reminder.isActive });
 			await invalidateAll();
 			toast.success(reminder.isActive ? 'Reminder disabled' : 'Reminder enabled');
 		} catch (error) {
@@ -115,7 +115,7 @@
 		if (!confirm('Delete this reminder?')) return;
 
 		try {
-			await deleteReminder(id);
+			await api.reminders.delete(id);
 			await invalidateAll();
 			toast.success('Reminder deleted');
 		} catch (error) {
@@ -144,10 +144,10 @@
 			};
 
 			if (editingId) {
-				await updateReminder(editingId, data);
+				await api.reminders.update(editingId, data);
 				toast.success('Reminder updated');
 			} else {
-				await createReminder(data);
+				await api.reminders.create(data);
 				toast.success('Reminder created');
 			}
 

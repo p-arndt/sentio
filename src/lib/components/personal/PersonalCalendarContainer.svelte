@@ -18,7 +18,6 @@
 		requireComment?: boolean;
 		defaultView?: CalendarViewMode;
 		onWeekChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (emotionId: string, date: Date, comment?: string) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails) => void;
 		isSubmitting?: boolean;
 	};
@@ -32,7 +31,6 @@
 		requireComment = false,
 		defaultView = 'week',
 		onWeekChange,
-		onQuickAdd,
 		onEdit,
 		isSubmitting = false
 	}: Props = $props();
@@ -72,10 +70,6 @@
 		mode = 'day';
 		selectedDate = date;
 	}
-
-	function handleQuickAdd(emotionId: string, date: Date) {
-		onQuickAdd(emotionId, date);
-	}
 </script>
 
 <div>
@@ -98,7 +92,6 @@
 					showWeekends={true}
 					{requireComment}
 					onWeekChange={(direction) => onWeekChange(direction)}
-					onQuickAdd={handleQuickAdd}
 					onEdit={(date, entry) => onEdit?.(date, entry)}
 					{isSubmitting}
 				/>
@@ -118,7 +111,6 @@
 					{entries}
 					currentUserId={userId}
 					onDayChange={handleDayChange}
-					onQuickAdd={handleQuickAdd}
 					onEdit={(date, entry) => onEdit?.(date, entry)}
 					{isSubmitting}
 					{requireComment}

@@ -23,12 +23,7 @@
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
 		onDayChange: (direction: 'prev' | 'next') => void;
-		onQuickAdd: (
-			emotionId: string,
-			date: Date,
-			userId: string,
-			comment?: string
-		) => Promise<void> | void;
+		teamId?: string;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -42,11 +37,11 @@
 		entries,
 		currentUserId,
 		onDayChange,
-		onQuickAdd,
 		onEdit,
 		isSubmitting = false,
 		requireComment = false,
-		className = ''
+		className = '',
+		teamId
 	}: Props = $props();
 
 	let sortedMembers = $derived(
@@ -186,8 +181,8 @@
 						{#if isCurrentUser}
 							<QuickMoodSelector
 								{emotions}
-								onSelect={(emotionId, comment) =>
-									onQuickAdd(emotionId, selectedDate, member.userId, comment)}
+								date={selectedDate}
+								{teamId}
 								disabled={isSubmitting}
 								{requireComment}
 							/>
