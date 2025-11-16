@@ -19,9 +19,9 @@
 	let { emotions, teams, preferences }: Props = $props();
 
 	// Load last used targets from preferences, or use defaults
-	const lastTargets = preferences?.settings?.lastQuickMoodTargets;
-	const initialPersonal = lastTargets?.personal ?? true;
-	const initialTeamIds = lastTargets?.teamIds ?? [];
+	let lastTargets = $derived(preferences?.settings?.lastQuickMoodTargets);
+	let initialPersonal = $derived(lastTargets?.personal ?? true);
+	let initialTeamIds = $derived(lastTargets?.teamIds ?? []);
 
 	// Initialize teams state with last used selections
 	const initialTeams: Record<string, boolean> = {};
