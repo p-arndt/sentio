@@ -76,6 +76,10 @@
 		selectedTargets.personal || Object.values(teamSelectionMap).some((v) => v === true)
 	);
 
+	const sortedEmotions = $derived(
+		[...emotions].sort((a, b) => b.valence - a.valence) // sort by valence descending
+	);
+
 	const requiresComment = $derived.by(() => {
 		if (requireComment) return true;
 		for (const [teamId, isSelected] of Object.entries(teamSelectionMap)) {
@@ -194,7 +198,7 @@
 		<h4 class="mb-3 text-sm font-medium">How are you feeling?</h4>
 		<TooltipProvider delayDuration={300} skipDelayDuration={0}>
 			<div class="flex flex-wrap justify-center gap-2">
-				{#each emotions as emotion (emotion.id)}
+				{#each sortedEmotions as emotion (emotion.id)}
 					<Tooltip disableHoverableContent={true}>
 						<TooltipTrigger
 							class={[
@@ -225,7 +229,7 @@
 							<span class="text-2xl">{emotion.emoji}</span>
 						</TooltipTrigger>
 						<TooltipContent side="top">
-							<p class="text-xs">{emotion.name}</p>
+							<p class="text-xs">{emotion.name} ({emotion.valence})</p>
 						</TooltipContent>
 					</Tooltip>
 				{/each}

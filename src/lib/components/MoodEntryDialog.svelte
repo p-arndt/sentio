@@ -68,6 +68,10 @@
 	let saving = $state(false);
 	let error = $state<string | null>(null);
 
+	const sortedEmotions = $derived(
+		[...emotions].sort((a, b) => b.valence - a.valence) // sort by valence descending
+	);
+
 	// When editing, prefill fields when entry changes or dialog opens
 	$effect(() => {
 		error = null; // Clear error when dialog state changes
@@ -169,7 +173,7 @@
 			<div class="space-y-3">
 				<Label>How do you feel?</Label>
 				<div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
-					{#each emotions as emotion}
+					{#each sortedEmotions as emotion}
 						<button
 							type="button"
 							class="flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all hover:bg-accent"
@@ -179,6 +183,7 @@
 						>
 							<span class="text-3xl">{emotion.emoji}</span>
 							<span class="text-xs font-medium">{emotion.name}</span>
+							<span class="text-xs text-muted-foreground">({emotion.valence})</span>
 						</button>
 					{/each}
 				</div>
