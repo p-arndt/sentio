@@ -14,7 +14,7 @@ options:
         - docs
         - chore
   commit_groups:
-    sort_by: Title
+    sort_by: Custom
     title_order:
       - feat
       - fix
