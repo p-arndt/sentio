@@ -125,8 +125,8 @@
 	}
 
 	async function handleSubmit() {
-		if (!formData.title || !formData.message || !formData.time) {
-			toast.error('Please fill in all required fields');
+		if (!formData.time) {
+			toast.error('Please select a time');
 			return;
 		}
 
@@ -135,19 +135,22 @@
 			return;
 		}
 
+		// Title and message are optional. Provide a sensible default message if empty.
+		const payload = {
+			...formData,
+			daysOfWeek: selectedDays.join(','),
+			title: formData.title,
+			message: formData.message
+		};
+
 		submitting = true;
 
 		try {
-			const data = {
-				...formData,
-				daysOfWeek: selectedDays.join(',')
-			};
-
 			if (editingId) {
-				await api.reminders.update(editingId, data);
+				await api.reminders.update(editingId, payload);
 				toast.success('Reminder updated');
 			} else {
-				await api.reminders.create(data);
+				await api.reminders.create(payload);
 				toast.success('Reminder created');
 			}
 
@@ -251,24 +254,22 @@
 
 		<div class="space-y-4">
 			<div class="space-y-2">
-				<Label for="title">Title *</Label>
+				<Label for="title">Title</Label>
 				<Input
 					id="title"
 					name="title"
 					bind:value={formData.title}
 					placeholder="e.g., Morning Check-in"
-					required
 				/>
 			</div>
 
 			<div class="space-y-2">
-				<Label for="message">Message *</Label>
+				<Label for="message">Message</Label>
 				<Input
 					id="message"
 					name="message"
 					bind:value={formData.message}
 					placeholder="e.g., How are you feeling today?"
-					required
 				/>
 			</div>
 

@@ -45,8 +45,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const data = (await request.json()) as MoodReminderCreate;
 
-		if (!data.title || !data.message || !data.time) {
-			return json({ error: 'Missing required fields: title, message, time' }, { status: 400 });
+		if (!data.time) {
+			return json({ error: 'Missing required field: time' }, { status: 400 });
 		}
 
 		// Validate time format (HH:MM)
@@ -57,6 +57,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// Convert local time to UTC
 		const timeUTC = localToUTC(data.time);
 
+		// Provide defaults for optional fields
+		const title = data.title ?? 'Mood Reminder';
+		const message = data.message && data.message.trim().length > 0 ? data.message : 'How are you feeling today?';
+
 		console.log(
 			`[API] Creating reminder: local=${data.time}, UTC=${timeUTC}`
 		);
@@ -65,8 +69,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.insert(moodReminder)
 			.values({
 				userId: locals.user.id,
-				title: data.title,
-				message: data.message,
+				title,
+				message,
 				time: timeUTC, // Store UTC time in database
 				daysOfWeek: data.daysOfWeek || '0,1,2,3,4,5,6'
 			})

@@ -311,8 +311,8 @@ export interface MoodReminder {
 }
 
 export interface MoodReminderCreate {
-	title: string;
-	message: string;
+	title?: string;
+	message?: string;
 	time: string; // HH:MM in user's local time
 	daysOfWeek?: string;
 }
