@@ -1,7 +1,8 @@
 import { env } from '$env/dynamic/private';
-import { redirect } from '@sveltejs/kit';
-import type { LayoutServerLoad } from './$types';
 import type { User } from '$lib';
+import { redirect } from '@sveltejs/kit';
+import packageJson from '../../../package.json';
+import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	// check better auth session
@@ -11,9 +12,11 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	return {
 		user: locals.user,
-		vapidPublicKey: env.VAPID_PUBLIC_KEY || null
+		vapidPublicKey: env.VAPID_PUBLIC_KEY || null,
+		version: packageJson.version
 	} as {
 		user: User;
 		vapidPublicKey: string | null;
+		version: string;
 	};
 };

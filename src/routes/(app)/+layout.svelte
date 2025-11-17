@@ -14,6 +14,7 @@
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
+	import Version from '$lib/components/Version.svelte';
 	import { getUserInitials } from '$lib/utils/user';
 	import { Heart, LayoutDashboard, LogOut, Settings, User, Users } from '@lucide/svelte';
 	import '../../app.css';
@@ -163,8 +164,13 @@
 
 	<!-- Footer -->
 	<footer class="border-t bg-card py-6">
-		<div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
+		<div
+			class="container mx-auto flex items-center justify-between px-4 text-sm text-muted-foreground"
+		>
 			<p>© 2025 Sentio. Track your team's well-being with care.</p>
+			<div class="ml-4">
+				<Version version={data.version} />
+			</div>
 		</div>
 	</footer>
 </div>
