@@ -77,7 +77,7 @@
 		onclick={handleCellClick}
 		onkeydown={handleCellKeyDown}
 		class={cn(
-			'relative min-h-[100px] w-full rounded-lg ',
+			'relative min-h-[100px] w-full rounded-lg border',
 			today && 'ring-1',
 			!today && 'hover:border-primary/40 hover:transition-shadow hover:duration-200',
 			isWeekend && 'bg-muted/30'

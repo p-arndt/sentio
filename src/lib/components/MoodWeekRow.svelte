@@ -2,8 +2,8 @@
 	import QuickMoodSelector from '$lib/components/QuickMoodSelector.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { formatDayNameAndDate, isToday, toDateString } from '$lib/utils/date';
 	import type { Emotion, MoodEntryWithDetails } from '$lib/types';
+	import { formatDayNameAndDate, isToday, toDateString } from '$lib/utils/date';
 
 	type Props = {
 		days: Date[];
@@ -74,8 +74,7 @@
 						{@const emotion = getEmotionById(mood.emotionId)}
 						{#if emotion}
 							<button
-								class="w-full rounded-md p-2 text-center transition-transform hover:scale-105"
-								style="background-color: {emotion.color}20; border: 1px solid {emotion.color};"
+								class="w-full rounded-md p-2 text-center transition-transform hover:scale-105 border border-border"
 								disabled={!allowEdit}
 								onclick={() => allowEdit && onEdit && onEdit(day, mood)}
 							>
