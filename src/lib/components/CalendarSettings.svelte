@@ -7,8 +7,8 @@
 	import { AlertCircle } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import CalendarIntegration from '$lib/components/settings/calendar/CalendarIntegration.svelte';
-	import SyncSettings from '$lib/components/calendar/SyncSettings.svelte';
-	import NotificationsCard from '$lib/components/calendar/NotificationsCard.svelte';
+	import SyncSettings from '$lib/components/settings/calendar/SyncSettings.svelte';
+	import NotificationsCard from '$lib/components/settings/calendar/NotificationsCard.svelte';
 
 	type Props = {
 		userId: string;
