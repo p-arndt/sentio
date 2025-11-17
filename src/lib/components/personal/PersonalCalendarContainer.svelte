@@ -5,7 +5,7 @@
 	import DayView from '../calendar/DayView.svelte';
 	import MonthView from '../calendar/MonthView.svelte';
 	import WeekView from '../calendar/WeekView.svelte';
-	import { getWeekDays } from '$lib/utils/date';
+	// weekDays are provided by the parent page and are UTC-aware local midnight dates
 
 	type CalendarViewMode = 'week' | 'month' | 'day';
 

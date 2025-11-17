@@ -7,13 +7,13 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import PersonalCalendarContainer from '$lib/components/personal/PersonalCalendarContainer.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
-	import { formatDate, getWeekDays, toDate, toDateString } from '$lib/utils/date';
+	import { formatDate, getWeekDaysFromUTCStart, getWeekDays, toDate, toDateString, toYMD } from '$lib/utils/date';
 	import { BarChart3, Heart, Plus } from '@lucide/svelte';
 
 	let { data } = $props();
 
 	let weekStart = $derived(toDate(data.weekStart) || new Date());
-	let weekDays = $derived(getWeekDays(weekStart));
+	let weekDays = $derived(getWeekDaysFromUTCStart(weekStart));
 
 	let showMoodDialog = $state(false);
 	let selectedDate = $state(new Date());
@@ -43,18 +43,15 @@
 	}
 
 	async function handleWeekChange(direction: 'prev' | 'next') {
-		const currentWeek = weekStart;
-		const delta = direction === 'prev' ? -7 : 7;
-		const newDate = new Date(currentWeek);
-		newDate.setDate(newDate.getDate() + delta);
+			const currentWeek = weekStart;
+			const delta = direction === 'prev' ? -7 : 7;
+			const newDate = new Date(currentWeek);
+			// Use UTC arithmetic to keep server/client weekStart consistent
+			newDate.setUTCDate(newDate.getUTCDate() + delta);
 
-		const year = newDate.getFullYear();
-		const month = String(newDate.getMonth() + 1).padStart(2, '0');
-		const day = String(newDate.getDate()).padStart(2, '0');
-		const weekStartParam = `${year}-${month}-${day}`;
-
-		goto(`/personal?weekStart=${weekStartParam}`);
-	}
+			const weekStartParam = toYMD(newDate);
+			goto(`/personal?weekStart=${weekStartParam}`);
+		}
 
 	async function handleUpdateMood(
 		id: string,

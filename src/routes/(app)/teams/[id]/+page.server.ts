@@ -1,9 +1,9 @@
-import { redirect, error } from '@sveltejs/kit';
-import { TeamService } from '$lib/server/services/team.service';
-import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { EmotionService } from '$lib/server/services/emotion.service';
+import { MoodEntryService } from '$lib/server/services/mood-entry.service';
+import { TeamService } from '$lib/server/services/team.service';
 import { UserService } from '$lib/server/services/user.service';
-import { getWeekRange, toYMD } from '$lib/utils/date';
+import { getWeekRange } from '$lib/utils/date';
+import { error, redirect } from '@sveltejs/kit';
 
 export async function load({ params, locals, url }) {
 	if (!locals.user) {
@@ -35,18 +35,6 @@ export async function load({ params, locals, url }) {
 	const { startOfWeek, endOfWeek } = getWeekRange(weekStartParam);
 
 	const entries = await MoodEntryService.getTeamMoodEntries(params.id, startOfWeek, endOfWeek);
-
-	// If no entries AND user did not explicitly select a week, redirect to the latest week with entries
-	if (entries.length === 0 && !weekStartParam) {
-		const latest = await MoodEntryService.getLatestTeamEntry(params.id);
-		if (latest) {
-			// Compute week range for latest.date and redirect to its Monday (UTC Y-M-D)
-			const { startOfWeek: latestWeekStart } = getWeekRange(undefined, new Date(latest.date));
-			const ymd = toYMD(latestWeekStart);
-			const target = `/teams/${params.id}?weekStart=${ymd}`;
-			throw redirect(303, target);
-		}
-	}
 
 	const preferences = await UserService.getUserPreferences(locals.user.id);
 

@@ -66,6 +66,24 @@ export function getWeekDays(startDate: Date | string): Date[] {
 	return days;
 }
 
+/**
+ * Get an array of dates for the week (7 days starting from Monday) when the given
+ * start date is a UTC week start (midnight UTC). This returns Date objects at the
+ * local timezone midnight for each Y-M-D corresponding to the UTC week start.
+ */
+export function getWeekDaysFromUTCStart(startDate: Date | string): Date[] {
+	const d = toDate(startDate) || new Date();
+	// Use the UTC YMD values to construct local midnight Date objects
+	const year = d.getUTCFullYear();
+	const month = d.getUTCMonth();
+	const day = d.getUTCDate();
+	const days: Date[] = [];
+	for (let i = 0; i < 7; i++) {
+		days.push(new Date(year, month, day + i));
+	}
+	return days;
+}
+
 export function getCurrentWeekStart(): Date {
 	return getWeekStart(new Date());
 }

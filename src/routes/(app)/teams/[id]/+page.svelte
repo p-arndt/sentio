@@ -20,13 +20,13 @@
 		getVisibilityIcon,
 		getVisibilityValueText
 	} from '$lib/utils';
-	import { getWeekDays, toDate, toDateString, toYMD } from '$lib/utils/date';
+	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
 	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
 
 	let { data } = $props();
 
 	let weekStart = $derived(toDate(data.weekStart) || new Date());
-	let weekDays = $derived(getWeekDays(weekStart));
+	let weekDays = $derived(getWeekDaysFromUTCStart(weekStart));
 
 	let showMoodDialog = $state(false);
 	let selectedDate = $state(new Date());
