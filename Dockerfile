@@ -1,5 +1,5 @@
 # Stage 0: Base image
-FROM node:22 AS base
+FROM node:24 AS base
 WORKDIR /app
 RUN npm install -g pnpm
 
@@ -22,7 +22,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
 
 
-FROM gcr.io/distroless/nodejs22-debian12 AS production
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS production
 WORKDIR /app
 
 COPY --from=prod-dependencies /app/node_modules /app/node_modules
