@@ -23,7 +23,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
 	import type { MoodReminder } from '$lib/types';
-	import { formatReminderDays, getNextReminderTrigger, utcToLocal } from '$lib/utils/timezone';
+	import { formatReminderDays, getNextReminderTrigger, utcToLocal, localToUTC } from '$lib/utils/timezone';
 	import { Clock, Edit2, Plus, Trash2 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -138,6 +138,8 @@
 		// Title and message are optional. Provide a sensible default message if empty.
 		const payload = {
 			...formData,
+			// Convert the user-entered local time to UTC before sending to the server
+			time: localToUTC(formData.time),
 			daysOfWeek: selectedDays.join(','),
 			title: formData.title,
 			message: formData.message

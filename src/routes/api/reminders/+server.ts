@@ -5,7 +5,6 @@ import { moodReminder } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { MoodReminderCreate } from '$lib/types';
 import { scheduleReminder } from '$lib/server/reminder-scheduler';
-import { localToUTC } from '$lib/utils/timezone';
 
 /**
  * GET /api/reminders
@@ -54,16 +53,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Invalid time format. Use HH:MM' }, { status: 400 });
 		}
 
-		// Convert local time to UTC
-		const timeUTC = localToUTC(data.time);
 
 		// Provide defaults for optional fields
 		const title = data.title ?? 'Mood Reminder';
 		const message = data.message && data.message.trim().length > 0 ? data.message : 'How are you feeling today?';
 
-		console.log(
-			`[API] Creating reminder: local=${data.time}, UTC=${timeUTC}`
-		);
+		console.log(`[API] Creating reminder: received_time=${data.time}`);
 
 		const newReminder = await db
 			.insert(moodReminder)
@@ -71,7 +66,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				userId: locals.user.id,
 				title,
 				message,
-				time: timeUTC, // Store UTC time in database
+				time: data.time, // Expect UTC time (client converts to UTC before sending)
 				daysOfWeek: data.daysOfWeek || '0,1,2,3,4,5,6'
 			})
 			.returning();

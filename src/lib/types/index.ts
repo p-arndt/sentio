@@ -313,14 +313,14 @@ export interface MoodReminder {
 export interface MoodReminderCreate {
 	title?: string;
 	message?: string;
-	time: string; // HH:MM in user's local time
+	time: string; // HH:MM in UTC (client converts local -> UTC before sending)
 	daysOfWeek?: string;
 }
 
 export interface MoodReminderUpdate {
 	title?: string;
 	message?: string;
-	time?: string; // HH:MM in user's local time
+	time?: string; // HH:MM in UTC (client converts local -> UTC before sending)
 	daysOfWeek?: string;
 	isActive?: boolean;
 }

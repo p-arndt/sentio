@@ -77,9 +77,9 @@ export function getNextReminderTrigger(reminder: MoodReminder): Date | null {
 		nextTrigger.setUTCDate(nextTrigger.getUTCDate() + 1);
 	}
 
-	// Find the next matching day (check up to 7 days)
+	// Find the next matching day (check up to 7 days). Use UTC day to match stored UTC time.
 	for (let i = 0; i < 7; i++) {
-		if (daysArray.includes(nextTrigger.getDay())) {
+		if (daysArray.includes(nextTrigger.getUTCDay())) {
 			return nextTrigger;
 		}
 		nextTrigger.setUTCDate(nextTrigger.getUTCDate() + 1);

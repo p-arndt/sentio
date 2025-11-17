@@ -5,7 +5,6 @@ import { moodReminder } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { MoodReminderUpdate } from '$lib/types';
 import { scheduleReminder, unscheduleReminder } from '$lib/server/reminder-scheduler';
-import { localToUTC } from '$lib/utils/timezone';
 
 /**
  * GET /api/reminders/[id]
@@ -54,11 +53,8 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 			return json({ error: 'Invalid time format. Use HH:MM' }, { status: 400 });
 		}
 
-		// Convert local time to UTC if provided
+		// Expect updates.time to already be in UTC (client converts local -> UTC before sending)
 		const updateData = { ...updates };
-		if (updates.time) {
-			updateData.time = localToUTC(updates.time);
-		}
 
 		const updated = await db
 			.update(moodReminder)
