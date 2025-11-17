@@ -211,20 +211,15 @@
 
 <div class="space-y-6">
 	{#if pageError}
-		<Alert variant="destructive" class="animate-in slide-in-from-top-2 duration-300">
+		<Alert variant="destructive" class="animate-in duration-300 slide-in-from-top-2">
 			<AlertCircle class="h-4 w-4" />
 			<AlertDescription>{pageError}</AlertDescription>
 			<button
 				onclick={() => (pageError = null)}
-				class="absolute right-4 top-4 text-destructive hover:opacity-70"
+				class="absolute top-4 right-4 text-destructive hover:opacity-70"
 				aria-label="Close alert"
 			>
-				<svg
-					class="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -236,37 +231,28 @@
 		</Alert>
 	{/if}
 
-
 	<!-- Calendar integration (connected + connect UI combined) -->
 	<CalendarIntegration
 		accounts={calendarAccounts}
-		isLoading={isLoading}
-		isSyncing={isSyncing}
-		syncingAccountId={syncingAccountId}
-		pageSuccess={pageSuccess}
+		{isLoading}
+		{isSyncing}
+		{syncingAccountId}
+		{pageSuccess}
 		clearPageSuccess={() => (pageSuccess = null)}
-		syncCalendar={syncCalendar}
-		disconnectCalendar={disconnectCalendar}
-		initiateGoogleOAuth={initiateGoogleOAuth}
-		initiateMicrosoftOAuth={initiateMicrosoftOAuth}
+		{syncCalendar}
+		{disconnectCalendar}
+		{initiateGoogleOAuth}
+		{initiateMicrosoftOAuth}
 	/>
 
 	<!-- Sync + Notifications (refactored into smaller components) -->
-	<SyncSettings
-		isSyncing={isSyncing}
-		syncSuccess={syncSuccess}
-		syncError={syncError}
-		syncCalendar={syncCalendar}
-	/>
+	<SyncSettings {isSyncing} {syncSuccess} {syncError} {syncCalendar} />
 
 	<NotificationsCard
-		enableEventNotifications={enableEventNotifications}
-		isSavingPreferences={isSavingPreferences}
-		pushSupported={pushSupported}
-		pushSubscribed={pushSubscribed}
-		notificationPermission={notificationPermission}
-		isCheckingPushStatus={isCheckingPushStatus}
-		updateEventNotificationPreference={updateEventNotificationPreference}
-		scrollToNotificationSettings={scrollToNotificationSettings}
+		{enableEventNotifications}
+		{isSavingPreferences}
+		{pushSubscribed}
+		{updateEventNotificationPreference}
+		{scrollToNotificationSettings}
 	/>
 </div>

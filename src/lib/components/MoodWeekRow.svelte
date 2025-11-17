@@ -9,7 +9,12 @@
 		days: Date[];
 		emotions: Emotion[];
 		entries: MoodEntryWithDetails[];
-		onQuickAdd: (emotionId: string, date: Date, userId: string, comment?: string) => Promise<void> | void;
+		onQuickAdd: (
+			emotionId: string,
+			date: Date,
+			userId: string,
+			comment?: string
+		) => Promise<void> | void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -42,7 +47,6 @@
 		if (!d) return [];
 		return entries.filter((e) => toDateString(e.date) === d);
 	}
-
 </script>
 
 <div class="grid gap-2" style="grid-template-columns: repeat({days.length}, 1fr)">
@@ -89,8 +93,7 @@
 					{#if allowAdd}
 						<div class="flex justify-center">
 							<QuickMoodSelector
-								emotions={emotions}
-								onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
+								{emotions}
 								size="sm"
 								variant="ghost"
 								disabled={isSubmitting}
@@ -98,21 +101,14 @@
 							/>
 						</div>
 					{/if}
+				{:else if allowAdd}
+					<div class="flex h-full items-center justify-center">
+						<QuickMoodSelector {emotions} disabled={isSubmitting} {requireComment} />
+					</div>
 				{:else}
-					{#if allowAdd}
-						<div class="flex h-full items-center justify-center">
-							<QuickMoodSelector
-								emotions={emotions}
-								onSelect={(emotionId, comment) => onQuickAdd(emotionId, day, userId, comment)}
-								disabled={isSubmitting}
-								{requireComment}
-							/>
-						</div>
-					{:else}
-						<div class="flex h-full items-center justify-center rounded-lg border border-dashed">
-							<span class="text-xs text-muted-foreground">—</span>
-						</div>
-					{/if}
+					<div class="flex h-full items-center justify-center rounded-lg border border-dashed">
+						<span class="text-xs text-muted-foreground">—</span>
+					</div>
 				{/if}
 			</div>
 		</div>

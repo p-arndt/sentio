@@ -50,7 +50,13 @@ export interface GoogleCalendarEvent {
 	reminders?: GoogleCalendarReminders;
 	source?: GoogleCalendarSource;
 	attachments?: GoogleCalendarAttachment[];
-	eventType?: 'default' | 'birthday' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
+	eventType?:
+		| 'default'
+		| 'birthday'
+		| 'focusTime'
+		| 'fromGmail'
+		| 'outOfOffice'
+		| 'workingLocation';
 	workingLocationProperties?: GoogleCalendarWorkingLocationProperties;
 	outOfOfficeProperties?: GoogleCalendarOutOfOfficeProperties;
 	focusTimeProperties?: GoogleCalendarFocusTimeProperties;
@@ -201,7 +207,10 @@ export interface GoogleCalendarWorkingLocationProperties {
  * Google Calendar Out of Office Properties
  */
 export interface GoogleCalendarOutOfOfficeProperties {
-	autoDeclineMode?: 'declineNone' | 'declineAllConflictingInvitations' | 'declineOnlyNewConflictingInvitations';
+	autoDeclineMode?:
+		| 'declineNone'
+		| 'declineAllConflictingInvitations'
+		| 'declineOnlyNewConflictingInvitations';
 	declineMessage?: string;
 }
 
@@ -209,7 +218,10 @@ export interface GoogleCalendarOutOfOfficeProperties {
  * Google Calendar Focus Time Properties
  */
 export interface GoogleCalendarFocusTimeProperties {
-	autoDeclineMode?: 'declineNone' | 'declineAllConflictingInvitations' | 'declineOnlyNewConflictingInvitations';
+	autoDeclineMode?:
+		| 'declineNone'
+		| 'declineAllConflictingInvitations'
+		| 'declineOnlyNewConflictingInvitations';
 	declineMessage?: string;
 	chatStatus?: 'available' | 'doNotDisturb';
 }
@@ -244,7 +256,7 @@ export interface GoogleCalendarEventsListResponse {
 export interface CalendarAccount {
 	id: string;
 	userId: string;
-	provider: 'google' | 'microsoft';
+	provider: 'google' | 'microsoft' | string;
 	email: string;
 	calendarId?: string;
 	isEnabled: boolean;
