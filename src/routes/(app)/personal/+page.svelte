@@ -53,13 +53,14 @@
 			goto(`/personal?weekStart=${weekStartParam}`);
 		}
 
-	async function handleUpdateMood(
+async function handleUpdateMood(
 		id: string,
 		moodData: {
 			emotionId: string;
 			comment?: string;
 			timeOfDay?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}
 	) {
 		if (isSubmitting) return;
@@ -109,11 +110,12 @@
 		}
 	}
 
-	async function handleSaveMood(moodData: {
+async function handleSaveMood(moodData: {
 		emotionId: string;
 		comment?: string;
 		timeOfDay?: string;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	}) {
 		if (isSubmitting) return;
 
@@ -248,7 +250,8 @@
 				emotionId: selectedMood.emotionId,
 				comment: selectedMood.comment ?? undefined,
 				timeOfDay: selectedMood.timeOfDay ?? undefined,
-				isPrivate: selectedMood.isPrivate
+				isPrivate: selectedMood.isPrivate,
+				isAnonymous: selectedMood.isAnonymous
 			}
 		: undefined}
 	onUpdate={handleUpdateMood}

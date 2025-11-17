@@ -47,12 +47,13 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		}
 
 		const body = await request.json();
-		const { emotionId, comment, isPrivate, timeOfDay } = body;
+		const { emotionId, comment, isPrivate, isAnonymous, timeOfDay } = body;
 
 		const entry = await MoodEntryService.updateMoodEntry(params.id, {
 			emotionId,
 			comment,
 			isPrivate,
+			isAnonymous,
 			timeOfDay
 		});
 

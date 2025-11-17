@@ -10,10 +10,15 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
+	import type {
+		Emotion,
+		MoodEntryWithDetails,
+		TeamMemberWithUser,
+		MoodSharePreference
+	} from '$lib/types';
 	import { cn } from '$lib/utils';
 	import { formatFullDate, toDateString } from '$lib/utils/date';
-	import { getUserInitials } from '$lib/utils/user';
+	import { getUserInitials, isAnonymousUser } from '$lib/utils/user';
 	import { ChevronLeft, ChevronRight, MessageCircle } from '@lucide/svelte';
 
 	type Props = {
@@ -24,6 +29,7 @@
 		currentUserId?: string;
 		onDayChange: (direction: 'prev' | 'next') => void;
 		teamId?: string;
+		teamSharingPreferenceForCurrentUser?: MoodSharePreference;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -41,14 +47,18 @@
 		isSubmitting = false,
 		requireComment = false,
 		className = '',
-		teamId
+		teamId,
+		teamSharingPreferenceForCurrentUser = 'public'
 	}: Props = $props();
-
 	let sortedMembers = $derived(
 		[...teamMembers].sort((a, b) => {
 			if (a.userId === currentUserId) return -1;
 			if (b.userId === currentUserId) return 1;
-			return 0;
+			const aAnon = isAnonymousUser(a.userId);
+			const bAnon = isAnonymousUser(b.userId);
+			if (aAnon && !bAnon) return 1;
+			if (!aAnon && bAnon) return -1;
+			return a.user.name.localeCompare(b.user.name);
 		})
 	);
 
@@ -137,13 +147,23 @@
 															: null}
 													disabled={!isCurrentUser}
 													class={cn(
-														'relative flex h-12 w-12 items-center justify-center rounded-full transition-all',
+														'relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all',
 														isCurrentUser && 'cursor-pointer hover:scale-105',
-														!isCurrentUser && 'cursor-default opacity-75'
+														!isCurrentUser && 'cursor-default opacity-75',
+														mood.isAnonymous ? 'border-dashed' : 'border-solid'
 													)}
-													style="background-color: {emotion.color}40;"
+													style={`background-color: ${emotion.color}40; border-color: ${emotion.color}60;`}
 												>
-													<span class="text-2xl">{emotion.emoji}</span>
+													<div class="relative flex items-center justify-center pb-1">
+														<span class="text-2xl">{emotion.emoji}</span>
+														{#if mood.isAnonymous && isCurrentUser}
+															<span
+																class="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded border border-dashed border-primary/40 bg-background/80 px-1 text-[9px] font-semibold uppercase text-muted-foreground"
+															>
+																Anon
+															</span>
+														{/if}
+													</div>
 													{#if mood.comment}
 														<MessageCircle
 															class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
@@ -183,6 +203,7 @@
 								{emotions}
 								date={selectedDate}
 								{teamId}
+								teamSharingPreference={teamSharingPreferenceForCurrentUser}
 								disabled={isSubmitting}
 								{requireComment}
 							/>

@@ -4,6 +4,7 @@ import { TeamService } from '$lib/server/services/team.service';
 import { UserService } from '$lib/server/services/user.service';
 import { getWeekRange } from '$lib/utils/date';
 import { error, redirect } from '@sveltejs/kit';
+import type { MoodSharePreference } from '$lib/types';
 
 export async function load({ params, locals, url }) {
 	if (!locals.user) {
@@ -34,18 +35,32 @@ export async function load({ params, locals, url }) {
 	const weekStartParam = url.searchParams.get('weekStart'); // YYYY-MM-DD
 	const { startOfWeek, endOfWeek } = getWeekRange(weekStartParam);
 
-	const entries = await MoodEntryService.getTeamMoodEntries(params.id, startOfWeek, endOfWeek);
+	const rawEntries = await MoodEntryService.getTeamMoodEntries(params.id, startOfWeek, endOfWeek);
+	const { entries, anonymousMembers } = MoodEntryService.anonymizeEntriesForViewer(
+		rawEntries,
+		locals.user.id,
+		{ teamId: team.id }
+	);
 
 	const preferences = await UserService.getUserPreferences(locals.user.id);
+	const teamSharingOverrides =
+		(preferences?.settings?.teamSharingOverrides as Record<string, MoodSharePreference>) || {};
+	const teamSharingDefault =
+		(preferences?.settings?.teamSharingDefault as MoodSharePreference) || 'public';
+	const teamSharingPreference = teamSharingOverrides[params.id] ?? teamSharingDefault;
 
 	return {
 		team,
 		isAdmin,
 		emotions,
 		entries,
+		anonymousMembers,
 		currentUserId: locals.user.id,
 		weekStart: startOfWeek.toISOString(),
 		weekEnd: endOfWeek.toISOString(),
-		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week'
+		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week',
+		teamSharingPreference,
+		teamSharingOverrides,
+		teamSharingDefault
 	};
 }

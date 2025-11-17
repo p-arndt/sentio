@@ -26,6 +26,8 @@ export interface UserSettings {
 	defaultView?: 'day' | 'week' | 'month';
 	startPage?: string;
 	enableNotifications?: boolean;
+	teamSharingDefault?: MoodSharePreference;
+	teamSharingOverrides?: Record<string, MoodSharePreference>;
 	lastQuickMoodTargets?: {
 		personal: boolean;
 		teamIds: string[];
@@ -42,6 +44,7 @@ export interface UserPreferences {
 }
 
 export type Visibility = 'public' | 'team' | 'private';
+export type MoodSharePreference = 'public' | 'anonymous';
 
 // ==================== TEAM TYPES ====================
 export interface Team {
@@ -100,6 +103,7 @@ export interface MoodEntry {
 	timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 	comment?: string | null;
 	isPrivate: boolean;
+	isAnonymous: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -114,6 +118,7 @@ export interface MoodEntrySerialized {
 	timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 	comment?: string | null;
 	isPrivate: boolean;
+	isAnonymous: boolean;
 	createdAt: string; // ISO string
 	updatedAt: string; // ISO string
 }
@@ -132,6 +137,7 @@ export interface MoodEntryWithDetailsSerialized {
 	timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 	comment?: string | null;
 	isPrivate: boolean;
+	isAnonymous: boolean;
 	createdAt: string; // ISO string
 	updatedAt: string; // ISO string
 	emotion: Emotion;
@@ -146,12 +152,14 @@ export interface MoodEntryCreate {
 	timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 	comment?: string;
 	isPrivate?: boolean;
+	isAnonymous?: boolean;
 }
 
 export interface MoodEntryUpdate {
 	emotionId?: string;
 	comment?: string;
 	isPrivate?: boolean;
+	isAnonymous?: boolean;
 	timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 }
 

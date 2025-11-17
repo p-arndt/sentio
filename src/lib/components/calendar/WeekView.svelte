@@ -1,16 +1,22 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import type {
+		Emotion,
+		MoodEntryWithDetails,
+		MoodSharePreference,
+		TeamMemberWithUser
+	} from '$lib/types';
+	import { isAnonymousUser } from '$lib/utils';
+	import {
+		filterWeekDays,
+		formatDate,
+		formatDayDate,
+		formatDayName,
+		isToday
+	} from '$lib/utils/date';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import CalendarMemberRow from './CalendarMemberRow.svelte';
-	import {
-		formatDayName,
-		formatDayDate,
-		formatDate,
-		isToday,
-		filterWeekDays
-	} from '$lib/utils/date';
-	import type { Emotion, MoodEntryWithDetails, TeamMember, TeamMemberWithUser } from '$lib/types';
 
 	type Props = {
 		weekStart: Date;
@@ -21,6 +27,7 @@
 		currentUserId?: string;
 		showWeekends: boolean;
 		requireComment?: boolean;
+		teamSharingPreferenceForCurrentUser?: MoodSharePreference;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 
 		teamId?: string;
@@ -38,6 +45,7 @@
 		currentUserId,
 		showWeekends,
 		requireComment = false,
+		teamSharingPreferenceForCurrentUser = 'public',
 		onWeekChange,
 		onEdit,
 		isSubmitting = false,
@@ -46,16 +54,19 @@
 	}: Props = $props();
 
 	let displayDays = $derived(filterWeekDays(weekDays, showWeekends));
-
 	let sortedMembers = $derived.by(() => {
 		const sorted = [...teamMembers];
-		if (currentUserId) {
-			sorted.sort((a, b) => {
+		sorted.sort((a, b) => {
+			if (currentUserId) {
 				if (a.userId === currentUserId) return -1;
 				if (b.userId === currentUserId) return 1;
-				return a.user.name.localeCompare(b.user.name);
-			});
-		}
+			}
+			const aAnon = isAnonymousUser(a.userId);
+			const bAnon = isAnonymousUser(b.userId);
+			if (aAnon && !bAnon) return 1;
+			if (!aAnon && bAnon) return -1;
+			return a.user.name.localeCompare(b.user.name);
+		});
 		return sorted;
 	});
 
@@ -131,6 +142,7 @@
 							{requireComment}
 							{showWeekends}
 							{teamId}
+							{teamSharingPreferenceForCurrentUser}
 						/>
 					{/each}
 				</div>

@@ -1,5 +1,5 @@
 import type { UserSettings } from '$lib/types';
-import { Calendar, Palette } from '@lucide/svelte';
+import { Calendar, Palette, Users } from '@lucide/svelte';
 import type { Component } from 'svelte';
 
 export type SettingType = 'select' | 'toggle' | 'text';
@@ -76,6 +76,25 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
 					{ value: 'day', label: 'Day View' },
 					{ value: 'week', label: 'Week View' },
 					{ value: 'month', label: 'Month View' }
+				]
+			}
+		]
+	},
+	{
+		id: 'sharing',
+		title: 'Sharing',
+		description: 'Control how your team moods are shared by default',
+		icon: Users,
+		fields: [
+			{
+				id: 'teamSharingDefault',
+				type: 'select',
+				label: 'Default Team Sharing',
+				description: 'Choose whether your moods are public or anonymous by default',
+				defaultValue: 'public',
+				options: [
+					{ value: 'public', label: 'Share with my name' },
+					{ value: 'anonymous', label: 'Share anonymously' }
 				]
 			}
 		]

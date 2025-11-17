@@ -1,9 +1,103 @@
 import { db } from '$lib/server/db';
 import { calendarEntry, emotion, user } from '$lib/server/db/schema';
-import type { MoodEntry, MoodEntryCreate, MoodEntryUpdate, MoodEntryWithDetails } from '$lib/types';
+import { FunnyNameService } from '$lib/server/services/funny-name.service';
+import type {
+	MoodEntry,
+	MoodEntryCreate,
+	MoodEntryUpdate,
+	MoodEntryWithDetails,
+	TeamMemberWithUser
+} from '$lib/types';
 import { and, desc, eq, gte, isNull, lte, type SQLWrapper } from 'drizzle-orm';
 
 export class MoodEntryService {
+	static anonymizeEntriesForViewer(
+		entries: MoodEntryWithDetails[],
+		viewerId: string,
+		options?: {
+			teamId?: string;
+			aliasState?: {
+				map: Map<string, { aliasId: string; aliasName: string }>;
+				nextIndex: number;
+			};
+		}
+	): {
+		entries: MoodEntryWithDetails[];
+		anonymousMembers: TeamMemberWithUser[];
+		aliasState: {
+			map: Map<string, { aliasId: string; aliasName: string }>;
+			nextIndex: number;
+		};
+	} {
+		const aliasMap =
+			options?.aliasState?.map ?? new Map<string, { aliasId: string; aliasName: string }>();
+		let nextIndex = options?.aliasState?.nextIndex ?? 1;
+
+		const sanitizedEntries = entries.map((entry) => {
+			if (!entry.isAnonymous || entry.userId === viewerId) {
+				return entry;
+			}
+
+			if (!aliasMap.has(entry.userId)) {
+				const aliasName = FunnyNameService.generate({ capitalized: true, seed: entry.userId });
+				const aliasId = `anon-${nextIndex}`;
+				aliasMap.set(entry.userId, { aliasId, aliasName });
+				nextIndex += 1;
+			}
+
+			const alias = aliasMap.get(entry.userId)!;
+			return {
+				...entry,
+				userId: alias.aliasId,
+				user: {
+					...entry.user,
+					id: alias.aliasId,
+					name: alias.aliasName,
+					email: '',
+					emailVerified: false,
+					image: null,
+					timezone: 'UTC',
+					isAdmin: false,
+					personalMode: false,
+					createdAt: entry.user.createdAt,
+					updatedAt: entry.user.updatedAt
+				}
+			};
+		});
+
+		let anonymousMembers: TeamMemberWithUser[] = [];
+
+		if (options?.teamId) {
+			anonymousMembers = Array.from(aliasMap.values()).map(({ aliasId, aliasName }) => ({
+				id: `${aliasId}-member`,
+				teamId: options.teamId!,
+				userId: aliasId,
+				role: 'member',
+				joinedAt: new Date(0),
+				createdAt: new Date(0),
+				updatedAt: new Date(0),
+				user: {
+					id: aliasId,
+					name: aliasName,
+					email: '',
+					emailVerified: false,
+					image: null,
+					timezone: 'UTC',
+					isAdmin: false,
+					personalMode: false,
+					createdAt: new Date(0),
+					updatedAt: new Date(0)
+				}
+			}));
+		}
+
+		return {
+			entries: sanitizedEntries,
+			anonymousMembers,
+			aliasState: { map: aliasMap, nextIndex }
+		};
+	}
+
 	/**
 	 * Get mood entry by ID
 	 */
@@ -85,7 +179,8 @@ export class MoodEntryService {
 				date: data.date,
 				timeOfDay: data.timeOfDay || null,
 				comment: data.comment || null,
-				isPrivate: isPersonalEntry ? true : data.isPrivate || false
+				isPrivate: isPersonalEntry ? true : data.isPrivate || false,
+				isAnonymous: data.isAnonymous || false
 			})
 			.returning();
 
@@ -108,7 +203,7 @@ export class MoodEntryService {
 			.set({
 				...data,
 				// Force isPrivate to true for personal entries
-				...(isPersonalEntry && { isPrivate: true }),
+				...(isPersonalEntry && { isPrivate: true, isAnonymous: false }),
 				updatedAt: new Date()
 			})
 			.where(eq(calendarEntry.id, entryId))
@@ -183,6 +278,7 @@ export class MoodEntryService {
 				timeOfDay: calendarEntry.timeOfDay,
 				comment: calendarEntry.comment,
 				isPrivate: calendarEntry.isPrivate,
+				isAnonymous: calendarEntry.isAnonymous,
 				createdAt: calendarEntry.createdAt,
 				updatedAt: calendarEntry.updatedAt,
 				emotion: {

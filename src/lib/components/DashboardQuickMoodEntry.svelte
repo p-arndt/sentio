@@ -7,7 +7,7 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import type { Emotion, Team, UserPreferences } from '$lib/types';
+import type { Emotion, Team, UserPreferences, MoodSharePreference } from '$lib/types';
 	import { Heart } from '@lucide/svelte';
 
 	type Props = {
@@ -22,6 +22,12 @@
 	let lastTargets = $derived(preferences?.settings?.lastQuickMoodTargets);
 	let initialPersonal = $derived(lastTargets?.personal ?? true);
 	let initialTeamIds = $derived(lastTargets?.teamIds ?? []);
+	let defaultTeamSharing = $derived(
+		(preferences?.settings?.teamSharingDefault as MoodSharePreference) ?? 'public'
+	);
+	let teamSharingOverrides = $derived(
+		(preferences?.settings?.teamSharingOverrides as Record<string, MoodSharePreference>) ?? {}
+	);
 
 	// Initialize teams state with last used selections
 	const initialTeams: Record<string, boolean> = {};
@@ -45,6 +51,8 @@
 			{emotions}
 			{teams}
 			initialTargets={{ personal: initialPersonal, teamIds: initialTeamIds }}
+			teamSharingDefault={defaultTeamSharing}
+			teamSharingOverrides={teamSharingOverrides}
 		/>
 	</CardContent>
 </Card>

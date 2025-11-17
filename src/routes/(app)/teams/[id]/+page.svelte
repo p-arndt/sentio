@@ -13,17 +13,33 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
 		getUserInitials,
 		getVisibilityDescription,
 		getVisibilityIcon,
-		getVisibilityValueText
+		getVisibilityValueText,
+		isAnonymousUser
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
 	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
 
 	let { data } = $props();
+
+	let teamSharingPreference = $state(data.teamSharingPreference);
+	let teamSharingSaving = $state(false);
+	let teamSharingError = $state<string | null>(null);
+	let calendarMembers = $derived.by(() => {
+		const combined = [...data.team.members, ...(data.anonymousMembers ?? [])];
+		return combined.sort((a, b) => {
+			const aAnon = isAnonymousUser(a.userId);
+			const bAnon = isAnonymousUser(b.userId);
+			if (aAnon && !bAnon) return 1;
+			if (!aAnon && bAnon) return -1;
+			return a.user.name.localeCompare(b.user.name);
+		});
+	});
 
 	let weekStart = $derived(toDate(data.weekStart) || new Date());
 	let weekDays = $derived(getWeekDaysFromUTCStart(weekStart));
@@ -48,11 +64,42 @@
 		showMoodDialog = true;
 	}
 
+	async function handleTeamSharingPreferenceChange(value: 'public' | 'anonymous') {
+		if (teamSharingSaving) return;
+		const previous = teamSharingPreference;
+		teamSharingPreference = value;
+		teamSharingSaving = true;
+		teamSharingError = null;
+		try {
+			const overrides = { ...(data.teamSharingOverrides || {}) };
+			overrides[data.team.id] = value;
+			const response = await fetch('/api/user/preferences', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ teamSharingOverrides: overrides })
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to update sharing preference');
+			}
+
+			data.teamSharingOverrides = overrides;
+		} catch (error) {
+			console.error(error);
+			teamSharingError =
+				error instanceof Error ? error.message : 'Unable to update sharing preference';
+			teamSharingPreference = previous;
+		} finally {
+			teamSharingSaving = false;
+		}
+	}
+
 	async function handleSaveMood(moodData: {
 		emotionId: string;
 		comment?: string;
 		timeOfDay?: string;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	}) {
 		if (isSubmitting) return;
 
@@ -94,6 +141,7 @@
 			comment?: string;
 			timeOfDay?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}
 	) {
 		if (isSubmitting) return;
@@ -205,18 +253,51 @@
 		/>
 	</div>
 
+	<!-- Personal Sharing Preference -->
+	<Card>
+		<CardHeader class="pb-3">
+			<CardTitle class="text-base">Your sharing preference</CardTitle>
+			<CardDescription>Choose how your mood updates appear to this team by default</CardDescription>
+		</CardHeader>
+		<CardContent class="space-y-2">
+			<Select
+				type="single"
+				value={teamSharingPreference}
+				onValueChange={(value) =>
+					handleTeamSharingPreferenceChange(value as 'public' | 'anonymous')}
+				disabled={teamSharingSaving}
+			>
+				<SelectTrigger class="w-full md:w-64">
+					{teamSharingPreference === 'anonymous' ? 'Share anonymously' : 'Share with my name'}
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="public">Share with my name</SelectItem>
+					<SelectItem value="anonymous">Share anonymously</SelectItem>
+				</SelectContent>
+			</Select>
+			{#if teamSharingError}
+				<p class="text-sm text-destructive">{teamSharingError}</p>
+			{:else}
+				<p class="text-xs text-muted-foreground">
+					You can still override this for any individual entry.
+				</p>
+			{/if}
+		</CardContent>
+	</Card>
+
 	<!-- Team Calendar -->
 	<CalendarContainer
 		teamId={data.team.id}
 		{weekStart}
 		{weekDays}
-		teamMembers={data.team.members}
+		teamMembers={calendarMembers}
 		emotions={data.emotions}
 		entries={data.entries}
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
 		requireComment={data.team.requireComment}
 		defaultView={data.defaultView}
+		{teamSharingPreference}
 		onWeekChange={handleWeekChange}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}
@@ -233,7 +314,7 @@
 		</CardHeader>
 		<CardContent>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each data.team.members as member (member.userId)}
+				{#each calendarMembers as member (member.userId)}
 					<div class="flex items-center gap-3 rounded-lg border p-3">
 						<Avatar>
 							<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
@@ -241,7 +322,9 @@
 						</Avatar>
 						<div class="min-w-0 flex-1">
 							<div class="truncate font-medium">{member.user.name}</div>
-							<div class="truncate text-sm text-muted-foreground">{member.user.email}</div>
+							<div class="truncate text-sm text-muted-foreground">
+								{member.user.email || 'Hidden email'}
+							</div>
 						</div>
 						{#if member.role === 'admin'}
 							<Badge variant="secondary">Admin</Badge>
@@ -260,6 +343,8 @@
 	teamId={data.team.id}
 	{selectedDate}
 	allowPrivate={false}
+	allowAnonymous={true}
+	defaultAnonymous={teamSharingPreference === 'anonymous'}
 	requireComment={data.team.requireComment}
 	onSave={handleSaveMood}
 	entry={selectedMood
@@ -268,7 +353,8 @@
 				emotionId: selectedMood.emotionId,
 				comment: selectedMood.comment ?? undefined,
 				timeOfDay: selectedMood.timeOfDay ?? undefined,
-				isPrivate: selectedMood.isPrivate
+				isPrivate: selectedMood.isPrivate,
+				isAnonymous: selectedMood.isAnonymous
 			}
 		: undefined}
 	onUpdate={handleUpdateMood}

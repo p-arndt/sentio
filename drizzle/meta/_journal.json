@@ -78,6 +78,13 @@
       "when": 1763073816344,
       "tag": "0010_true_infant_terrible",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1763402190521,
+      "tag": "0011_parallel_earthquake",
+      "breakpoints": true
     }
   ]
 }

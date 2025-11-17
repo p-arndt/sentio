@@ -79,6 +79,9 @@ export class UserService {
 			...defaults,
 			...pref.settings // Preserve any existing user settings
 		};
+		if (!pref.settings.teamSharingOverrides) {
+			pref.settings.teamSharingOverrides = {};
+		}
 		return pref;
 	}
 

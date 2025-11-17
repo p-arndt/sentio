@@ -2,7 +2,12 @@
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
 	import { getUserInitials } from '$lib/utils/user';
-	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
+import type {
+	Emotion,
+	MoodEntryWithDetails,
+	TeamMemberWithUser,
+	MoodSharePreference
+} from '$lib/types';
 	import CalendarDayCell from './CalendarDayCell.svelte';
 
 	type Props = {
@@ -12,6 +17,7 @@
 		entries: MoodEntryWithDetails[];
 		currentUserId?: string;
 		teamId?: string;
+		teamSharingPreferenceForCurrentUser?: MoodSharePreference;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -28,7 +34,8 @@
 		isSubmitting = false,
 		requireComment = false,
 		showWeekends = true,
-		teamId
+		teamId,
+		teamSharingPreferenceForCurrentUser = 'public'
 	}: Props = $props();
 </script>
 
@@ -60,6 +67,9 @@
 			{isSubmitting}
 			{requireComment}
 			{teamId}
+			teamSharingPreference={member.userId === currentUserId
+				? teamSharingPreferenceForCurrentUser
+				: 'public'}
 		/>
 	{/each}
 </div>

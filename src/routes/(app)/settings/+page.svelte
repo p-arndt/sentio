@@ -20,15 +20,16 @@
 	let { data }: { data: PageData } = $props();
 
 	// Create a reactive state object for all settings with proper typing
-	const settings: Record<string, string | boolean> = $state({
-		name: data.user?.name || '',
-		timezone: data.user?.timezone || 'UTC',
-		theme: (data.preferences?.settings?.theme as string) || 'system',
-		defaultView: (data.preferences?.settings?.defaultView as string) || 'week',
-		enableNotifications: (data.preferences?.settings?.enableNotifications as boolean) ?? true,
-		personalMode: (data.user?.personalMode as boolean) ?? false,
-		startPage: (data.preferences?.settings?.startPage as string) || '/'
-	});
+const settings: Record<string, string | boolean> = $state({
+	name: data.user?.name || '',
+	timezone: data.user?.timezone || 'UTC',
+	theme: (data.preferences?.settings?.theme as string) || 'system',
+	defaultView: (data.preferences?.settings?.defaultView as string) || 'week',
+	teamSharingDefault: (data.preferences?.settings?.teamSharingDefault as string) || 'public',
+	enableNotifications: (data.preferences?.settings?.enableNotifications as boolean) ?? true,
+	personalMode: (data.user?.personalMode as boolean) ?? false,
+	startPage: (data.preferences?.settings?.startPage as string) || '/'
+});
 
 	let saveStatus = $state<'idle' | 'success' | 'error'>('idle');
 	let saveTimeout: ReturnType<typeof setTimeout> | undefined;
