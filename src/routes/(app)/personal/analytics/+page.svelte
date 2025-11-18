@@ -4,17 +4,10 @@
 	import AnalyticsStatsGrid from '$lib/components/analytics/AnalyticsStatsGrid.svelte';
 	import EmotionDistributionChart from '$lib/components/analytics/EmotionDistributionChart.svelte';
 	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
-	import WeeklyMoodHeatmap from '$lib/components/analytics/WeeklyMoodHeatmap.svelte';
 	import {
-		averageByWeekday,
 		averageValence30Days,
 		averageValence7Days,
-		deltaValence,
-		emotionDiversity,
-		entriesByTimeOfDay,
-		moodStability,
-		moodTrendSlope,
-		mostUsedEmotion
+		deltaValence
 	} from '$lib/utils/emotion-analytics';
 	import type { PageData } from './$types';
 

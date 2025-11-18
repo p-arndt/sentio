@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { MoodEntryWithDetails } from '$lib/types';
-	import { averageByWeekday } from '$lib/utils/emotion-analytics';
 
 	type Props = {
 		entries: MoodEntryWithDetails[];
@@ -41,7 +40,10 @@
 		d.setDate(weekStart.getDate() + i);
 		const key = localDateKey(d);
 		const dayEntries = entries.filter((e) => localDateKey(toDate(e.date)) === key);
-		const avg = dayEntries.length === 0 ? null : dayEntries.reduce((s, x) => s + x.emotion.valence, 0) / dayEntries.length;
+		const avg =
+			dayEntries.length === 0
+				? null
+				: dayEntries.reduce((s, x) => s + x.emotion.valence, 0) / dayEntries.length;
 		return { day: shortDays[i], avg };
 	});
 
@@ -88,7 +90,10 @@
 			{#key w.day}
 				<div class="rounded-md p-2" style="background-color: {colorForValence(w.avg ?? null)};">
 					<div class="text-sm font-medium">{w.day}</div>
-					<div class="text-xl font-semibold" style="color: {textColorForBackground(colorForValence(w.avg ?? null))}">
+					<div
+						class="text-xl font-semibold"
+						style="color: {textColorForBackground(colorForValence(w.avg ?? null))}"
+					>
 						{w.avg == null ? '—' : w.avg.toFixed(1)}
 					</div>
 					<div class="text-xs">avg</div>

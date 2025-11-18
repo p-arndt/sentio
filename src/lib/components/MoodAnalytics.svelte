@@ -5,15 +5,8 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
-		averageByWeekday,
 		calculateHappinessIndex,
-		consistency,
-		emotionDiversity,
-		entriesByTimeOfDay,
-		getMoodAnalytics,
-		moodStability,
-		moodTrendSlope,
-		mostUsedEmotion
+		getMoodAnalytics
 	} from '$lib/utils/emotion-analytics';
 
 	type Props = {
@@ -25,11 +18,6 @@
 
 	const analytics = $derived(getMoodAnalytics(entries, previousPeriodEntries));
 	const happinessIndex = $derived(calculateHappinessIndex(entries));
-
-	const stability = $derived(moodStability(entries));
-	const consistencyPct = $derived(consistency(entries));
-	const favorite = $derived(mostUsedEmotion(entries));
-	const diversity = $derived(emotionDiversity(entries));
 </script>
 
 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
