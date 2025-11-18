@@ -37,6 +37,7 @@
 
 		onSuccess?: (result: any) => void | Promise<void>;
 		onError?: (err: Error) => void;
+		onAnonymousModeChange?: (isAnonymous: boolean) => void;
 	};
 
 	let {
@@ -54,7 +55,8 @@
 		teamSharingDefault = 'public',
 		teamSharingOverrides = {} as Record<string, MoodSharePreference>,
 		onSuccess,
-		onError
+		onError,
+		onAnonymousModeChange
 	}: Props = $props();
 
 	let selectedEmotionId = $state<string | undefined>(undefined);
@@ -83,6 +85,12 @@
 		teamId ? (teamSharingOverrides[teamId] ?? teamSharingDefault) : teamSharingDefault
 	);
 	let singleTeamDirty = $state(false);
+
+	$effect(() => {
+		if (onAnonymousModeChange && teamId) {
+			onAnonymousModeChange(singleTeamSharing === 'anonymous');
+		}
+	});
 
 	function getTeamSharingPreference(targetTeamId: string): MoodSharePreference {
 		return (
@@ -253,6 +261,7 @@
 								}),
 								'h-12 w-12',
 								'relative border-2 transition-all duration-200 hover:scale-110',
+								allowAnonymous && teamId && singleTeamSharing === 'anonymous' && 'border-dashed',
 								selectedEmotionId === emotion.id && 'shadow-lg ring-2 ring-ring ring-offset-2'
 							]}
 							style={selectedEmotionId !== emotion.id

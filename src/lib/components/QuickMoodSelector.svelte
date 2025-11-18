@@ -56,7 +56,10 @@
 	<PopoverTrigger disabled={disabled || isSaving} class={buttonVariants({ variant, size })}>
 		<Plus class="h-4 w-4" />
 	</PopoverTrigger>
-	<PopoverContent class="w-80 p-4" align="center" trapFocus={false}>
+	<PopoverContent class={[
+			'w-80 p-4',
+			(teamId && anonymousMode) && 'border-2 border-dashed border-white/50'
+		]} align="center" trapFocus={false}>
 		<div class="relative">
 			<MoodEntryForm
 				{emotions}
@@ -66,6 +69,9 @@
 				{teamId}
 				teamSharingDefault={effectivePreference}
 				teamSharingOverrides={teamId ? { [teamId]: effectivePreference } : {}}
+				onAnonymousModeChange={(isAnonymous) => {
+					anonymousMode = isAnonymous;
+				}}
 				onSuccess={async (results) => {
 					isSaving = true;
 					try {
