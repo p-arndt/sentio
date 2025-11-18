@@ -10,6 +10,20 @@ Everyone logs how they feel each day, and Sentio turns those entries into trends
 
 Similar to a classic **Niko-Niko calendar**, but modern, visual, and built for real-world teams.
 
+<div align="center" style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+   <img src="screenshots/team.png" alt="Team analytics — week view" style="width:48%; max-width:600px;" />
+   <img src="screenshots/team-analytics.png" alt="Team analytics — month view" style="width:48%; max-width:600px;" />
+</div>
+
+## Table of Contents
+
+- [🌟 Features](#-features)
+- [🚀 Quickstart](#-quickstart)
+- [⚙️ Environment Variables](#-environment-variables)
+- [🔔 Reminders & Notifications](#-reminders--notifications)
+- [📆 Calendar Integration](#-calendar-integration)
+- [🤝 Contributing](#-contributing)
+
 ## 🌟 Features
 
 ### Mood Tracking
