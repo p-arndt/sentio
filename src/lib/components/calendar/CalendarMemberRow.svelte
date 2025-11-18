@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
-	import { getUserInitials } from '$lib/utils/user';
-import type {
-	Emotion,
-	MoodEntryWithDetails,
-	TeamMemberWithUser,
-	MoodSharePreference
-} from '$lib/types';
+	import { getUserInitials, isAnonymousUser } from '$lib/utils/user';
+	import type {
+		Emotion,
+		MoodEntryWithDetails,
+		TeamMemberWithUser,
+		MoodSharePreference
+	} from '$lib/types';
 	import CalendarDayCell from './CalendarDayCell.svelte';
 
 	type Props = {
@@ -40,7 +40,10 @@ import type {
 </script>
 
 <div
-	class="grid gap-2 rounded-lg border p-2 md:gap-4 md:p-4"
+	class={'grid gap-2 rounded-lg p-2 md:gap-4 md:p-4 ' +
+		(isAnonymousUser(member.userId)
+			? 'border-3 border-dashed border-white/25 bg-muted!'
+			: 'border')}
 	style="grid-template-columns: var(--calendar-grid-template, 200px repeat(7,1fr))"
 >
 	<div class="flex items-center gap-2">
