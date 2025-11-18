@@ -13,7 +13,9 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
+	import Label from '$lib/components/ui/label/label.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Switch } from '$lib/components/ui/switch';
 	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
 		getUserInitials,
@@ -23,7 +25,16 @@
 		isAnonymousUser
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
-	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
+	import {
+		BarChart3,
+		Calendar,
+		ChevronLeft,
+		Ghost,
+		Globe,
+		Settings,
+		UserPlus,
+		Users
+	} from '@lucide/svelte';
 
 	let { data } = $props();
 
@@ -48,6 +59,8 @@
 	let selectedDate = $state(new Date());
 	let selectedMood: MoodEntryWithDetails | null = $state(null);
 	let isSubmitting = $state(false);
+
+	let teamSharingPreferenceAnonymous = $derived(teamSharingPreference === 'anonymous');
 
 	async function handleWeekChange(direction: 'prev' | 'next') {
 		const base = weekStart;
@@ -257,24 +270,34 @@
 	<Card>
 		<CardHeader class="pb-3">
 			<CardTitle class="text-base">Your sharing preference</CardTitle>
-			<CardDescription>Choose how your mood updates appear to this team by default</CardDescription>
+			<CardDescription>Choose how your mood entries appear to this team by default</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-2">
-			<Select
-				type="single"
-				value={teamSharingPreference}
-				onValueChange={(value) =>
-					handleTeamSharingPreferenceChange(value as 'public' | 'anonymous')}
-				disabled={teamSharingSaving}
-			>
-				<SelectTrigger class="w-full md:w-64">
-					{teamSharingPreference === 'anonymous' ? 'Share anonymously' : 'Share with my name'}
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="public">Share with my name</SelectItem>
-					<SelectItem value="anonymous">Share anonymously</SelectItem>
-				</SelectContent>
-			</Select>
+			<div class="flex items-center space-x-5">
+				<span
+					class="flex items-center space-x-2 text-sm{!teamSharingPreferenceAnonymous &&
+						'text-accent-variant'}"
+				>
+					<Globe class="size-5" />
+					<span>Public</span>
+				</span>
+				<span>
+					<Switch
+						checked={teamSharingPreferenceAnonymous}
+						onCheckedChange={(checked) =>
+							handleTeamSharingPreferenceChange(checked ? 'anonymous' : 'public')}
+						disabled={teamSharingSaving}
+					/>
+				</span>
+				<span
+					class="flex items-center space-x-2 text-sm {teamSharingPreferenceAnonymous &&
+						'text-accent-variant'}"
+				>
+					<Ghost class="size-5" />
+					<span>Anonymous</span>
+				</span>
+			</div>
+
 			{#if teamSharingError}
 				<p class="text-sm text-destructive">{teamSharingError}</p>
 			{:else}
