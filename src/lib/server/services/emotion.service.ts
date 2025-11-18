@@ -1,6 +1,7 @@
+import { EMOTION_DATA } from '$lib/data/emotion-data';
 import { db } from '$lib/server/db';
 import { emotion } from '$lib/server/db/schema';
-import { eq, isNull, desc } from 'drizzle-orm';
+import { desc, eq, isNull } from 'drizzle-orm';
 import type { Emotion, EmotionCreateInput, EmotionUpdateInput } from '$lib/types';
 
 export class EmotionService {
@@ -98,19 +99,6 @@ export class EmotionService {
 		const existing = await db.select().from(emotion).limit(1);
 		if (existing.length > 0) return;
 
-		const defaultEmotions = [
-			{ name: 'Very Happy', emoji: '😄', color: '#10b981', valence: 5, order: '1' },
-			{ name: 'Happy', emoji: '🙂', color: '#84cc16', valence: 4, order: '2' },
-			{ name: 'Neutral', emoji: '😐', color: '#eab308', valence: 0, order: '3' },
-			{ name: 'Sad', emoji: '🙁', color: '#f97316', valence: -3, order: '4' },
-			{ name: 'Very Sad', emoji: '😢', color: '#ef4444', valence: -5, order: '5' }
-		];
-
-		for (const emotionData of defaultEmotions) {
-			await db.insert(emotion).values({
-				teamId: null,
-				...emotionData
-			});
-		}
+		await db.insert(emotion).values(EMOTION_DATA);
 	}
 }
