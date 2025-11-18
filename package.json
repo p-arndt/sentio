@@ -83,6 +83,7 @@
 		"nodemailer": "^7.0.10",
 		"pg-boss": "^12.2.0",
 		"postgres": "^3.4.7",
-		"web-push": "^3.6.7"
+		"web-push": "^3.6.7",
+		"chart.js": "^4.5.1"
 	}
 }
