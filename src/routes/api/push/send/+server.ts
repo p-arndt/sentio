@@ -19,6 +19,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const { userId, title, body, icon, badge, tag, data } =
 			(await request.json()) as Notification & { userId?: string };
 
+		if(locals.user.id !== userId) {
+			return json({ error: 'Forbidden' }, { status: 403 });
+		}
+
 		const vapidPublicKey = env.VAPID_PUBLIC_KEY;
 		const vapidPrivateKey = env.VAPID_PRIVATE_KEY;
 		const vapidSubject = env.VAPID_SUBJECT;
@@ -34,7 +38,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		if (userId) {
 			subscriptions = subscriptions.filter((s) => s.userId === userId);
 		} else {
-			subscriptions = subscriptions.filter((s) => s.isActive);
+			return json({ error: 'Missing userId to send push notification to' }, { status: 400 });
 		}
 
 		if (subscriptions.length === 0) {
