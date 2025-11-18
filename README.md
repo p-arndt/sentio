@@ -52,6 +52,7 @@ Similar to a classic **Niko-Niko calendar**, but modern, visual, and built for r
 - Event-based mood reminders after calendar entries
 
 ### Achievements & Gamification
+
 - Achievement system to reward positive habits
 - Achievements for activities like:
   - Logging your first mood
@@ -154,14 +155,21 @@ You can set SMTP via:
 | VAPID_PUBLIC_KEY         | Public VAPID key             |
 | VAPID_PRIVATE_KEY        | Private VAPID key            |
 | VAPID_SUBJECT            | Contact email/URL            |
-| PUBLIC_GOOGLE_CLIENT_ID  | Google OAuth ID for Calendar |
-| VITE_MICROSOFT_CLIENT_ID | Microsoft OAuth ID (Outlook) |
 
 Generate VAPID keys:
 
 ```bash
 pnpx web-push generate-vapid-keys
 ```
+
+### Calendar Integration
+
+| Variable                   | Purpose                      |
+| -------------------------- | ---------------------------- |
+| PUBLIC_GOOGLE_CLIENT_ID    | Google OAuth ID for Calendar |
+| PUBLIC_MICROSOFT_CLIENT_ID | Microsoft OAuth ID (Outlook) |
+
+> These are only needed if you want to enable calendar integrations. We use them for OAuth flows only.
 
 ## 🔔 Reminders & Notifications
 
