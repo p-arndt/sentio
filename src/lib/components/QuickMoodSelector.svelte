@@ -82,23 +82,6 @@
 					toast.error('Failed to save mood. Please try again.');
 				}}
 			/>
-			<!-- {#if teamId}
-				<Button
-					size="icon"
-					variant="ghost"
-					aria-pressed={anonymousMode}
-					aria-label="Toggle anonymous sharing"
-					class={`absolute right-2 -bottom-1 flex items-center rounded-full border text-xs transition ${
-						anonymousMode
-							? 'border-primary bg-primary text-primary-foreground'
-							: 'border-muted-foreground/30 bg-muted text-muted-foreground'
-					}`}
-					onclick={() => (anonymousMode = !anonymousMode)}
-					disabled={isSaving}
-				>
-					<Ghost class="h-3 w-3" />
-				</Button>
-			{/if} -->
 		</div>
 	</PopoverContent>
 </Popover>
