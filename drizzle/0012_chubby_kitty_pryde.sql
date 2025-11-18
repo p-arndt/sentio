@@ -1,0 +1,1 @@
+ALTER TABLE "calendar_entries" ALTER COLUMN "is_anonymous" SET DEFAULT false;

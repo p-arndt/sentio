@@ -1,5 +1,5 @@
 // src/lib/server/db/schema.ts
-import { boolean, integer, pgTable, text, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -94,9 +94,7 @@ export const calendarEntry = pgTable('calendar_entries', {
 	isPrivate: boolean('is_private')
 		.$defaultFn(() => false)
 		.notNull(),
-	isAnonymous: boolean('is_anonymous')
-		.$defaultFn(() => false)
-		.notNull(),
+	isAnonymous: boolean('is_anonymous').default(false).notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
