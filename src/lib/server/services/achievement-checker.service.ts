@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { calendarEntry, emotion, user, invitation } from '$lib/server/db/schema';
+import { calendarEntry, emotion, user, invitation, team, teamMember } from '$lib/server/db/schema';
 import type { Achievement } from '$lib/types';
 import { and, count, gte, eq, desc } from 'drizzle-orm';
 
@@ -139,6 +139,35 @@ export class AchievementChecker {
         if (slug === 'consistent-mornings-7') {
             const daysReq = req ?? 7;
             return this.checkConsistentMornings(userId, daysReq, 9);
+        }
+
+        // Team-related achievements
+        if (slug === 'team-created') {
+            return this.checkTeamCreated(userId);
+        }
+
+        if (slug === 'team-joined') {
+            return this.checkTeamJoined(userId);
+        }
+
+        if (slug?.startsWith('team-invite')) {
+            if (!req) return false;
+            return this.checkTeamInvites(userId, req);
+        }
+
+        if (slug?.startsWith('team-moods')) {
+            if (!req) return false;
+            return this.checkTeamMoods(userId, req);
+        }
+
+        if (slug?.startsWith('team-streak')) {
+            if (!req) return false;
+            return this.checkTeamStreak(userId, req);
+        }
+
+        if (slug?.startsWith('team-collab')) {
+            if (!req) return false;
+            return this.checkTeamCollab(userId, req);
         }
 
         if (slug?.startsWith('invite-friend')) {
@@ -376,6 +405,96 @@ export class AchievementChecker {
             .limit(1);
         const total = Number(rows?.[0]?.total ?? 0);
         return total >= requirement;
+    }
+
+    // --- Team helpers ---
+    static async getUserTeamIds(userId: string): Promise<string[]> {
+        const rows: Array<{ teamId: string }> = await db
+            .select({ teamId: teamMember.teamId })
+            .from(teamMember)
+            .where(eq(teamMember.userId, userId));
+        return rows.map(r => String(r.teamId));
+    }
+
+    static async checkTeamCreated(userId: string): Promise<boolean> {
+        const [row] = await db.select({ total: count() }).from(team).where(eq(team.createdBy, userId)).limit(1);
+        return Number(row?.total ?? 0) > 0;
+    }
+
+    static async checkTeamJoined(userId: string): Promise<boolean> {
+        const [row] = await db.select({ total: count() }).from(teamMember).where(eq(teamMember.userId, userId)).limit(1);
+        return Number(row?.total ?? 0) > 0;
+    }
+
+    static async checkTeamInvites(userId: string, requirement: number): Promise<boolean> {
+        const rows = await db
+            .select({ total: count() })
+            .from(invitation)
+            .where(and(eq(invitation.createdBy, userId), eq(invitation.type, 'team'), gte(invitation.acceptedAt, new Date(0))))
+            .limit(1);
+        const total = Number(rows?.[0]?.total ?? 0);
+        return total >= requirement;
+    }
+
+    static async checkTeamMoods(userId: string, requirement: number): Promise<boolean> {
+        // Count calendar entries for teams the user is a member of by joining
+        const rows = await db
+            .select({ total: count() })
+            .from(calendarEntry)
+            .innerJoin(teamMember, eq(calendarEntry.teamId, teamMember.teamId))
+            .where(eq(teamMember.userId, userId))
+            .limit(1);
+        const total = Number(rows?.[0]?.total ?? 0);
+        return total >= requirement;
+    }
+
+    static async checkTeamStreak(userId: string, requirement: number): Promise<boolean> {
+        // For each team the user belongs to, check if that team has a streak
+        const teamIds = await this.getUserTeamIds(userId);
+        if (!teamIds || teamIds.length === 0) return false;
+
+        const lookback = Math.max(30, requirement);
+        const cursor = new Date();
+        const start = new Date(cursor);
+        start.setUTCDate(cursor.getUTCDate() - lookback);
+
+        for (const tId of teamIds) {
+            const entries = await db
+                .select({ date: calendarEntry.date })
+                .from(calendarEntry)
+                .where(and(eq(calendarEntry.teamId, tId), gte(calendarEntry.date, start)));
+
+            const datesWithEntries = new Set(entries.map((e: { date: Date }) => new Date(e.date).toISOString().slice(0, 10)));
+            let streak = 0;
+            for (let i = 0; i < lookback; i++) {
+                const check = new Date(cursor);
+                check.setUTCDate(cursor.getUTCDate() - i);
+                const key = check.toISOString().slice(0, 10);
+                if (datesWithEntries.has(key)) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            if (streak >= requirement) return true;
+        }
+        return false;
+    }
+
+    static async checkTeamCollab(userId: string, requirement: number): Promise<boolean> {
+        const teamIds = await this.getUserTeamIds(userId);
+        if (!teamIds || teamIds.length === 0) return false;
+
+        // For each team, count distinct users who logged entries for that team
+        for (const tId of teamIds) {
+            const rows: Array<{ userId: string | null }> = await db
+                .select({ userId: calendarEntry.userId })
+                .from(calendarEntry)
+                .where(eq(calendarEntry.teamId, tId));
+            const set = new Set(rows.map(r => String(r.userId)));
+            if (set.size >= requirement) return true;
+        }
+        return false;
     }
 }
 

@@ -203,5 +203,59 @@ export const ACHIEVEMENT_DATA: Omit<Achievement, 'id'>[] = [
 		category: 'count',
 		rule: 'OTHER',
 		requirement: 12
+	},
+	{
+		slug: 'team-first-mood-entry',
+		name: 'Team Initiator',
+		description: 'Logged the first mood for your team.',
+		category: 'activity',
+		rule: 'OTHER'
+	},
+	{
+		slug: 'team-count-5',
+		name: 'Team Builder',
+		description: 'Logged 5 moods as part of a team.',
+		category: 'activity',
+		rule: 'COUNT',
+		requirement: 5
+	},
+	{
+		slug: 'team-count-20',
+		name: 'Team Contributor',
+		description: 'Logged 20 moods as part of a team.',
+		category: 'activity',
+		rule: 'COUNT',
+		requirement: 20
+	},
+	{
+		slug: 'team-count-50',
+		name: 'Team Pillar',
+		description: 'Logged 50 moods as part of a team.',
+		category: 'activity',
+		rule: 'COUNT',
+		requirement: 50
+	},
+	{
+		slug: 'team-commenter',
+		name: 'Team Commenter',
+		description: 'Wrote 10 comments on team mood entries.',
+		category: 'activity',
+		rule: 'COUNT',
+		requirement: 10
+	},
+	{
+		slug: 'team-streak-7',
+		name: 'Team Streaker',
+		description: 'Logged moods for 7 consecutive days as part of a team.',
+		category: 'streak',
+		rule: 'STREAK',
+		requirement: 7
+	},
+	{
+		slug: 'team-joined',
+		name: 'Team Player',
+		description: 'Joined a team.',
+		category: 'activity',
+		rule: 'OTHER'
 	}
 ];
