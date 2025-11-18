@@ -178,7 +178,7 @@
 
 	function initiateMicrosoftOAuth() {
 		const params = new URLSearchParams({
-			client_id: import.meta.env.VITE_MICROSOFT_CLIENT_ID || '',
+			client_id: env.PUBLIC_MICROSOFT_CLIENT_ID || '',
 			redirect_uri: `${window.location.origin}/api/oauth/microsoft/callback`,
 			response_type: 'code',
 			scope: 'Calendars.Read offline_access',
