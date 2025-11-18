@@ -314,7 +314,7 @@
 		</CardHeader>
 		<CardContent>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each calendarMembers as member (member.userId)}
+				{#each data.team.members as member (member.userId)}
 					<div class="flex items-center gap-3 rounded-lg border p-3">
 						<Avatar>
 							<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
