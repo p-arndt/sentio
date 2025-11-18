@@ -3,6 +3,9 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+    # Or use the image from Docker Hub or GitHub Container Registry
+    # image: padi2312/sentio:latest
+    # image: ghcr.io/p-arndt/sentio:latest
     restart: unless-stopped 
     read_only: true
     mem_limit: 1G

@@ -1,195 +1,176 @@
-# Sentio - Team Mood Tracker
+# Sentio – Team Mood Tracker
 
 <p align="center">
   <img src="src/lib/assets/logo.png" alt="Sentio Logo" width="200" />
 </p>
 
-_sentio [ˈsen.ti.oː]_ is Latin for "I feel" or "to perceive".
+**sentio** _[ˈsen.ti.oː]_ is Latin for "I feel" or "to perceive".
 
-And that is exactly what Sentio is about. It helps teams to track and improve their emotional wellbeing. Team members share their daily mood. Sentio turns those moods into insights, trends and metrics so managers and teammates can spot problems early and celebrate wins. Functionally, it's similar to a Niko-Niko calendar but with more analytics and team features.
+Everyone logs how they feel each day, and Sentio turns those entries into trends, insights, and early signals so teams stay healthy and connected.
 
-**What is a Niko-Niko calendar?** - It's a simple tool used in Agile teams where members log their daily mood (happy, neutral, sad) to visualize team morale over time.
+Similar to a classic **Niko-Niko calendar**, but modern, visual, and built for real-world teams.
 
-## Features
+## 🌟 Features
 
-- 🚀 Daily Mood Check-in - one-click logging
-- 📋 Team Dashboard - snapshots of current team wellbeing
-- 📈 Analytics & Trends - charts for days/weeks/months
-- 🔍 Spot emerging issues early - detect dips in morale and recurring negative trends
-- 🔐 Team Management - invite members, roles, and permissions
-- 📊 Personal mood history & insights
-- ⏰ Reminders - schedule recurring mood reminders (time + days-of-week)
-- 🔔 Notifications - browser push notifications for reminders and event alerts
-- 📆 Google Calendar - connect and sync (read-only) to show events and avoid conflicts
-- 🔜 MS Outlook - Microsoft calendar integration is **coming soon**
+### Mood Tracking
 
-## Quickstart
+- One-click daily mood check-ins
+- Optional comments to explain your mood
+- Anonymous logging mode (per team)
 
-Choose whichever setup fits you: run locally with pnpm or use Docker Compose for a production-like environment.
+### Team & Personal Views
 
-### Docker Compose
+- Team dashboards with current wellbeing
+- Personal mood history and insights
+- Weekly, monthly, and long-term trends
+- Detect drops or recurring negative patterns
 
-You can pull the image directly from either Docker Hub or the GitHub Container Registry:
+### Reminders & Notifications
 
-- [Sentio Docker Hub](https://hub.docker.com/r/sentio/sentio)
-- [Sentio GitHub Container Registry](https://github.com/p-arndt/sentio/pkgs/container/sentio)
+- Custom recurring reminders (day + time)
+- Browser push notifications
+- After-event reminders (e.g. “How did that meeting feel?”)
 
-#### Steps:
+### Integrations
 
-1. Copy the `docker/.env.example` to `docker/.env` and set your environment variables as needed (see below).
-2. Then run:
+- **Google Calendar** (read-only) to show events in Sentio
+- Outlook / Microsoft 365 integration coming soon
+- Event-based mood reminders after calendar entries
+
+### Team Management
+
+- Invite members
+- Configure roles and permissions
+- Manage mood options (emojis, colors, labels)
+
+## 🚀 Quickstart
+
+Choose how you want to run Sentio:
+
+### Option 1: Docker Compose (recommended)
+
+You can pull the image from either:
+
+- [Docker Hub ](https://hub.docker.com/r/padi2312/sentio)
+- [GitHub Container Registry](https://github.com/p-arndt/sentio/pkgs/container/sentio)
+
+Steps:
+
+1. Copy `docker/.env.example` → `docker/.env`
+2. Adjust your environment variables
+3. Start Sentio:
+
    ```bash
    docker compose up -d
    ```
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Developing locally
+4. Open **[http://localhost:3000](http://localhost:3000)**
 
-1. Clone the repo:
-   ```bash
-   git clone <your-repo-url>
-   cd sentio
-   ```
-2. Install dependencies and start dev server:
-   ```bash
-   pnpm install
-   pnpm run dev
-   ```
-3. Open http://localhost:5173 (or the port you configure)
-
----
-
-## Environment variables
-
-Set these in `.env` or your environment. Keep secrets safe.
-
-Required/important variables:
-
-| Variable            | Purpose                          | Example                              |
-| ------------------- | -------------------------------- | ------------------------------------ |
-| PUBLIC_ALLOW_SIGNUP | whether public signup is allowed | `"false"`                            |
-| BETTER_AUTH_SECRET  | auth/session signing secret      | generate with `openssl rand -hex 32` |
-| BETTER_AUTH_URL     | auth service URL                 | `http://localhost:3000`              |
-| POSTGRES_HOST       | DB host                          | `localhost`                          |
-| POSTGRES_PORT       | DB port                          | `5432`                               |
-| POSTGRES_USER       | DB user                          | `sentio`                             |
-| POSTGRES_PASSWORD   | DB password                      | `sentio`                             |
-| POSTGRES_DB         | DB name                          | `sentio`                             |
-
-#### **Auth configuration**
-
-| Variable            | Purpose                       |
-| ------------------- | ----------------------------- |
-| AUTH_PROVIDER       | `email` or `oidc`             |
-| EMAIL_AUTH_DISABLED | set `true` to force OIDC-only |
-| OIDC_CLIENT_ID      | when using OIDC               |
-| OIDC_CLIENT_SECRET  | when using OIDC               |
-| OIDC_ISSUER         | OIDC provider issuer URL      |
-
-Note: if `EMAIL_AUTH_DISABLED=true` make sure invites correspond to the OAuth email users will sign in with.
-
-#### **SMTP / Email configuration**
-
-You can provide SMTP credentials either via the Admin → Settings UI (these values are persisted to the database) or via environment variables which act as defaults when no DB value is set.
-
-Environment variable names supported:
-
-| Variable                   | Purpose                                      |
-| -------------------------- | -------------------------------------------- |
-| SMTP_HOST                  | SMTP server host (e.g. smtp.mail.invalid)    |
-| SMTP_PORT                  | SMTP server port (e.g. 587)                  |
-| SMTP_USER or SMTP_USERNAME | SMTP username / login                        |
-| SMTP_PASSWORD              | SMTP password                                |
-| SMTP_FROM                  | From address (`Sentio <sentio@example.com>`) |
-
-> [!NOTE] Database SMTP settings (set over UI) take precedence; missing values fall back to env vars. UI changes are saved to the DB and override env defaults.
-
-#### **VAPID / Web Push Configuration**
-
-Setup web push notifications by providing VAPID keys and subject in environment variables:
-
-| Variable                 | Purpose                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| VAPID_PUBLIC_KEY         | VAPID public key for web push notifications                                                                  |
-| VAPID_PRIVATE_KEY        | VAPID private key for web push notifications                                                                 |
-| VAPID_SUBJECT            | Contact email or URL for VAPID subject (mailto:your-email@example.com)                                       |
-| PUBLIC_GOOGLE_CLIENT_ID  | Public Google OAuth client ID used for Google Calendar connect (set the OAuth client as authorized redirect) |
-| VITE_MICROSOFT_CLIENT_ID | Microsoft OAuth client ID for Outlook/Calendar connect (set on Vite/environment and server-side)             |
-
-## Authentication
-
-Use `AUTH_PROVIDER=email` for classic email/password. For OIDC (SaaS SSO) set `AUTH_PROVIDER=oidc` and provide the client ID, secret and issuer.
-
-Example:
+### Option 2: Local Development
 
 ```bash
-AUTH_PROVIDER=oidc
-OIDC_CLIENT_ID=abc
-OIDC_CLIENT_SECRET=xxx
-OIDC_ISSUER=https://accounts.example.com
+git clone <repo-url>
+cd sentio
+pnpm install
+pnpm run dev
 ```
 
----
+Then open the dev server (usually **[http://localhost:5173](http://localhost:5173)**).
 
-## Reminders & Notifications
+## ⚙️ Environment Variables
 
-Sentio supports recurring mood reminders and browser push notifications so individuals and teams can stay consistent with their check-ins.
+Use `.env` or set them directly in your environment.
+Keep secrets private and secure.
 
-- Create reminders in Settings → Reminders with a title, message, time, and days-of-week (e.g., Mon-Fri 09:00).
-- Reminders respect your timezone and show a next trigger time in the UI.
-- Push notifications use VAPID keys (web push). Generate VAPID keys and set them in your environment or Admin settings (see the VAPID section above).
+### Core Settings
 
-Create VAPID keys (a one-liner):
+| Variable            | What it controls               | Example                 |
+| ------------------- | ------------------------------ | ----------------------- |
+| PUBLIC_ALLOW_SIGNUP | Allow or block public signup   | `false`                 |
+| BETTER_AUTH_SECRET  | Secret for signing auth tokens | random hex              |
+| BETTER_AUTH_URL     | URL of your Sentio instance    | `http://localhost:3000` |
+| POSTGRES_HOST       | Database host                  | `localhost`             |
+| POSTGRES_PORT       | Database port                  | `5432`                  |
+| POSTGRES_USER       | Database user                  | `sentio`                |
+| POSTGRES_PASSWORD   | Database password              | `sentio`                |
+| POSTGRES_DB         | Database name                  | `sentio`                |
 
-```pwsh
+### Authentication
+
+Choose between email/password or OIDC login.
+
+| Variable            | Description                   |
+| ------------------- | ----------------------------- |
+| AUTH_PROVIDER       | `email` or `oidc`             |
+| EMAIL_AUTH_DISABLED | Set `true` to force OIDC only |
+| OIDC_CLIENT_ID      | OIDC client ID                |
+| OIDC_CLIENT_SECRET  | OIDC client secret            |
+| OIDC_ISSUER         | OIDC issuer URL               |
+
+### SMTP / Email
+
+You can set SMTP via:
+
+- the Admin UI (saved to DB), or
+- environment variables (used as defaults)
+
+| Variable                  | Purpose        |
+| ------------------------- | -------------- |
+| SMTP_HOST                 | SMTP server    |
+| SMTP_PORT                 | SMTP port      |
+| SMTP_USER / SMTP_USERNAME | Login name     |
+| SMTP_PASSWORD             | Password       |
+| SMTP_FROM                 | Sender address |
+
+> UI-configured values override the environment. Missing values fall back to the `.env`.
+
+### Web Push / Notifications (VAPID)
+
+| Variable                 | Purpose                      |
+| ------------------------ | ---------------------------- |
+| VAPID_PUBLIC_KEY         | Public VAPID key             |
+| VAPID_PRIVATE_KEY        | Private VAPID key            |
+| VAPID_SUBJECT            | Contact email/URL            |
+| PUBLIC_GOOGLE_CLIENT_ID  | Google OAuth ID for Calendar |
+| VITE_MICROSOFT_CLIENT_ID | Microsoft OAuth ID (Outlook) |
+
+Generate VAPID keys:
+
+```bash
 pnpx web-push generate-vapid-keys
 ```
 
-Once VAPID keys are configured, go to Settings → Notifications to enable push notifications and send a test notification.
+## 🔔 Reminders & Notifications
 
-## Calendar Integration
+- Set reminders with a title, message, time, and selected weekdays
+- Works across time zones
+- Push notifications require valid VAPID keys
+- Test notifications are available in **Settings → Notifications**
 
-Sentio allows users to connect calendars for display and optional event-based notifications. Google Calendar is supported today, and Microsoft Outlook calendar support is coming soon.
+## 📆 Calendar Integration
 
-How to connect Google Calendar:
+### Google Calendar
 
-1. Create a Google OAuth client ID in the Google Cloud Console and add the redirect URL: `https://<your-host>/api/oauth/google/callback`.
-2. Set the `PUBLIC_GOOGLE_CLIENT_ID` environment variable to your Google client ID (or enter it into the Admin settings if your instance supports it).
-3. Visit Settings → Calendar and connect your Google account. Sentio requests read-only calendar access.
+1. Create an OAuth client in Google Cloud.
+2. Add redirect URL:
 
-For Microsoft Outlook/Office 365, the sign-in flow is in development and will be available soon. When ready, configure the Microsoft OAuth client ID through your environment or Admin settings using the key `VITE_MICROSOFT_CLIENT_ID`.
+   ```
+   https://<your-host>/api/oauth/google/callback
+   ```
 
-## Useful commands
+3. Set `PUBLIC_GOOGLE_CLIENT_ID`
+4. Go to **Settings → Calendar** and connect your account.
 
-Development:
+Sentio requests **read-only** access.
 
-```bash
-pnpm run dev        # start dev server
-pnpm run build      # build for production
-pnpm run test       # run tests
-pnpm run format     # format code
-```
+## 🤝 Contributing
 
-Database helpers (project scripts):
-
-```bash
-pnpm run db:start
-pnpm run db:generate
-pnpm run db:push
-pnpm run db:studio
-```
-
-## Contributing
-
-We welcome contributors! A few quick tips:
-
-- Open an issue to discuss larger changes first
-- Keep changes small and focused
-- Add or update tests for new behavior
-- Follow existing code style (run `pnpm run format`)
-
-See `CONTRIBUTING.md` (if present) for more details.
+- Open an issue for bigger changes
+- Keep PRs focused
+- Include tests when adding new behavior
+- Follow formatting (`pnpm run format`)
 
 ---
 
-Built with ❤️ to help teams stay well.
+Sentio helps teams better understand how they feel and react early when things change.
+Simple for individuals. Powerful for teams.
