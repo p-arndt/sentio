@@ -204,22 +204,6 @@
 				</div>
 			</div>
 
-			<!-- Time of Day (Optional) -->
-			<div class="space-y-2">
-				<Label for="timeOfDay">Time of Day (Optional)</Label>
-				<Select type="single" bind:value={timeOfDay}>
-					<SelectTrigger>
-						{timeOfDay ? timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1) : 'Not specified'}
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="">Not specified</SelectItem>
-						<SelectItem value="morning">Morning</SelectItem>
-						<SelectItem value="noon">Noon</SelectItem>
-						<SelectItem value="evening">Evening</SelectItem>
-					</SelectContent>
-				</Select>
-			</div>
-
 			<!-- Comment -->
 			<div class="space-y-2">
 				<Label for="comment">
