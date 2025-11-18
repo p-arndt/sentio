@@ -27,7 +27,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Team entries depend on teams result
 	let teamEntries: MoodEntryWithDetails[] = [];
 	if (teams.length > 0) {
-		teamEntries = await MoodEntryService.getTeamMoodEntries(teams[0].id, startDate, endDate);
+		const rawTeamEntries = await MoodEntryService.getTeamMoodEntries(
+			teams[0].id,
+			startDate,
+			endDate
+		);
+		teamEntries = MoodEntryService.anonymizeEntriesForViewer(rawTeamEntries, locals.user.id).entries;
 	}
 
 	return {

@@ -30,7 +30,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		if (personal || !teamId) {
 			entries = await MoodEntryService.getPersonalMoodEntries(locals.user.id, start, end);
 		} else {
-			entries = await MoodEntryService.getTeamMoodEntries(teamId, start, end);
+			const rawEntries = await MoodEntryService.getTeamMoodEntries(teamId, start, end);
+			entries = MoodEntryService.anonymizeEntriesForViewer(rawEntries, locals.user.id, {
+				teamId
+			}).entries;
 		}
 
 		return json({ success: true, data: entries });
@@ -46,7 +49,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	try {
-		const { emotionId, date, comment, teamId, timeOfDay, isPrivate } = await request.json();
+		const { emotionId, date, comment, teamId, timeOfDay, isPrivate, isAnonymous } =
+			await request.json();
 
 		if (!emotionId || !date) {
 			return json({ error: 'Emotion and date are required' }, { status: 400 });
@@ -87,7 +91,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			comment: comment || null,
 			teamId: teamId || null,
 			timeOfDay: timeOfDay || null,
-			isPrivate: isPrivate || false
+			isPrivate: isPrivate || false,
+			isAnonymous: isAnonymous || false
 		});
 
 		return json(result);

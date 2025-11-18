@@ -25,3 +25,8 @@ export function formatUserName(firstName?: string, lastName?: string): string {
 	if (!firstName) return lastName || '';
 	return `${firstName} ${lastName}`;
 }
+
+
+export const isAnonymousUser = (userId: string): boolean => {
+	return userId.startsWith('anon-');
+}

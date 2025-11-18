@@ -1,16 +1,24 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import { filterTeamMembers } from './view-utils';
 	import { Button } from '$lib/components/ui/button';
-	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
-	import CalendarMemberRow from './CalendarMemberRow.svelte';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import type {
+		Emotion,
+		MoodEntryWithDetails,
+		MoodSharePreference,
+		TeamMemberWithUser
+	} from '$lib/types';
+	import { isAnonymousUser } from '$lib/utils';
 	import {
-		formatDayName,
-		formatDayDate,
+		filterWeekDays,
 		formatDate,
+		formatDayDate,
+		formatDayName,
 		isToday,
-		filterWeekDays
+		toDateString
 	} from '$lib/utils/date';
-	import type { Emotion, MoodEntryWithDetails, TeamMember, TeamMemberWithUser } from '$lib/types';
+	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
+	import CalendarMemberRow from '../CalendarMemberRow.svelte';
 
 	type Props = {
 		weekStart: Date;
@@ -21,6 +29,7 @@
 		currentUserId?: string;
 		showWeekends: boolean;
 		requireComment?: boolean;
+		teamSharingPreferenceForCurrentUser?: MoodSharePreference;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 
 		teamId?: string;
@@ -38,6 +47,7 @@
 		currentUserId,
 		showWeekends,
 		requireComment = false,
+		teamSharingPreferenceForCurrentUser = 'public',
 		onWeekChange,
 		onEdit,
 		isSubmitting = false,
@@ -47,16 +57,8 @@
 
 	let displayDays = $derived(filterWeekDays(weekDays, showWeekends));
 
-	let sortedMembers = $derived.by(() => {
-		const sorted = [...teamMembers];
-		if (currentUserId) {
-			sorted.sort((a, b) => {
-				if (a.userId === currentUserId) return -1;
-				if (b.userId === currentUserId) return 1;
-				return a.user.name.localeCompare(b.user.name);
-			});
-		}
-		return sorted;
+	let filteredMembers = $derived.by(() => {
+		return filterTeamMembers(currentUserId, teamMembers, entries, displayDays);
 	});
 
 	let gridTemplate = $derived.by(() => {
@@ -119,7 +121,7 @@
 			<!-- Team Member Rows -->
 			<div class="px-3 py-2 md:px-6 md:py-6">
 				<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
-					{#each sortedMembers as member (member.userId)}
+					{#each filteredMembers as member (member.userId)}
 						<CalendarMemberRow
 							{member}
 							days={displayDays}
@@ -131,6 +133,7 @@
 							{requireComment}
 							{showWeekends}
 							{teamId}
+							{teamSharingPreferenceForCurrentUser}
 						/>
 					{/each}
 				</div>

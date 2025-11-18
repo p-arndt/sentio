@@ -35,12 +35,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const [
 		isAdmin,
 		emotions,
-		last30DaysEntries,
-		last7DaysEntries,
-		previous7DaysEntries,
-		last90DaysEntries,
-		allEntries,
-		currentWeekEntries
+		last30DaysEntriesRaw,
+		last7DaysEntriesRaw,
+		previous7DaysEntriesRaw,
+		last90DaysEntriesRaw,
+		allEntriesRaw,
+		currentWeekEntriesRaw
 	] = await Promise.all([
 		TeamService.isUserTeamAdmin(params.id, locals.user.id),
 		EmotionService.getTeamEmotions(params.id),
@@ -51,6 +51,26 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		MoodEntryService.getTeamMoodEntries(params.id),
 		MoodEntryService.getTeamMoodEntries(params.id, getCurrentWeekStart(), getCurrentWeekEnd())
 	]);
+
+	const aliasState = {
+		map: new Map<string, { aliasId: string; aliasName: string }>(),
+		nextIndex: 1
+	};
+
+	const sanitizeEntries = (entries: typeof last30DaysEntriesRaw) => {
+		const result = MoodEntryService.anonymizeEntriesForViewer(entries, locals.user.id, {
+			aliasState
+		});
+		aliasState.nextIndex = result.aliasState.nextIndex;
+		return result.entries;
+	};
+
+	const last30DaysEntries = sanitizeEntries(last30DaysEntriesRaw);
+	const last7DaysEntries = sanitizeEntries(last7DaysEntriesRaw);
+	const previous7DaysEntries = sanitizeEntries(previous7DaysEntriesRaw);
+	const last90DaysEntries = sanitizeEntries(last90DaysEntriesRaw);
+	const allEntries = sanitizeEntries(allEntriesRaw);
+	const currentWeekEntries = sanitizeEntries(currentWeekEntriesRaw);
 
 	return {
 		team,

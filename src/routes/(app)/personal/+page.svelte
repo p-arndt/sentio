@@ -7,7 +7,14 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import PersonalCalendarContainer from '$lib/components/personal/PersonalCalendarContainer.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
-	import { formatDate, getWeekDaysFromUTCStart, getWeekDays, toDate, toDateString, toYMD } from '$lib/utils/date';
+	import {
+		formatDate,
+		getWeekDaysFromUTCStart,
+		getWeekDays,
+		toDate,
+		toDateString,
+		toYMD
+	} from '$lib/utils/date';
 	import { BarChart3, Heart, Plus } from '@lucide/svelte';
 
 	let { data } = $props();
@@ -43,15 +50,15 @@
 	}
 
 	async function handleWeekChange(direction: 'prev' | 'next') {
-			const currentWeek = weekStart;
-			const delta = direction === 'prev' ? -7 : 7;
-			const newDate = new Date(currentWeek);
-			// Use UTC arithmetic to keep server/client weekStart consistent
-			newDate.setUTCDate(newDate.getUTCDate() + delta);
+		const currentWeek = weekStart;
+		const delta = direction === 'prev' ? -7 : 7;
+		const newDate = new Date(currentWeek);
+		// Use UTC arithmetic to keep server/client weekStart consistent
+		newDate.setUTCDate(newDate.getUTCDate() + delta);
 
-			const weekStartParam = toYMD(newDate);
-			goto(`/personal?weekStart=${weekStartParam}`);
-		}
+		const weekStartParam = toYMD(newDate);
+		goto(`/personal?weekStart=${weekStartParam}`);
+	}
 
 	async function handleUpdateMood(
 		id: string,
@@ -60,6 +67,7 @@
 			comment?: string;
 			timeOfDay?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}
 	) {
 		if (isSubmitting) return;
@@ -114,6 +122,7 @@
 		comment?: string;
 		timeOfDay?: string;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	}) {
 		if (isSubmitting) return;
 
@@ -248,7 +257,8 @@
 				emotionId: selectedMood.emotionId,
 				comment: selectedMood.comment ?? undefined,
 				timeOfDay: selectedMood.timeOfDay ?? undefined,
-				isPrivate: selectedMood.isPrivate
+				isPrivate: selectedMood.isPrivate,
+				isAnonymous: selectedMood.isAnonymous
 			}
 		: undefined}
 	onUpdate={handleUpdateMood}

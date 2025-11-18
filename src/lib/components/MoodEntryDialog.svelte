@@ -21,6 +21,7 @@
 		comment?: string | null;
 		timeOfDay?: 'morning' | 'noon' | 'evening' | null;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	};
 
 	type Props = {
@@ -29,6 +30,8 @@
 		teamId?: string;
 		selectedDate?: Date;
 		allowPrivate?: boolean;
+		allowAnonymous?: boolean;
+		defaultAnonymous?: boolean;
 		requireComment?: boolean;
 		// Create mode handler
 		onSave: (data: {
@@ -36,15 +39,20 @@
 			comment?: string;
 			timeOfDay?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}) => Promise<void>;
 		// Edit mode inputs/handlers (optional)
 		entry?: EditEntry | null;
-		onUpdate?: (id: string, data: {
-			emotionId: string;
-			comment?: string;
-			timeOfDay?: string;
-			isPrivate?: boolean;
-		}) => Promise<void>;
+		onUpdate?: (
+			id: string,
+			data: {
+				emotionId: string;
+				comment?: string;
+				timeOfDay?: string;
+				isPrivate?: boolean;
+				isAnonymous?: boolean;
+			}
+		) => Promise<void>;
 		onDelete?: (id: string) => Promise<void>;
 	};
 
@@ -54,6 +62,8 @@
 		teamId,
 		selectedDate,
 		allowPrivate = true,
+		allowAnonymous = false,
+		defaultAnonymous = false,
 		requireComment = false,
 		onSave,
 		entry = undefined,
@@ -65,6 +75,7 @@
 	let comment = $state('');
 	let timeOfDay = $state<string | undefined>(undefined);
 	let isPrivate = $state(false);
+	let isAnonymous = $state(false);
 	let saving = $state(false);
 	let error = $state<string | null>(null);
 
@@ -80,6 +91,7 @@
 			comment = entry.comment ?? '';
 			timeOfDay = entry.timeOfDay ?? undefined;
 			isPrivate = entry.isPrivate ?? false;
+			isAnonymous = entry.isAnonymous ?? false;
 		}
 		if (open && !entry) {
 			// reset to defaults for create mode
@@ -87,6 +99,7 @@
 			comment = '';
 			timeOfDay = undefined;
 			isPrivate = false;
+			isAnonymous = allowAnonymous ? defaultAnonymous : false;
 		}
 	});
 
@@ -99,7 +112,8 @@
 				emotionId: selectedEmotionId,
 				comment: comment || undefined,
 				timeOfDay: timeOfDay && timeOfDay !== '' ? timeOfDay : undefined,
-				isPrivate: allowPrivate ? isPrivate : false
+				isPrivate: allowPrivate ? isPrivate : false,
+				isAnonymous: allowAnonymous ? isAnonymous : false
 			};
 
 			if (entry && onUpdate) {
@@ -112,6 +126,7 @@
 			comment = '';
 			timeOfDay = undefined;
 			isPrivate = false;
+			isAnonymous = false;
 			open = false;
 		} catch (error) {
 			console.error('Failed to save/update mood entry:', error);
@@ -219,9 +234,7 @@
 					class={requireComment && !comment.trim() ? 'border-orange-400' : ''}
 				/>
 				{#if requireComment && !comment.trim()}
-					<p class="text-sm font-medium text-orange-600">
-						💬 Please add a comment before saving
-					</p>
+					<p class="text-sm font-medium text-orange-600">💬 Please add a comment before saving</p>
 				{/if}
 			</div>
 
@@ -235,14 +248,23 @@
 					<Switch bind:checked={isPrivate} />
 				</div>
 			{/if}
+
+			<!-- Anonymous Toggle -->
+			{#if allowAnonymous && teamId}
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label>Share Anonymously</Label>
+						<p class="text-xs text-muted-foreground">Teammates will not see your name</p>
+					</div>
+					<Switch bind:checked={isAnonymous} />
+				</div>
+			{/if}
 		</div>
 
 		<DialogFooter class="flex items-center justify-between gap-2">
 			<div class="flex-1">
 				{#if entry && onDelete}
-					<Button variant="destructive" onclick={handleDelete} disabled={saving}>
-						Delete
-					</Button>
+					<Button variant="destructive" onclick={handleDelete} disabled={saving}>Delete</Button>
 				{/if}
 			</div>
 			<div class="flex items-center gap-2">

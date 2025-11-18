@@ -25,6 +25,7 @@
 		timezone: data.user?.timezone || 'UTC',
 		theme: (data.preferences?.settings?.theme as string) || 'system',
 		defaultView: (data.preferences?.settings?.defaultView as string) || 'week',
+		teamSharingDefault: (data.preferences?.settings?.teamSharingDefault as string) || 'public',
 		enableNotifications: (data.preferences?.settings?.enableNotifications as boolean) ?? true,
 		personalMode: (data.user?.personalMode as boolean) ?? false,
 		startPage: (data.preferences?.settings?.startPage as string) || '/'
@@ -155,7 +156,10 @@
 										<SelectContent>
 											{#if field.options}
 												{#each field.options as option (option.value)}
-													<SelectItem value={option.value}>{option.label}</SelectItem>
+													<SelectItem value={option.value}>
+														<option.icon class="mr-2 inline-block h-4 w-4" />
+														{option.label}
+													</SelectItem>
 												{/each}
 											{/if}
 											{#if field.id === 'startPage' && data.teams}

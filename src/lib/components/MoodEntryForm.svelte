@@ -4,6 +4,7 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Label } from '$lib/components/ui/label';
+	import { Switch } from '$lib/components/ui/switch';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import {
 		Tooltip,
@@ -11,9 +12,9 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, Team } from '$lib/types';
+	import type { Emotion, Team, MoodSharePreference } from '$lib/types';
 	import { toDateString } from '$lib/utils';
-	import { MessageCircle } from '@lucide/svelte';
+	import { Ghost, MessageCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Targets = { personal: boolean; teamIds: string[] };
@@ -29,7 +30,10 @@
 		date?: Date;
 		teamId?: string;
 		allowPrivate?: boolean;
+		allowAnonymous?: boolean;
 		updatePreferences?: boolean;
+		teamSharingDefault?: MoodSharePreference;
+		teamSharingOverrides?: Record<string, MoodSharePreference>;
 
 		onSuccess?: (result: any) => void | Promise<void>;
 		onError?: (err: Error) => void;
@@ -45,7 +49,10 @@
 		date,
 		teamId,
 		allowPrivate = false,
+		allowAnonymous = true,
 		updatePreferences = true,
+		teamSharingDefault = 'public',
+		teamSharingOverrides = {} as Record<string, MoodSharePreference>,
 		onSuccess,
 		onError
 	}: Props = $props();
@@ -65,6 +72,27 @@
 		personal: initialTargets.personal ?? true,
 		teams: initialTeams
 	});
+
+	const baseTeamSharing: Record<string, MoodSharePreference> = {};
+	teams.forEach((team) => {
+		baseTeamSharing[team.id] = teamSharingOverrides[team.id] ?? teamSharingDefault;
+	});
+
+	let teamSharingSelection = $state<Record<string, MoodSharePreference>>({ ...baseTeamSharing });
+	let singleTeamSharing = $state<MoodSharePreference>(
+		teamId ? (teamSharingOverrides[teamId] ?? teamSharingDefault) : teamSharingDefault
+	);
+	let singleTeamDirty = $state(false);
+
+	function getTeamSharingPreference(targetTeamId: string): MoodSharePreference {
+		return (
+			teamSharingSelection[targetTeamId] ?? teamSharingOverrides[targetTeamId] ?? teamSharingDefault
+		);
+	}
+
+	function setTeamSharingPreference(targetTeamId: string, pref: MoodSharePreference) {
+		teamSharingSelection[targetTeamId] = pref;
+	}
 
 	const teamSelectionMap = $derived.by(() => {
 		const map: Record<string, boolean> = {};
@@ -106,7 +134,18 @@
 		// restore initial targets
 		selectedTargets.personal = initialTargets.personal ?? true;
 		teams.forEach((t) => (selectedTargets.teams[t.id] = initialTargets.teamIds.includes(t.id)));
+		teams.forEach((t) => setTeamSharingPreference(t.id, baseTeamSharing[t.id]));
+		if (teamId) {
+			singleTeamSharing = teamSharingOverrides[teamId] ?? teamSharingDefault;
+			singleTeamDirty = false;
+		}
 	}
+
+	$effect(() => {
+		if (!teamId || singleTeamDirty) return;
+		const next = teamSharingOverrides[teamId] ?? teamSharingDefault;
+		singleTeamSharing = next;
+	});
 
 	async function handleSubmit() {
 		if (!selectedEmotionId || !canSubmit) return;
@@ -125,15 +164,18 @@
 				comment?: string;
 				teamId?: string;
 				isPrivate?: boolean;
+				isAnonymous?: boolean;
 			}[] = [];
 
 			if (teamId) {
+				const preferAnonymous = allowAnonymous && singleTeamSharing === 'anonymous';
 				entriesToCreate.push({
 					emotionId: selectedEmotionId,
 					date: dateStr,
 					comment: comment || undefined,
 					teamId,
-					isPrivate: !!allowPrivate
+					isPrivate: !!allowPrivate,
+					isAnonymous: preferAnonymous
 				});
 			} else if (teams && teams.length > 0) {
 				if (selectedTargets.personal)
@@ -141,7 +183,8 @@
 						emotionId: selectedEmotionId,
 						date: dateStr,
 						comment: comment || undefined,
-						isPrivate: !!allowPrivate
+						isPrivate: !!allowPrivate,
+						isAnonymous: false
 					});
 				for (const tid of teamIdsFromSelection)
 					entriesToCreate.push({
@@ -149,14 +192,16 @@
 						date: dateStr,
 						comment: comment || undefined,
 						teamId: tid,
-						isPrivate: !!allowPrivate
+						isPrivate: !!allowPrivate,
+						isAnonymous: allowAnonymous && getTeamSharingPreference(tid) === 'anonymous'
 					});
 			} else {
 				entriesToCreate.push({
 					emotionId: selectedEmotionId,
 					date: dateStr,
 					comment: comment || undefined,
-					isPrivate: !!allowPrivate
+					isPrivate: !!allowPrivate,
+					isAnonymous: false
 				});
 			}
 
@@ -269,12 +314,45 @@
 												<span class="ml-1 text-amber-500">*</span>
 											{/if}
 										</Label>
+										{#if allowAnonymous}
+											<div
+												class="ml-auto flex items-center gap-2 text-[11px] text-muted-foreground"
+											>
+												<span class="tracking-wide uppercase">
+													{teamSharingSelection[team.id] === 'anonymous' ? 'Anon' : 'Public'}
+												</span>
+												<Switch
+													checked={teamSharingSelection[team.id] === 'anonymous'}
+													disabled={!selectedTargets.teams[team.id] || isLoading}
+													onCheckedChange={(checked) =>
+														setTeamSharingPreference(team.id, checked ? 'anonymous' : 'public')}
+												/>
+											</div>
+										{/if}
 									</div>
 								{/each}
 							</div>
 						{/if}
 					</div>
 				</div>
+
+				{#if allowAnonymous && teamId}
+					<div class="rounded-lg border bg-muted/30 p-3 text-xs">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<p class="font-semibold tracking-wide uppercase">Share anonymously</p>
+								<p class="text-muted-foreground">Hide your name for this entry</p>
+							</div>
+							<Switch
+								checked={singleTeamSharing === 'anonymous'}
+								onCheckedChange={(checked) => {
+									singleTeamSharing = checked ? 'anonymous' : 'public';
+									singleTeamDirty = true;
+								}}
+							/>
+						</div>
+					</div>
+				{/if}
 
 				<div class="space-y-2">
 					{#if showComment || requiresComment}
@@ -350,6 +428,27 @@
 						</p>
 					{/if}
 					<div class="flex justify-end gap-2">
+						{#if allowAnonymous && teamId}
+							<button
+								type="button"
+								aria-pressed={singleTeamSharing === 'anonymous'}
+								title={singleTeamSharing === 'anonymous'
+									? 'Disable anonymous sharing'
+									: 'Enable anonymous sharing'}
+								class={`flex items-center rounded-full border px-2 py-1 text-xs transition ${
+									singleTeamSharing === 'anonymous'
+										? 'border-primary bg-primary text-primary-foreground'
+										: 'border-muted-foreground/30 bg-muted text-muted-foreground'
+								}`}
+								disabled={isLoading}
+								onclick={() => {
+									singleTeamSharing = singleTeamSharing === 'anonymous' ? 'public' : 'anonymous';
+									singleTeamDirty = true;
+								}}
+							>
+								<Ghost class="h-3.5 w-3.5" />
+							</button>
+						{/if}
 						<Button
 							variant="ghost"
 							size="sm"
@@ -364,19 +463,56 @@
 					</div>
 				</div>
 			{:else}
-				<div class="flex items-center justify-between">
-					<Button variant="ghost" size="sm" onclick={() => (showComment = true)} class="text-xs">
-						<MessageCircle class="mr-1.5 h-3 w-3" />
-						{comment ? 'Edit comment' : 'Add comment'}</Button
+				<div class="flex items-center">
+					<Button
+						variant="ghost"
+						size="sm"
+						onclick={() => (showComment = true)}
+						class="text-xs"
+						disabled={isLoading}
 					>
-					{#if selectedEmotionId}
-						<Button
-							size="sm"
-							onclick={handleSubmit}
-							disabled={isLoading || (requireComment && !showComment)}
-							>{isLoading ? 'Saving...' : 'Save'}</Button
-						>
-					{/if}
+						<MessageCircle class="mr-1.5 h-3 w-3" />
+						{comment ? 'Edit comment' : 'Add comment'}
+					</Button>
+					<div class="ml-auto flex items-center gap-2">
+						{#if allowAnonymous && teamId}
+							<button
+								type="button"
+								aria-pressed={singleTeamSharing === 'anonymous'}
+								aria-label={singleTeamSharing === 'anonymous'
+									? 'Disable anonymous sharing'
+									: 'Enable anonymous sharing'}
+								title={singleTeamSharing === 'anonymous'
+									? 'Disable anonymous sharing'
+									: 'Enable anonymous sharing'}
+								class={`flex items-center rounded-full border px-2 py-1 text-xs transition ${
+									singleTeamSharing === 'anonymous'
+										? 'border-primary bg-primary text-primary-foreground'
+										: 'border-muted-foreground/30 bg-muted text-muted-foreground'
+								}`}
+								disabled={isLoading}
+								onclick={() => {
+									singleTeamSharing = singleTeamSharing === 'anonymous' ? 'public' : 'anonymous';
+									singleTeamDirty = true;
+								}}
+							>
+								{#if showComment}
+									<MessageCircle class="h-3.5 w-3.5" />
+								{:else}
+									<Ghost class="h-3.5 w-3.5" />
+								{/if}
+							</button>
+						{/if}
+						{#if selectedEmotionId}
+							<Button
+								size="sm"
+								onclick={handleSubmit}
+								disabled={isLoading || (requireComment && !showComment)}
+							>
+								{isLoading ? 'Saving...' : 'Save'}
+							</Button>
+						{/if}
+					</div>
 				</div>
 			{/if}
 		</div>

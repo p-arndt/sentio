@@ -4,18 +4,27 @@ export const moodsApi = {
 		date,
 		comment,
 		teamId,
-		isPrivate
+		isPrivate,
+		isAnonymous
 	}: {
 		emotionId: string;
 		date: string;
 		comment?: string;
 		teamId?: string;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	}) {
 		const response = await fetch('/api/mood-entries', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ emotionId, date, comment, teamId, isPrivate: !!isPrivate })
+			body: JSON.stringify({
+				emotionId,
+				date,
+				comment,
+				teamId,
+				isPrivate: !!isPrivate,
+				isAnonymous: !!isAnonymous
+			})
 		});
 
 		if (!response.ok) {
@@ -32,6 +41,7 @@ export const moodsApi = {
 			comment?: string;
 			teamId?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}[]
 	) {
 		const results = [];

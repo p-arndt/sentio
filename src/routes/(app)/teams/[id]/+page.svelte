@@ -2,6 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
+	import ShareMoodSetting from '$lib/components/settings/sharing/ShareMoodSetting.svelte';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
@@ -18,12 +19,27 @@
 		getUserInitials,
 		getVisibilityDescription,
 		getVisibilityIcon,
-		getVisibilityValueText
+		getVisibilityValueText,
+		isAnonymousUser
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
 	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
 
 	let { data } = $props();
+
+	let teamSharingPreference = $state(data.teamSharingPreference);
+	let teamSharingSaving = $state(false);
+	let teamSharingError = $state<string | null>(null);
+	let calendarMembers = $derived.by(() => {
+		const combined = [...data.team.members, ...(data.anonymousMembers ?? [])];
+		return combined.sort((a, b) => {
+			const aAnon = isAnonymousUser(a.userId);
+			const bAnon = isAnonymousUser(b.userId);
+			if (aAnon && !bAnon) return 1;
+			if (!aAnon && bAnon) return -1;
+			return a.user.name.localeCompare(b.user.name);
+		});
+	});
 
 	let weekStart = $derived(toDate(data.weekStart) || new Date());
 	let weekDays = $derived(getWeekDaysFromUTCStart(weekStart));
@@ -53,6 +69,7 @@
 		comment?: string;
 		timeOfDay?: string;
 		isPrivate?: boolean;
+		isAnonymous?: boolean;
 	}) {
 		if (isSubmitting) return;
 
@@ -94,6 +111,7 @@
 			comment?: string;
 			timeOfDay?: string;
 			isPrivate?: boolean;
+			isAnonymous?: boolean;
 		}
 	) {
 		if (isSubmitting) return;
@@ -205,18 +223,34 @@
 		/>
 	</div>
 
+	<!-- Personal Sharing Preference -->
+	<Card>
+		<CardHeader class="pb-3">
+			<CardTitle class="text-base">Your sharing preference</CardTitle>
+			<CardDescription>Choose how your mood entries appear to this team by default</CardDescription>
+		</CardHeader>
+		<CardContent class="space-y-2">
+			<ShareMoodSetting
+				teamId={data.team.id}
+				teamSharingPreference={data.teamSharingPreference}
+				teamSharingOverrides={data.teamSharingOverrides}
+			/>
+		</CardContent>
+	</Card>
+
 	<!-- Team Calendar -->
 	<CalendarContainer
 		teamId={data.team.id}
 		{weekStart}
 		{weekDays}
-		teamMembers={data.team.members}
+		teamMembers={calendarMembers}
 		emotions={data.emotions}
 		entries={data.entries}
 		currentUserId={data.currentUserId}
 		showWeekends={data.team.showWeekends}
 		requireComment={data.team.requireComment}
 		defaultView={data.defaultView}
+		{teamSharingPreference}
 		onWeekChange={handleWeekChange}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}
@@ -241,7 +275,9 @@
 						</Avatar>
 						<div class="min-w-0 flex-1">
 							<div class="truncate font-medium">{member.user.name}</div>
-							<div class="truncate text-sm text-muted-foreground">{member.user.email}</div>
+							<div class="truncate text-sm text-muted-foreground">
+								{member.user.email || 'Hidden email'}
+							</div>
 						</div>
 						{#if member.role === 'admin'}
 							<Badge variant="secondary">Admin</Badge>
@@ -260,6 +296,8 @@
 	teamId={data.team.id}
 	{selectedDate}
 	allowPrivate={false}
+	allowAnonymous={true}
+	defaultAnonymous={teamSharingPreference === 'anonymous'}
 	requireComment={data.team.requireComment}
 	onSave={handleSaveMood}
 	entry={selectedMood
@@ -268,7 +306,8 @@
 				emotionId: selectedMood.emotionId,
 				comment: selectedMood.comment ?? undefined,
 				timeOfDay: selectedMood.timeOfDay ?? undefined,
-				isPrivate: selectedMood.isPrivate
+				isPrivate: selectedMood.isPrivate,
+				isAnonymous: selectedMood.isAnonymous
 			}
 		: undefined}
 	onUpdate={handleUpdateMood}

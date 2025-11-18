@@ -10,11 +10,18 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
+	import type {
+		Emotion,
+		MoodEntryWithDetails,
+		MoodSharePreference,
+		TeamMemberWithUser
+	} from '$lib/types';
 	import { cn } from '$lib/utils';
-	import { formatFullDate, toDateString } from '$lib/utils/date';
+	import { formatFullDate } from '$lib/utils/date';
 	import { getUserInitials } from '$lib/utils/user';
 	import { ChevronLeft, ChevronRight, MessageCircle } from '@lucide/svelte';
+	import { filterTeamMembers, getMoodsForMember as lookupMoodsForMember } from './view-utils';
+	import MoodBadge from '../MoodBadge.svelte';
 
 	type Props = {
 		selectedDate: Date;
@@ -24,6 +31,7 @@
 		currentUserId?: string;
 		onDayChange: (direction: 'prev' | 'next') => void;
 		teamId?: string;
+		teamSharingPreferenceForCurrentUser?: MoodSharePreference;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -41,20 +49,15 @@
 		isSubmitting = false,
 		requireComment = false,
 		className = '',
-		teamId
+		teamId,
+		teamSharingPreferenceForCurrentUser = 'public'
 	}: Props = $props();
-
-	let sortedMembers = $derived(
-		[...teamMembers].sort((a, b) => {
-			if (a.userId === currentUserId) return -1;
-			if (b.userId === currentUserId) return 1;
-			return 0;
-		})
-	);
+	let filteredMembers = $derived.by(() => {
+		return filterTeamMembers(currentUserId, teamMembers, entries, [selectedDate]);
+	});
 
 	function getMoodsForMember(userId: string): MoodEntryWithDetails[] {
-		const dateStr = toDateString(selectedDate);
-		return entries.filter((e) => e.userId === userId && toDateString(e.date) === dateStr);
+		return lookupMoodsForMember(entries, userId, selectedDate);
 	}
 
 	function getEmotionById(id: string): Emotion | undefined {
@@ -98,7 +101,7 @@
 
 	<CardContent>
 		<div class="space-y-4">
-			{#each sortedMembers as member (member.userId)}
+			{#each filteredMembers as member (member.userId)}
 				{@const moods = getMoodsForMember(member.userId)}
 				{@const isCurrentUser = member.userId === currentUserId}
 				<div class="rounded-lg border p-4">
@@ -137,18 +140,16 @@
 															: null}
 													disabled={!isCurrentUser}
 													class={cn(
-														'relative flex h-12 w-12 items-center justify-center rounded-full transition-all',
+														'relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all',
 														isCurrentUser && 'cursor-pointer hover:scale-105',
-														!isCurrentUser && 'cursor-default opacity-75'
+														!isCurrentUser && 'cursor-default opacity-75',
+														mood.isAnonymous ? 'border-dashed' : 'border-solid'
 													)}
-													style="background-color: {emotion.color}40;"
+													style={`background-color: ${emotion.color}40; border-color: ${emotion.color}60;`}
 												>
-													<span class="text-2xl">{emotion.emoji}</span>
-													{#if mood.comment}
-														<MessageCircle
-															class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
-														/>
-													{/if}
+													<div class="relative flex items-center justify-center pb-1">
+														<MoodBadge {emotion} {mood} {currentUserId} />
+													</div>
 												</TooltipTrigger>
 												<TooltipContent>
 													<div class="space-y-1 text-xs">
@@ -183,6 +184,7 @@
 								{emotions}
 								date={selectedDate}
 								{teamId}
+								teamSharingPreference={teamSharingPreferenceForCurrentUser}
 								disabled={isSubmitting}
 								{requireComment}
 							/>

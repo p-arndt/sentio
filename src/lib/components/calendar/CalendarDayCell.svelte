@@ -6,10 +6,11 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, MoodEntryWithDetails } from '$lib/types';
+	import type { Emotion, MoodEntryWithDetails, MoodSharePreference } from '$lib/types';
 	import { cn } from '$lib/utils';
 	import { isToday, toDateString } from '$lib/utils/date';
-	import { MessageCircle, ChevronDown } from '@lucide/svelte';
+	import { ChevronDown } from '@lucide/svelte';
+	import MoodBadge from './MoodBadge.svelte';
 
 	type Props = {
 		day: Date;
@@ -18,6 +19,7 @@
 		userId: string;
 		currentUserId?: string;
 		teamId?: string;
+		teamSharingPreference?: MoodSharePreference;
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
@@ -32,7 +34,8 @@
 		onEdit,
 		isSubmitting = false,
 		requireComment = false,
-		teamId
+		teamId,
+		teamSharingPreference = 'public'
 	}: Props = $props();
 
 	let moods = $derived(
@@ -75,12 +78,10 @@
 		onclick={handleCellClick}
 		onkeydown={handleCellKeyDown}
 		class={cn(
-			'relative min-h-[100px] w-full rounded-lg border-2 p-2',
-			today && 'border-primary ring-2 ring-primary/50 ring-offset-2',
-			!today &&
-				'hover:border-primary/40 hover:shadow-md hover:transition-shadow hover:duration-200',
-			isWeekend && 'bg-muted/30',
-			isCurrentUser && 'cursor-pointer'
+			'relative min-h-[100px] w-full rounded-lg border',
+			today && 'ring-1',
+			!today && 'hover:border-primary/40 hover:transition-shadow hover:duration-200',
+			isWeekend && 'bg-muted/30'
 		)}
 		role="button"
 		tabindex="0"
@@ -94,23 +95,24 @@
 							<TooltipTrigger
 								class={cn(
 									'group relative w-full rounded-lg transition-all duration-200',
-									'cursor-pointer hover:scale-[1.01] hover:shadow-sm',
-									mood.comment ? 'p-1.5' : 'p-2'
+									'cursor-pointer p-2 hover:scale-105'
 								)}
-								style="background-color: {emotion.color}15; border: 1px solid {emotion.color}30;"
 								onclick={(e) => handleMoodClick(mood, e)}
 							>
-								<div class="flex flex-col gap-1.5">
+								<div
+									class={[
+										'flex flex-col gap-1.5',
+										'rounded-[14px] border-2 p-1',
+										mood.isAnonymous ? 'border-dashed ' : 'border-solid'
+									]}
+									style={`background-color: ${emotion.color}10; border-color: ${emotion.color}35;`}
+								>
 									<div class="flex items-center gap-1.5 {!mood.comment && 'justify-center'}">
-										<div
-											class="rounded-full p-1 transition-all group-hover:scale-105"
-											style="background-color: {emotion.color}20;"
-										>
-											<div class="text-xl">{emotion.emoji}</div>
+										<div class="relative flex items-center justify-center">
+											<MoodBadge {emotion} {mood} {currentUserId} />
 										</div>
 										{#if mood.comment}
-											<div class="flex min-w-0 flex-1 items-center gap-1">
-												<MessageCircle size={12} class="shrink-0 text-muted-foreground/60" />
+											<div class="flex min-w-0 flex-1 items-center gap-1 ps-2">
 												<p class="line-clamp-1 text-xs leading-tight text-muted-foreground">
 													{mood.comment}
 												</p>
@@ -152,6 +154,7 @@
 							{emotions}
 							date={day}
 							{teamId}
+							{teamSharingPreference}
 							size="sm"
 							variant="ghost"
 							disabled={isSubmitting}
@@ -182,6 +185,7 @@
 				{emotions}
 				date={day}
 				{teamId}
+				{teamSharingPreference}
 				disabled={isSubmitting}
 				bind:open={popoverOpen}
 				{requireComment}
