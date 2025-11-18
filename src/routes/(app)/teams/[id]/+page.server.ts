@@ -47,6 +47,8 @@ export async function load({ params, locals, url }) {
 		(preferences?.settings?.teamSharingOverrides as Record<string, MoodSharePreference>) || {};
 	const teamSharingDefault =
 		(preferences?.settings?.teamSharingDefault as MoodSharePreference) || 'public';
+	console.log('teamSharingOverrides:', teamSharingOverrides);
+	console.log('teamSharingDefault:', teamSharingDefault);
 	const teamSharingPreference = teamSharingOverrides[params.id] ?? teamSharingDefault;
 
 	return {

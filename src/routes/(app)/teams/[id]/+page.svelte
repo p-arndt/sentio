@@ -2,6 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import CalendarContainer from '$lib/components/calendar/CalendarContainer.svelte';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
+	import ShareMoodSetting from '$lib/components/settings/sharing/ShareMoodSetting.svelte';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
@@ -13,9 +14,6 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import Label from '$lib/components/ui/label/label.svelte';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import { Switch } from '$lib/components/ui/switch';
 	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
 		getUserInitials,
@@ -25,16 +23,7 @@
 		isAnonymousUser
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
-	import {
-		BarChart3,
-		Calendar,
-		ChevronLeft,
-		Ghost,
-		Globe,
-		Settings,
-		UserPlus,
-		Users
-	} from '@lucide/svelte';
+	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
 
 	let { data } = $props();
 
@@ -60,8 +49,6 @@
 	let selectedMood: MoodEntryWithDetails | null = $state(null);
 	let isSubmitting = $state(false);
 
-	let teamSharingPreferenceAnonymous = $derived(teamSharingPreference === 'anonymous');
-
 	async function handleWeekChange(direction: 'prev' | 'next') {
 		const base = weekStart;
 		const delta = direction === 'prev' ? -7 : 7;
@@ -75,36 +62,6 @@
 		selectedDate = date;
 		selectedMood = mood || null;
 		showMoodDialog = true;
-	}
-
-	async function handleTeamSharingPreferenceChange(value: 'public' | 'anonymous') {
-		if (teamSharingSaving) return;
-		const previous = teamSharingPreference;
-		teamSharingPreference = value;
-		teamSharingSaving = true;
-		teamSharingError = null;
-		try {
-			const overrides = { ...(data.teamSharingOverrides || {}) };
-			overrides[data.team.id] = value;
-			const response = await fetch('/api/user/preferences', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ teamSharingOverrides: overrides })
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to update sharing preference');
-			}
-
-			data.teamSharingOverrides = overrides;
-		} catch (error) {
-			console.error(error);
-			teamSharingError =
-				error instanceof Error ? error.message : 'Unable to update sharing preference';
-			teamSharingPreference = previous;
-		} finally {
-			teamSharingSaving = false;
-		}
 	}
 
 	async function handleSaveMood(moodData: {
@@ -273,38 +230,11 @@
 			<CardDescription>Choose how your mood entries appear to this team by default</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-2">
-			<div class="flex items-center space-x-5">
-				<span
-					class="flex items-center space-x-2 text-sm{!teamSharingPreferenceAnonymous &&
-						'text-accent-variant'}"
-				>
-					<Globe class="size-5" />
-					<span>Public</span>
-				</span>
-				<span>
-					<Switch
-						checked={teamSharingPreferenceAnonymous}
-						onCheckedChange={(checked) =>
-							handleTeamSharingPreferenceChange(checked ? 'anonymous' : 'public')}
-						disabled={teamSharingSaving}
-					/>
-				</span>
-				<span
-					class="flex items-center space-x-2 text-sm {teamSharingPreferenceAnonymous &&
-						'text-accent-variant'}"
-				>
-					<Ghost class="size-5" />
-					<span>Anonymous</span>
-				</span>
-			</div>
-
-			{#if teamSharingError}
-				<p class="text-sm text-destructive">{teamSharingError}</p>
-			{:else}
-				<p class="text-xs text-muted-foreground">
-					You can still override this for any individual entry.
-				</p>
-			{/if}
+			<ShareMoodSetting
+				teamId={data.team.id}
+				teamSharingPreference={data.teamSharingPreference}
+				teamSharingOverrides={data.teamSharingOverrides}
+			/>
 		</CardContent>
 	</Card>
 
