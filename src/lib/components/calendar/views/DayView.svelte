@@ -13,13 +13,15 @@
 	import type {
 		Emotion,
 		MoodEntryWithDetails,
-		TeamMemberWithUser,
-		MoodSharePreference
+		MoodSharePreference,
+		TeamMemberWithUser
 	} from '$lib/types';
 	import { cn } from '$lib/utils';
-	import { formatFullDate, toDateString } from '$lib/utils/date';
-	import { getUserInitials, isAnonymousUser } from '$lib/utils/user';
+	import { formatFullDate } from '$lib/utils/date';
+	import { getUserInitials } from '$lib/utils/user';
 	import { ChevronLeft, ChevronRight, MessageCircle } from '@lucide/svelte';
+	import { filterTeamMembers, getMoodsForMember as lookupMoodsForMember } from './view-utils';
+	import MoodBadge from '../MoodBadge.svelte';
 
 	type Props = {
 		selectedDate: Date;
@@ -50,21 +52,12 @@
 		teamId,
 		teamSharingPreferenceForCurrentUser = 'public'
 	}: Props = $props();
-	let sortedMembers = $derived(
-		[...teamMembers].sort((a, b) => {
-			if (a.userId === currentUserId) return -1;
-			if (b.userId === currentUserId) return 1;
-			const aAnon = isAnonymousUser(a.userId);
-			const bAnon = isAnonymousUser(b.userId);
-			if (aAnon && !bAnon) return 1;
-			if (!aAnon && bAnon) return -1;
-			return a.user.name.localeCompare(b.user.name);
-		})
-	);
+	let filteredMembers = $derived.by(() => {
+		return filterTeamMembers(currentUserId, teamMembers, entries, [selectedDate]);
+	});
 
 	function getMoodsForMember(userId: string): MoodEntryWithDetails[] {
-		const dateStr = toDateString(selectedDate);
-		return entries.filter((e) => e.userId === userId && toDateString(e.date) === dateStr);
+		return lookupMoodsForMember(entries, userId, selectedDate);
 	}
 
 	function getEmotionById(id: string): Emotion | undefined {
@@ -108,7 +101,7 @@
 
 	<CardContent>
 		<div class="space-y-4">
-			{#each sortedMembers as member (member.userId)}
+			{#each filteredMembers as member (member.userId)}
 				{@const moods = getMoodsForMember(member.userId)}
 				{@const isCurrentUser = member.userId === currentUserId}
 				<div class="rounded-lg border p-4">
@@ -155,20 +148,8 @@
 													style={`background-color: ${emotion.color}40; border-color: ${emotion.color}60;`}
 												>
 													<div class="relative flex items-center justify-center pb-1">
-														<span class="text-2xl">{emotion.emoji}</span>
-														{#if mood.isAnonymous && isCurrentUser}
-															<span
-																class="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded border border-dashed border-primary/40 bg-background/80 px-1 text-[9px] font-semibold uppercase text-muted-foreground"
-															>
-																Anon
-															</span>
-														{/if}
+														<MoodBadge {emotion} {mood} {currentUserId} />
 													</div>
-													{#if mood.comment}
-														<MessageCircle
-															class="absolute top-0.5 right-0.5 h-3 w-3 text-foreground/60"
-														/>
-													{/if}
 												</TooltipTrigger>
 												<TooltipContent>
 													<div class="space-y-1 text-xs">

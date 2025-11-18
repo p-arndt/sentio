@@ -2,9 +2,9 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
 	import CalendarViewToggle from '../calendar/CalendarViewToggle.svelte';
-	import DayView from '../calendar/DayView.svelte';
-	import MonthView from '../calendar/MonthView.svelte';
-	import WeekView from '../calendar/WeekView.svelte';
+	import DayView from '../calendar/views/DayView.svelte';
+	import MonthView from '../calendar/views/MonthView.svelte';
+	import WeekView from '../calendar/views/WeekView.svelte';
 	// weekDays are provided by the parent page and are UTC-aware local midnight dates
 
 	type CalendarViewMode = 'week' | 'month' | 'day';

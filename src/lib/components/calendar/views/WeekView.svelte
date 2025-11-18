@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { filterTeamMembers } from './view-utils';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import type {
@@ -13,10 +14,11 @@
 		formatDate,
 		formatDayDate,
 		formatDayName,
-		isToday
+		isToday,
+		toDateString
 	} from '$lib/utils/date';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
-	import CalendarMemberRow from './CalendarMemberRow.svelte';
+	import CalendarMemberRow from '../CalendarMemberRow.svelte';
 
 	type Props = {
 		weekStart: Date;
@@ -54,20 +56,9 @@
 	}: Props = $props();
 
 	let displayDays = $derived(filterWeekDays(weekDays, showWeekends));
-	let sortedMembers = $derived.by(() => {
-		const sorted = [...teamMembers];
-		sorted.sort((a, b) => {
-			if (currentUserId) {
-				if (a.userId === currentUserId) return -1;
-				if (b.userId === currentUserId) return 1;
-			}
-			const aAnon = isAnonymousUser(a.userId);
-			const bAnon = isAnonymousUser(b.userId);
-			if (aAnon && !bAnon) return 1;
-			if (!aAnon && bAnon) return -1;
-			return a.user.name.localeCompare(b.user.name);
-		});
-		return sorted;
+
+	let filteredMembers = $derived.by(() => {
+		return filterTeamMembers(currentUserId, teamMembers, entries, displayDays);
 	});
 
 	let gridTemplate = $derived.by(() => {
@@ -130,7 +121,7 @@
 			<!-- Team Member Rows -->
 			<div class="px-3 py-2 md:px-6 md:py-6">
 				<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
-					{#each sortedMembers as member (member.userId)}
+					{#each filteredMembers as member (member.userId)}
 						<CalendarMemberRow
 							{member}
 							days={displayDays}

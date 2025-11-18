@@ -7,9 +7,9 @@ import type {
 	MoodSharePreference
 } from '$lib/types';
 	import CalendarViewToggle from './CalendarViewToggle.svelte';
-	import DayView from './DayView.svelte';
-	import MonthView from './MonthView.svelte';
-	import WeekView from './WeekView.svelte';
+	import DayView from './views/DayView.svelte';
+	import MonthView from './views/MonthView.svelte';
+	import WeekView from './views/WeekView.svelte';
 
 	type CalendarViewMode = 'week' | 'month' | 'day';
 

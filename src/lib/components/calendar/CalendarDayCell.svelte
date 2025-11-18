@@ -9,7 +9,8 @@
 	import type { Emotion, MoodEntryWithDetails, MoodSharePreference } from '$lib/types';
 	import { cn } from '$lib/utils';
 	import { isToday, toDateString } from '$lib/utils/date';
-	import { ChevronDown, MessageCircle } from '@lucide/svelte';
+	import { ChevronDown } from '@lucide/svelte';
+	import MoodBadge from './MoodBadge.svelte';
 
 	type Props = {
 		day: Date;
@@ -108,26 +109,10 @@
 								>
 									<div class="flex items-center gap-1.5 {!mood.comment && 'justify-center'}">
 										<div class="relative flex items-center justify-center">
-											<div
-												class={cn(
-													'rounded-full border-2 p-1 transition-all group-hover:scale-105',
-													mood.isAnonymous ? 'border-dashed' : 'border-solid'
-												)}
-												style={`border-color: ${emotion.color}35; background-color: ${emotion.color}20;`}
-											>
-												<div class="text-xl">{emotion.emoji}</div>
-											</div>
-											{#if mood.isAnonymous && mood.userId === currentUserId}
-												<span
-													class="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded border border-dashed border-primary/40 bg-background/80 px-1 text-[10px] font-semibold text-muted-foreground uppercase"
-												>
-													Anon
-												</span>
-											{/if}
+											<MoodBadge {emotion} {mood} {currentUserId} />
 										</div>
 										{#if mood.comment}
-											<div class="flex min-w-0 flex-1 items-center gap-1">
-												<MessageCircle size={12} class="shrink-0 text-muted-foreground/60" />
+											<div class="flex min-w-0 flex-1 items-center gap-1 ps-2">
 												<p class="line-clamp-1 text-xs leading-tight text-muted-foreground">
 													{mood.comment}
 												</p>

@@ -75,6 +75,11 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
   --warning: oklch(0.927 0.202 91.317);
   --success: oklch(0.827 0.233 139.317);
+  --tertiary: oklch(0.274 0.006 286.033);
+  --tertiary-foreground: oklch(0.985 0 0);
+  --info: oklch(0.6 0.12 195.0);
+  --info-foreground: oklch(0.985 0 0);
+  --muted-variant: #c88233ff;
 }
 
 @theme inline {
@@ -115,6 +120,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-warning: var(--warning);
   --color-success: var(--success);
+  --color-muted-variant: var(--muted-variant);
 }
 
 @layer base {
