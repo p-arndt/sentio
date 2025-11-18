@@ -64,9 +64,7 @@
 			}
 
 			const subscription = await getPushSubscription();
-			console.log(subscription);
 			pushSubscribed = Boolean(subscription);
-			console.log(subscription, pushSubscribed);
 		} catch (err) {
 			console.error('Failed to determine push status:', err);
 			pushSubscribed = false;
