@@ -137,47 +137,4 @@
 	</Card>
 </div>
 
-<!-- Additional small stats and charts -->
-<div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-	<Card>
-		<CardHeader class="pb-2">
-			<CardTitle class="text-sm font-medium text-muted-foreground">Stability</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="text-2xl font-bold">{stability.toFixed(2)}</div>
-			<div class="text-xs text-muted-foreground">0 (volatile) — 1 (stable)</div>
-		</CardContent>
-	</Card>
-
-	<Card>
-		<CardHeader class="pb-2">
-			<CardTitle class="text-sm font-medium text-muted-foreground">Consistency</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="text-2xl font-bold">{consistencyPct.toFixed(0)}%</div>
-			<div class="text-xs text-muted-foreground">Days with entries (last 30d)</div>
-		</CardContent>
-	</Card>
-
-	<Card>
-		<CardHeader class="pb-2">
-			<CardTitle class="text-sm font-medium text-muted-foreground">Top Emotion</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="text-2xl font-bold">{favorite}</div>
-			<div class="text-xs text-muted-foreground">Most used emotion</div>
-		</CardContent>
-	</Card>
-
-	<Card>
-		<CardHeader class="pb-2">
-			<CardTitle class="text-sm font-medium text-muted-foreground">Emotional Range</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="text-2xl font-bold">{diversity.toFixed(0)}%</div>
-			<div class="text-xs text-muted-foreground">Shannon entropy based</div>
-		</CardContent>
-	</Card>
-</div>
-
 <WeeklyMoodHeatmap {entries} title="Weekly Mood" description="Avg mood per weekday" />
