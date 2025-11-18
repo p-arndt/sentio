@@ -1,3 +1,5 @@
+import type { MoodEntry, UserAchievement } from '$lib/types';
+
 export const moodsApi = {
 	async createMoodEntry({
 		emotionId,
@@ -6,14 +8,10 @@ export const moodsApi = {
 		teamId,
 		isPrivate,
 		isAnonymous
-	}: {
-		emotionId: string;
-		date: string;
-		comment?: string;
-		teamId?: string;
-		isPrivate?: boolean;
-		isAnonymous?: boolean;
-	}) {
+	}: Partial<MoodEntry>): Promise<{
+		entries: MoodEntry[];
+		grantedAchievements: UserAchievement[];
+	}> {
 		const response = await fetch('/api/mood-entries', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -37,7 +35,7 @@ export const moodsApi = {
 	async createMoodEntries(
 		entries: {
 			emotionId: string;
-			date: string;
+			date: string | Date;
 			comment?: string;
 			teamId?: string;
 			isPrivate?: boolean;
@@ -46,7 +44,11 @@ export const moodsApi = {
 	) {
 		const results = [];
 		for (const entry of entries) {
-			const res = await this.createMoodEntry(entry);
+			const payload: Partial<MoodEntry> = {
+				...entry,
+				date: entry.date instanceof Date ? entry.date : new Date(entry.date)
+			};
+			const res = await this.createMoodEntry(payload);
 			results.push(res);
 		}
 		return results;

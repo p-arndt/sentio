@@ -1,7 +1,8 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { AchievementService } from '$lib/server/services/achievement.service';
 import { MoodEntryService } from '$lib/server/services/mood-entry.service';
 import { TeamService } from '$lib/server/services/team.service';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 /**
  * GET /api/mood-entries
@@ -95,7 +96,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			isAnonymous: isAnonymous || false
 		});
 
-		return json(result);
+		// Check for new badges and return them in the response (if any)
+		const granted = await AchievementService.checkAndGrantAchievementForNewEntry(locals.user.id);
+
+		return json({ entries: [result], grantedAchievements: granted });
 	} catch (error) {
 		console.error('Error saving mood entry:', error);
 		return json({ error: 'Failed to save entry' }, { status: 500 });

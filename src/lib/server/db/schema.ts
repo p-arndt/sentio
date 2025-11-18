@@ -1,5 +1,14 @@
 // src/lib/server/db/schema.ts
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	integer,
+	jsonb,
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+	uniqueIndex
+} from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -183,6 +192,48 @@ export const invitation = pgTable('invitations', {
 	acceptedAt: timestamp('accepted_at'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Reward badges for gamification
+export const achievement = pgTable('achievements', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+	description: text('description'),
+	category: text('category').notNull().default('activity'),
+	requirement: integer('requirement'),
+	rule: text('rule').notNull().default('COUNT'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const userAchievement = pgTable(
+	'user_achievements',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		achievementId: uuid('achievement_id')
+			.notNull()
+			.references(() => achievement.id, { onDelete: 'cascade' }),
+		earnedAt: timestamp('earned_at').defaultNow().notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('uniq_user_badge').on(table.userId, table.achievementId)]
+);
+
+export const achievementProgress = pgTable('achievement_progress', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	achievementId: uuid('achievement_id')
+		.notNull()
+		.references(() => achievement.id, { onDelete: 'cascade' }),
+	progress: integer('progress').notNull().default(0),
+	lastUpdated: timestamp('last_updated').defaultNow().notNull()
 });
 
 // Push subscriptions for web push notifications

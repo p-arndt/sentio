@@ -1,16 +1,17 @@
 import { building } from '$app/environment';
 import { EMOTION_DATA } from '$lib/data/emotion-data';
+import { initializeEventNotificationHandler } from '$lib/server/calendar/event-notification.processor';
+import { initializeCalendarJobHandlers } from '$lib/server/calendar/sync-job-queue';
 import { db } from '$lib/server/db';
 import { emotion, user as userTable } from '$lib/server/db/schema';
+import { initializeReminderScheduler } from '$lib/server/reminder-scheduler';
+import { AchievementService } from '$lib/server/services/achievement.service';
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { auth } from './auth';
-import { initializeReminderScheduler } from '$lib/server/reminder-scheduler';
-import { initializeCalendarJobHandlers } from '$lib/server/calendar/sync-job-queue';
-import { initializeEventNotificationHandler } from '$lib/server/calendar/event-notification.processor';
 
 let initialized = false;
 let hasAdmin = false;
@@ -32,13 +33,25 @@ export const init: ServerInit = async () => {
 	console.log('Migrations completed successfully');
 
 	try {
-		const existingEmotions = await db.select().from(emotion);
+		const existingEmotions = await db
+			.select({ id: emotion.id, name: emotion.name })
+			.from(emotion)
+			.where(isNull(emotion.teamId));
+
 		if (existingEmotions.length === 0) {
 			console.log('Seeding default emotions...');
 			await db.insert(emotion).values(EMOTION_DATA);
 			console.log(`✓ Seeded ${EMOTION_DATA.length} emotions`);
 		} else {
-			console.log(`✓ Emotions already exist (${existingEmotions.length} found)`);
+			const existingNames = new Set(existingEmotions.map((entry) => entry.name));
+			const missingEmotions = EMOTION_DATA.filter((seed) => !existingNames.has(seed.name));
+
+			if (missingEmotions.length > 0) {
+				await db.insert(emotion).values(missingEmotions);
+				console.log(`✓ Added ${missingEmotions.length} new default emotions`);
+			} else {
+				console.log(`✓ Emotions already exist (${existingEmotions.length} found)`);
+			}
 		}
 	} catch (error) {
 		console.error('Failed to seed emotions:', error);
@@ -54,27 +67,35 @@ export const init: ServerInit = async () => {
 			console.log('⚠ No admin user found - initialization required');
 		}
 		initialized = true;
+	}
 
-		// Initialize reminder scheduler
-		try {
-			initializeReminderScheduler();
-		} catch (error) {
-			console.error('Failed to initialize reminder scheduler:', error);
-		}
+	try {
+		await AchievementService.ensureDefaultBadges();
+		console.log('✓ Default badges ensured');
+	} catch (error) {
+		console.error('Failed to ensure default badges:', error);
+		throw error;
+	}
 
-		// Initialize calendar job handlers
-		try {
-			await initializeCalendarJobHandlers();
-		} catch (error) {
-			console.error('Failed to initialize calendar job handlers:', error);
-		}
+	// Initialize reminder scheduler
+	try {
+		initializeReminderScheduler();
+	} catch (error) {
+		console.error('Failed to initialize reminder scheduler:', error);
+	}
 
-		// Initialize event notification job handler
-		try {
-			await initializeEventNotificationHandler();
-		} catch (error) {
-			console.error('Failed to initialize event notification handler:', error);
-		}
+	// Initialize calendar job handlers
+	try {
+		await initializeCalendarJobHandlers();
+	} catch (error) {
+		console.error('Failed to initialize calendar job handlers:', error);
+	}
+
+	// Initialize event notification job handler
+	try {
+		await initializeEventNotificationHandler();
+	} catch (error) {
+		console.error('Failed to initialize event notification handler:', error);
 	}
 };
 

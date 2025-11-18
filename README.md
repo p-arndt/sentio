@@ -51,6 +51,15 @@ Similar to a classic **Niko-Niko calendar**, but modern, visual, and built for r
 - Outlook / Microsoft 365 integration coming soon
 - Event-based mood reminders after calendar entries
 
+### Achievements & Gamification
+- Achievement system to reward positive habits
+- Achievements for activities like:
+  - Logging your first mood
+  - Logging moods for multiple consecutive days
+  - Writing comments alongside moods
+  - Reaching mood streaks (e.g., 7 days of positive moods)
+- Visual achievement badges in your profile
+
 ### Team Management
 
 - Invite members

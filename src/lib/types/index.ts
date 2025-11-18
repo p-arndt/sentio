@@ -352,3 +352,22 @@ export interface PaginatedResponse<T> {
 	pageSize: number;
 	hasMore: boolean;
 }
+
+// ==================== USER ACHIEVEMENT ====================
+export interface Achievement {
+	id: string;
+	slug: string;
+	name: string;
+	description: string | null;
+	category?: 'streak' | 'activity' | 'count' | 'other' | null | string;
+	requirement?: number | null;
+	rule?: 'FIRST_MOOD' | 'STREAK' | 'COUNT' | 'ANONYMOUS_COUNT' | string | null;
+}
+
+export interface UserAchievement {
+	id: string;
+	userId: string;
+	achievementId: string;
+	earnedAt: Date;
+	achievement: Achievement;
+}

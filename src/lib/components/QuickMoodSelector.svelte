@@ -56,10 +56,11 @@
 	<PopoverTrigger disabled={disabled || isSaving} class={buttonVariants({ variant, size })}>
 		<Plus class="h-4 w-4" />
 	</PopoverTrigger>
-	<PopoverContent class={[
-			'w-80 p-4',
-			(teamId && anonymousMode) && 'border-2 border-dashed border-white/50'
-		]} align="center" trapFocus={false}>
+	<PopoverContent
+		class={['w-80 p-4', teamId && anonymousMode && 'border-2 border-dashed border-white/50']}
+		align="center"
+		trapFocus={false}
+	>
 		<div class="relative">
 			<MoodEntryForm
 				{emotions}
@@ -81,6 +82,12 @@
 						console.error('Parent onSelect failed:', err);
 					} finally {
 						isSaving = false;
+					}
+					// Show badge toasts if any were granted
+					for (const r of results) {
+						for (const b of r.grantedAchievements ?? []) {
+							toast.success(`Achievement earned: ${b.achievement?.name}`);
+						}
 					}
 				}}
 				onError={(err) => {

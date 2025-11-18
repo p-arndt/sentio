@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import AchievementGrid from '$lib/components/achievements/AchievementGrid.svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import {
@@ -14,7 +15,7 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Separator } from '$lib/components/ui/separator';
 	import { getUserInitials } from '$lib/utils/user';
-	import { Save, User } from '@lucide/svelte';
+	import { Save, Trophy, User } from '@lucide/svelte';
 
 	let { data, form } = $props();
 
@@ -114,6 +115,24 @@
 					</Button>
 				</div>
 			</form>
+		</CardContent>
+	</Card>
+
+	<!-- Badges -->
+
+	<Card>
+		<CardHeader>
+			<CardTitle class="inline-flex items-center gap-2">
+				<Trophy class="h-5 w-5" />
+				Achievements
+			</CardTitle>
+			<CardDescription>Your earned achievements</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<AchievementGrid
+				achievements={data.allAchievements}
+				userAchievements={data.userAchievements}
+			/>
 		</CardContent>
 	</Card>
 </div>

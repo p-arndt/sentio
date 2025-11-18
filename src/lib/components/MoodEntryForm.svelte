@@ -12,7 +12,7 @@
 		TooltipProvider,
 		TooltipTrigger
 	} from '$lib/components/ui/tooltip';
-	import type { Emotion, Team, MoodSharePreference } from '$lib/types';
+	import type { Emotion, MoodEntry, MoodSharePreference, Team, UserAchievement } from '$lib/types';
 	import { toDateString } from '$lib/utils';
 	import { Ghost, MessageCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -35,7 +35,10 @@
 		teamSharingDefault?: MoodSharePreference;
 		teamSharingOverrides?: Record<string, MoodSharePreference>;
 
-		onSuccess?: (result: any) => void | Promise<void>;
+		onSuccess?: (result: {
+			entries: MoodEntry[];
+			grantedAchievements?: UserAchievement[];
+		}[]) => void | Promise<void>;
 		onError?: (err: Error) => void;
 		onAnonymousModeChange?: (isAnonymous: boolean) => void;
 	};
@@ -228,7 +231,6 @@
 					});
 			}
 
-			toast.success('Mood saved');
 			if (onSuccess) await onSuccess(results);
 
 			await invalidateAll();

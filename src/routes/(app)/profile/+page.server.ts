@@ -1,6 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { UserService } from '$lib/server/services/user.service';
 import { TeamService } from '$lib/server/services/team.service';
+import { AchievementService } from '$lib/server/services/achievement.service';
 
 export async function load({ locals }) {
 	if (!locals.user) {
@@ -10,11 +11,15 @@ export async function load({ locals }) {
 	const user = await UserService.getUserById(locals.user.id);
 	const preferences = await UserService.getUserPreferences(locals.user.id);
 	const teams = await TeamService.getUserTeams(locals.user.id);
+	const userAchievements = await AchievementService.getAchievementsForUser(locals.user.id);
+	const allAchievements = await AchievementService.getAllAchievements();
 
 	return {
 		user,
 		preferences,
-		teams
+		teams,
+		userAchievements,
+		allAchievements
 	};
 }
 
@@ -54,7 +59,8 @@ export const actions = {
 		const settings: Record<string, string | boolean> = {};
 		if (theme) settings.theme = theme;
 		if (defaultView) settings.defaultView = defaultView;
-		if (enableNotificationsStr !== undefined) settings.enableNotifications = enableNotificationsStr === 'true';
+		if (enableNotificationsStr !== undefined)
+			settings.enableNotifications = enableNotificationsStr === 'true';
 		if (startPage) settings.startPage = startPage;
 
 		await UserService.upsertUserPreferences(locals.user.id, settings);
