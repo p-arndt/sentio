@@ -168,6 +168,8 @@ pnpx web-push generate-vapid-keys
 | -------------------------- | ---------------------------- |
 | PUBLIC_GOOGLE_CLIENT_ID    | Google OAuth ID for Calendar |
 | PUBLIC_MICROSOFT_CLIENT_ID | Microsoft OAuth ID (Outlook) |
+| PUBLIC_MICROSOFT_TENANT_ID | Microsoft Tenant ID          |
+| MICROSOFT_CLIENT_SECRET    | Microsoft OAuth Secret       |
 
 > These are only needed if you want to enable calendar integrations. We use them for OAuth flows only.
 
@@ -193,6 +195,23 @@ pnpx web-push generate-vapid-keys
 4. Go to **Settings → Calendar** and connect your account.
 
 Sentio requests **read-only** access.
+
+### Microsoft Outlook / 365
+
+1. Create an app in the Azure Portal.
+2. Add redirect URL:
+
+   ```
+   https://<your-host>/api/oauth/microsoft/callback
+   ```
+3. Set environment variables
+   ```
+   PUBLIC_MICROSOFT_CLIENT_ID=<your-client-id>
+   PUBLIC_MICROSOFT_TENANT_ID=<your-tenant-id>
+   MICROSOFT_CLIENT_SECRET=<your-client-secret>
+   ```
+4. Go to **Settings → Calendar** and connect your account.
+
 
 ## 🤝 Contributing
 
