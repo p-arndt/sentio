@@ -1,18 +1,32 @@
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import { OAuthHandlerError, createOAuthCallbackHandler } from '$lib/server/oauth/callback-handler';
+
+const tenant = env.MICROSOFT_TENANT_ID || publicEnv.PUBLIC_MICROSOFT_TENANT_ID || 'common';
 
 const handler = createOAuthCallbackHandler({
 	providerId: 'microsoft',
 	providerName: 'Microsoft',
-	tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-	buildTokenParams: (code) => ({
-		client_id: env.MICROSOFT_CLIENT_ID || '',
-		client_secret: env.MICROSOFT_CLIENT_SECRET || '',
-		code,
-		grant_type: 'authorization_code',
-		redirect_uri: env.MICROSOFT_REDIRECT_URI || '',
-		scope: 'Calendars.Read offline_access'
-	}),
+	tokenUrl: `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,
+	buildTokenParams: (code) => {
+		const configuredRedirect = env.MICROSOFT_REDIRECT_URI;
+		const fallbackBase = env.BETTER_AUTH_URL || '';
+		const redirectUri =
+			configuredRedirect && configuredRedirect.startsWith('http')
+				? configuredRedirect
+				: fallbackBase
+					? `${fallbackBase.replace(/\/$/, '')}/api/oauth/microsoft/callback`
+					: '';
+
+		return {
+			client_id: env.MICROSOFT_CLIENT_ID || publicEnv.PUBLIC_MICROSOFT_CLIENT_ID || '',
+			client_secret: env.MICROSOFT_CLIENT_SECRET || '',
+			code,
+			grant_type: 'authorization_code',
+			redirect_uri: redirectUri,
+			scope: 'Calendars.Read offline_access'
+		};
+	},
 	deriveUserInfo: async (tokens) => {
 		const userResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
 			headers: {
@@ -45,8 +59,8 @@ const handler = createOAuthCallbackHandler({
 		};
 	},
 	scope: 'Calendars.Read offline_access',
-	successRedirect: '/settings/calendar?success=microsoft_calendar_connected',
-	errorRedirectBase: '/settings/calendar',
+	successRedirect: '/settings?success=microsoft_calendar_connected',
+	errorRedirectBase: '/settings',
 	logPrefix: '[Microsoft OAuth]'
 });
 

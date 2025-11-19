@@ -4,6 +4,7 @@
  */
 
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import type { CalendarEvent, GoogleCalendarEvent } from './types';
 
 export type RefreshTokenResult = {
@@ -66,13 +67,16 @@ async function refreshGoogleToken(refreshToken: string): Promise<RefreshTokenRes
  * Refresh Microsoft OAuth token
  */
 async function refreshMicrosoftToken(refreshToken: string): Promise<RefreshTokenResult> {
-	const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+	const tenant = env.MICROSOFT_TENANT_ID || publicEnv.PUBLIC_MICROSOFT_TENANT_ID || 'common';
+	const tokenUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`;
+
+	const response = await fetch(tokenUrl, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		},
 		body: new URLSearchParams({
-			client_id: env.MICROSOFT_CLIENT_ID || '',
+			client_id: env.MICROSOFT_CLIENT_ID || publicEnv.PUBLIC_MICROSOFT_CLIENT_ID || '',
 			client_secret: env.MICROSOFT_CLIENT_SECRET || '',
 			refresh_token: refreshToken,
 			grant_type: 'refresh_token',

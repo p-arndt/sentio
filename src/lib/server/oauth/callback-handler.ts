@@ -75,13 +75,24 @@ export const createOAuthCallbackHandler =
 			return json({ error: 'Missing authorization code' }, { status: 400 });
 		}
 
+		const tokenParams = config.buildTokenParams(code);
+
+		// Ensure confidential clients include client credentials
+		const hasClientSecret = Boolean(tokenParams.client_secret);
+		const hasClientAssertion = Boolean(tokenParams.client_assertion);
+
+		if (!hasClientSecret && !hasClientAssertion) {
+			console.error(`${config.logPrefix} Missing client credentials for token exchange`);
+			throw redirect(303, buildErrorRedirect('missing_client_credentials'));
+		}
+
 		const tokenResponse = await fetch(config.tokenUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 				...config.tokenHeaders
 			},
-			body: new URLSearchParams(config.buildTokenParams(code))
+			body: new URLSearchParams(tokenParams)
 		});
 
 		if (!tokenResponse.ok) {

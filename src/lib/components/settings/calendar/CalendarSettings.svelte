@@ -183,7 +183,8 @@
 			state: crypto.randomUUID()
 		});
 
-		window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+		const tenant = env.PUBLIC_MICROSOFT_TENANT_ID || 'common';
+		window.location.href = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?${params}`;
 	}
 </script>
 
