@@ -11,6 +11,7 @@
 	import * as Empty from '$lib/components/ui/empty/index.js';
 	import { Calendar, Plus, Settings, Users } from '@lucide/svelte';
 	import { formatDate, getVisibilityIcon } from '$lib/utils';
+	import { fly } from 'svelte/transition';
 
 	let { data } = $props();
 </script>
@@ -36,7 +37,7 @@
 	<!-- Teams Grid -->
 	{#if data.teams.length > 0}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each data.teams as team}
+			{#each data.teams as team (team.id)}
 				<Card class="group transition-all hover:shadow-lg">
 					<CardHeader>
 						<div class="flex items-start justify-between">

@@ -6,7 +6,7 @@
 	import MemberActivityChart from '$lib/components/analytics/MemberActivityChart.svelte';
 	import MoodTrendChart from '$lib/components/analytics/MoodTrendChart.svelte';
 	import type { PageData } from './$types';
-
+	import { blur } from 'svelte/transition';
 	let { data }: { data: PageData } = $props();
 
 	const totalEntries = $derived(data.allEntries.length);
@@ -29,7 +29,7 @@
 	<title>{data.team.name} Analytics - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto space-y-6 px-4 py-8">
+<div class="container mx-auto space-y-6 px-4 py-8" in:blur>
 	<!-- Header -->
 	<AnalyticsHeader
 		title="{data.team.name} Analytics"

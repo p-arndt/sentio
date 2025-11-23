@@ -25,6 +25,7 @@
 	} from '$lib/components/ui/alert-dialog';
 	import { ChevronLeft, Save, Trash2, Settings as SettingsIcon } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
+	import { fly, fade } from 'svelte/transition';
 
 	let { data, form } = $props();
 
@@ -40,7 +41,7 @@
 	<title>Team Settings - {data.team.name} - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
+<div class="container mx-auto max-w-4xl space-y-6 px-4 py-8" in:fade={{ duration: 300 }}>
 	<!-- Header -->
 	<div class="flex items-center gap-3">
 		<Button href="/teams/{data.team.id}" variant="ghost" size="icon">
@@ -54,6 +55,7 @@
 
 	{#if form?.success}
 		<div
+			in:fly={{ y: -10, duration: 300 }}
 			class="rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100"
 		>
 			{form.message}
@@ -62,6 +64,7 @@
 
 	{#if form?.error}
 		<div
+			in:fly={{ y: -10, duration: 300 }}
 			class="rounded-lg border border-red-500 bg-red-50 p-4 text-red-900 dark:bg-red-950 dark:text-red-100"
 		>
 			{form.error}
@@ -81,7 +84,13 @@
 			<form method="POST" action="?/updateSettings" use:enhance class="space-y-6">
 				<div class="space-y-2">
 					<Label for="name">Team Name</Label>
-					<Input id="name" name="name" bind:value={name} required />
+					<Input
+						id="name"
+						name="name"
+						bind:value={name}
+						required
+						class="transition-all focus:ring-2 focus:ring-primary/20"
+					/>
 				</div>
 
 				<div class="space-y-2">
@@ -92,13 +101,14 @@
 						bind:value={description}
 						placeholder="Describe your team..."
 						rows={3}
+						class="resize-none transition-all focus:ring-2 focus:ring-primary/20"
 					/>
 				</div>
 
 				<div class="space-y-2">
 					<Label for="visibility">Visibility</Label>
 					<Select name="visibility" type="single" bind:value={visibility}>
-						<SelectTrigger>
+						<SelectTrigger class="transition-all focus:ring-2 focus:ring-primary/20">
 							{visibility ? visibility : 'Select visibility'}
 						</SelectTrigger>
 						<SelectContent>
@@ -112,7 +122,7 @@
 				</div>
 
 				<div class="flex justify-end">
-					<Button type="submit">
+					<Button type="submit" class="transition-all active:scale-95">
 						<Save class="mr-2 h-4 w-4" />
 						Save General Settings
 					</Button>
@@ -121,7 +131,7 @@
 		</CardContent>
 	</Card>
 
-			<!-- Calendar Settings -->
+	<!-- Calendar Settings -->
 	<Card>
 		<CardHeader>
 			<CardTitle>Calendar Settings</CardTitle>
@@ -133,7 +143,9 @@
 				<input type="hidden" name="description" value={description} />
 				<input type="hidden" name="visibility" value={visibility} />
 
-				<div class="flex items-center justify-between">
+				<div
+					class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+				>
 					<div class="space-y-0.5">
 						<Label>Allow Multiple Moods Per Day</Label>
 						<p class="text-sm text-muted-foreground">
@@ -142,9 +154,15 @@
 					</div>
 					<Switch bind:checked={allowMultipleMoodsPerDay} />
 				</div>
-				<input type="hidden" name="allowMultipleMoodsPerDay" value={allowMultipleMoodsPerDay ? 'true' : 'false'} />
+				<input
+					type="hidden"
+					name="allowMultipleMoodsPerDay"
+					value={allowMultipleMoodsPerDay ? 'true' : 'false'}
+				/>
 
-				<div class="flex items-center justify-between">
+				<div
+					class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+				>
 					<div class="space-y-0.5">
 						<Label>Require Comment</Label>
 						<p class="text-sm text-muted-foreground">Make comments mandatory when logging moods</p>
@@ -153,15 +171,18 @@
 				</div>
 				<input type="hidden" name="requireComment" value={requireComment ? 'true' : 'false'} />
 
-				<div class="flex items-center justify-between">
+				<div
+					class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+				>
 					<div class="space-y-0.5">
 						<Label>Show Weekends</Label>
 						<p class="text-sm text-muted-foreground">Display Saturday and Sunday in the calendar</p>
 					</div>
 					<Switch bind:checked={showWeekends} />
 				</div>
-				<input type="hidden" name="showWeekends" value={showWeekends ? 'true' : 'false'} />				<div class="flex justify-end">
-					<Button type="submit">
+				<input type="hidden" name="showWeekends" value={showWeekends ? 'true' : 'false'} />
+				<div class="flex justify-end">
+					<Button type="submit" class="transition-all active:scale-95">
 						<Save class="mr-2 h-4 w-4" />
 						Save Calendar Settings
 					</Button>
@@ -177,31 +198,41 @@
 			<CardDescription>Irreversible actions for this team</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<AlertDialog>
-				<AlertDialogTrigger>
-					<Button variant="destructive">
-						<Trash2 class="mr-2 h-4 w-4" />
-						Delete Team
-					</Button>
-				</AlertDialogTrigger>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete the team
-							<strong>{data.team.name}</strong> and all associated mood entries.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<form method="POST" action="?/deleteTeam" use:enhance>
-							<AlertDialogAction type="submit" class="bg-destructive">
-								Delete Team
-							</AlertDialogAction>
-						</form>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			<div
+				class="flex items-center justify-between rounded-lg border border-destructive/20 bg-destructive/5 p-4"
+			>
+				<div class="space-y-1">
+					<p class="font-medium text-destructive">Delete this team</p>
+					<p class="text-sm text-muted-foreground">
+						Once you delete a team, there is no going back. Please be certain.
+					</p>
+				</div>
+				<AlertDialog>
+					<AlertDialogTrigger>
+						<Button variant="destructive">
+							<Trash2 class="mr-2 h-4 w-4" />
+							Delete Team
+						</Button>
+					</AlertDialogTrigger>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+							<AlertDialogDescription>
+								This action cannot be undone. This will permanently delete the team
+								<strong>{data.team.name}</strong> and all associated mood entries.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<form method="POST" action="?/deleteTeam" use:enhance>
+								<AlertDialogAction type="submit" class="bg-destructive">
+									Delete Team
+								</AlertDialogAction>
+							</form>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</div>
 		</CardContent>
 	</Card>
 </div>

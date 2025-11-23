@@ -14,6 +14,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { ArrowLeft, Save, Users } from '@lucide/svelte';
+	import { fly, fade } from 'svelte/transition';
 
 	let { data } = $props();
 
@@ -100,85 +101,89 @@
 	<form onsubmit={handleSubmit}>
 		<!-- Basic Information -->
 		<Card>
-			<CardHeader>
-				<CardTitle class="flex items-center gap-2">
-					<Users class="h-5 w-5" />
-					Team Information
-				</CardTitle>
-				<CardDescription>Basic details about your team</CardDescription>
-			</CardHeader>
-			<CardContent class="space-y-6">
-				<div class="space-y-2">
-					<Label for="name">Team Name *</Label>
-					<Input
-						id="name"
-						bind:value={name}
-						placeholder="e.g., Development Team, Marketing Squad"
-						required
-					/>
-				</div>
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<div class="rounded-lg bg-primary/10 p-2 text-primary">
+							<Users class="h-5 w-5" />
+						</div>
+						Team Information
+					</CardTitle>
+					<CardDescription>Basic details about your team</CardDescription>
+				</CardHeader>
+				<CardContent class="space-y-6">
+					<div class="space-y-2">
+						<Label for="name">Team Name *</Label>
+						<Input
+							id="name"
+							bind:value={name}
+							placeholder="e.g., Development Team, Marketing Squad"
+							required
+							class="transition-all focus:ring-2 focus:ring-primary/20"
+						/>
+					</div>
 
-				<div class="space-y-2">
-					<Label for="description">Description</Label>
-					<Textarea
-						id="description"
-						bind:value={description}
-						placeholder="Describe the purpose of this team..."
-						rows={3}
-					/>
-				</div>
+					<div class="space-y-2">
+						<Label for="description">Description</Label>
+						<Textarea
+							id="description"
+							bind:value={description}
+							placeholder="Describe the purpose of this team..."
+							rows={3}
+							class="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+						/>
+					</div>
 
-				<div class="space-y-2">
-					<Label for="visibility">Visibility</Label>
-					<Select type="single" bind:value={visibility}>
-						<SelectTrigger>
-							{visibility ? visibility : 'Select visibility'}
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="public">Public - Anyone can view this team</SelectItem>
-							<SelectItem value="team">Team Only - Only team members can view</SelectItem>
-							<SelectItem value="private">Private - Hidden from others</SelectItem>
-						</SelectContent>
-					</Select>
-					<p class="text-xs text-muted-foreground">Control who can see this team's calendar</p>
-				</div>
-			</CardContent>
-		</Card>
+					<div class="space-y-2">
+						<Label for="visibility">Visibility</Label>
+						<Select type="single" bind:value={visibility}>
+							<SelectTrigger class="transition-all focus:ring-2 focus:ring-primary/20">
+								{visibility ? visibility : 'Select visibility'}
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="public">Public - Anyone can view this team</SelectItem>
+								<SelectItem value="team">Team Only - Only team members can view</SelectItem>
+								<SelectItem value="private">Private - Hidden from others</SelectItem>
+							</SelectContent>
+						</Select>
+						<p class="text-xs text-muted-foreground">Control who can see this team's calendar</p>
+					</div>
+				</CardContent>
+			</Card>
 
 		<!-- Calendar Settings -->
 		<Card class="mt-6">
-			<CardHeader>
-				<CardTitle>Calendar Settings</CardTitle>
-				<CardDescription>Configure how the calendar works for this team</CardDescription>
-			</CardHeader>
-			<CardContent class="space-y-6">
-				<div class="flex items-center justify-between">
-					<div class="space-y-0.5">
-						<Label>Allow Multiple Moods Per Day</Label>
-						<p class="text-sm text-muted-foreground">
-							Let members log multiple mood entries in a single day
-						</p>
+				<CardHeader>
+					<CardTitle>Calendar Settings</CardTitle>
+					<CardDescription>Configure how the calendar works for this team</CardDescription>
+				</CardHeader>
+				<CardContent class="space-y-6">
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Allow Multiple Moods Per Day</Label>
+							<p class="text-sm text-muted-foreground">
+								Let members log multiple mood entries in a single day
+							</p>
+						</div>
+						<Switch bind:checked={allowMultipleMoodsPerDay} />
 					</div>
-					<Switch bind:checked={allowMultipleMoodsPerDay} />
-				</div>
 
-				<div class="flex items-center justify-between">
-					<div class="space-y-0.5">
-						<Label>Require Comment</Label>
-						<p class="text-sm text-muted-foreground">Make comments mandatory when logging moods</p>
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Require Comment</Label>
+							<p class="text-sm text-muted-foreground">Make comments mandatory when logging moods</p>
+						</div>
+						<Switch bind:checked={requireComment} />
 					</div>
-					<Switch bind:checked={requireComment} />
-				</div>
 
-				<div class="flex items-center justify-between">
-					<div class="space-y-0.5">
-						<Label>Show Weekends</Label>
-						<p class="text-sm text-muted-foreground">Display Saturday and Sunday in the calendar</p>
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Show Weekends</Label>
+							<p class="text-sm text-muted-foreground">Display Saturday and Sunday in the calendar</p>
+						</div>
+						<Switch bind:checked={showWeekends} />
 					</div>
-					<Switch bind:checked={showWeekends} />
-				</div>
-			</CardContent>
-		</Card>
+				</CardContent>
+			</Card>
 
 		<!-- Actions -->
 		<div class="mt-6 flex justify-end gap-3">

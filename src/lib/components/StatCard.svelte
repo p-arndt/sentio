@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	type Props = { title: string; value: string | number; subtitle?: string; icon?: any };
-	let { title, value, subtitle, icon: Icon }: Props = $props();
+	import { cn } from '$lib/utils';
+	
+	type Props = { 
+		title: string; 
+		value: string | number; 
+		subtitle?: string; 
+		icon?: any;
+		class?: string;
+	};
+	let { title, value, subtitle, icon: Icon, class: className }: Props = $props();
 </script>
 
-<Card>
+<Card class={cn("transition-all hover:shadow-sm", className)}>
 	<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 		<CardTitle class="text-sm font-medium">{title}</CardTitle>
 		{#if Icon}

@@ -10,6 +10,7 @@
 		deltaValence
 	} from '$lib/utils/emotion-analytics';
 	import type { PageData } from './$types';
+	import { fly, fade, slide, blur } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
 
@@ -20,14 +21,13 @@
 	// compute analytics
 	const avg7 = averageValence7Days(data.last7DaysEntries);
 	const delta7 = deltaValence(data.allEntries, 7);
-
 </script>
 
 <svelte:head>
 	<title>Personal Analytics - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-6xl space-y-6 px-4 py-8">
+<div class="container mx-auto max-w-6xl space-y-6 px-4 py-8" in:blur>
 	<!-- Header -->
 	<AnalyticsHeader
 		title="Personal Analytics"

@@ -15,7 +15,8 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Separator } from '$lib/components/ui/separator';
 	import { getUserInitials } from '$lib/utils/user';
-	import { Save, Trophy, User } from '@lucide/svelte';
+	import { Check, Save, Trophy, User } from '@lucide/svelte';
+	import { fly, blur } from 'svelte/transition';
 
 	let { data, form } = $props();
 
@@ -40,7 +41,7 @@
 	<title>Profile Settings - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl space-y-6 px-4 py-8">
+<div class="container mx-auto max-w-5xl space-y-8 px-4 py-8" in:blur>
 	<!-- Header -->
 	<div>
 		<h1 class="text-3xl font-bold">Profile Settings</h1>
@@ -49,14 +50,17 @@
 
 	{#if form?.success}
 		<div
-			class="rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100"
+			in:fly={{ y: -10, duration: 300 }}
+			class="flex items-center gap-2 rounded-lg border border-green-500 bg-green-50 p-4 text-green-900 dark:bg-green-950 dark:text-green-100"
 		>
+			<Check class="h-4 w-4" />
 			{form.message}
 		</div>
 	{/if}
 
 	{#if form?.error}
 		<div
+			in:fly={{ y: -10, duration: 300 }}
 			class="rounded-lg border border-red-500 bg-red-50 p-4 text-red-900 dark:bg-red-950 dark:text-red-100"
 		>
 			{form.error}
@@ -123,7 +127,7 @@
 	<Card>
 		<CardHeader>
 			<CardTitle class="inline-flex items-center gap-2">
-				<Trophy class="h-5 w-5" />
+				<Trophy class="h-5 w-5 text-yellow-500" />
 				Achievements
 			</CardTitle>
 			<CardDescription>Your earned achievements</CardDescription>

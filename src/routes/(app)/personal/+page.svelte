@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import MoodEntryDialog from '$lib/components/MoodEntryDialog.svelte';
+	import PersonalCalendarContainer from '$lib/components/personal/PersonalCalendarContainer.svelte';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import PersonalCalendarContainer from '$lib/components/personal/PersonalCalendarContainer.svelte';
 	import type { MoodEntryWithDetails } from '$lib/types';
 	import {
 		formatDate,
 		getWeekDaysFromUTCStart,
-		getWeekDays,
 		toDate,
 		toDateString,
 		toYMD
 	} from '$lib/utils/date';
 	import { BarChart3, Heart, Plus } from '@lucide/svelte';
+	import { blur } from 'svelte/transition';
 
 	let { data } = $props();
 
@@ -162,7 +162,7 @@
 	<title>Personal Calendar - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-6xl space-y-6 px-4 py-8">
+<div class="container mx-auto max-w-6xl space-y-6 px-4 py-8" in:blur>
 	<!-- Header -->
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div>

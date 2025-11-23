@@ -24,6 +24,7 @@
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
 	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
+	import { fly, fade } from 'svelte/transition';
 
 	let { data } = $props();
 
@@ -166,12 +167,12 @@
 	<title>{data.team.name} - Team Dashboard - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto space-y-6 px-4 py-8">
+<div class="container mx-auto space-y-6 px-4 py-8" in:fade={{ duration: 300 }}>
 	<!-- Header -->
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div class="space-y-1">
 			<div class="flex items-center gap-3">
-				<Button href="/teams" variant="ghost" size="icon">
+				<Button href="/teams" variant="ghost" size="icon" class="rounded-full hover:bg-muted">
 					<ChevronLeft class="h-4 w-4" />
 				</Button>
 				<div>
@@ -184,16 +185,28 @@
 		</div>
 
 		<div class="flex gap-2">
-			<Button href="/teams/{data.team.id}/analytics" variant="outline">
+			<Button
+				href="/teams/{data.team.id}/analytics"
+				variant="outline"
+				class="transition-all hover:border-primary hover:text-primary"
+			>
 				<BarChart3 class="mr-2 h-4 w-4" />
 				Analytics
 			</Button>
 			{#if data.isAdmin}
-				<Button href="/teams/{data.team.id}/members" variant="outline">
+				<Button
+					href="/teams/{data.team.id}/members"
+					variant="outline"
+					class="transition-all hover:bg-muted"
+				>
 					<UserPlus class="mr-2 h-4 w-4" />
 					Manage Members
 				</Button>
-				<Button href="/teams/{data.team.id}/settings" variant="outline">
+				<Button
+					href="/teams/{data.team.id}/settings"
+					variant="outline"
+					class="transition-all hover:bg-muted"
+				>
 					<Settings class="mr-2 h-4 w-4" />
 					Settings
 				</Button>
@@ -268,7 +281,9 @@
 		<CardContent>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each data.team.members as member (member.userId)}
-					<div class="flex items-center gap-3 rounded-lg border p-3">
+					<div
+						class="flex items-center gap-3 rounded-lg border p-3 transition-all hover:bg-muted/30 hover:shadow-sm"
+					>
 						<Avatar>
 							<AvatarImage src={member.user.image ?? undefined} alt={member.user.name} />
 							<AvatarFallback>{getUserInitials(member.user.name)}</AvatarFallback>

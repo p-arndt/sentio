@@ -12,6 +12,7 @@
 	import { getGreeting, formatDate } from '$lib/utils';
 	import type { PageData } from './$types';
 	import DashboardQuickMoodEntry from '$lib/components/DashboardQuickMoodEntry.svelte';
+	import { fly, fade } from 'svelte/transition';
 
 	type Props = {
 		data: PageData;
@@ -40,7 +41,7 @@
 	<title>Dashboard - Sentio</title>
 </svelte:head>
 
-<div class="container mx-auto space-y-8 px-4 py-8">
+<div class="container mx-auto space-y-8 px-4 py-8" in:fade={{ duration: 300 }}>
 	<!-- Hero Section -->
 	<div class="space-y-2">
 		<h1 class="text-4xl font-bold tracking-tight">
@@ -48,7 +49,6 @@
 		</h1>
 		<p class="text-xl text-muted-foreground">How are you feeling today?</p>
 	</div>
-
 
 	<!-- Quick Mood Entry Card -->
 	<DashboardQuickMoodEntry
@@ -72,7 +72,7 @@
 			</CardContent>
 		</Card>
 
-		<Card>
+		<Card class="transition-all hover:shadow-md">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium">Personal Entries</CardTitle>
 				<Heart class="h-4 w-4 text-muted-foreground" />
@@ -83,7 +83,7 @@
 			</CardContent>
 		</Card>
 
-		<Card>
+		<Card class="transition-all hover:shadow-md">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium">Team Activity</CardTitle>
 				<Activity class="h-4 w-4 text-muted-foreground" />
@@ -170,7 +170,7 @@
 			<CardContent>
 				<div class="space-y-3">
 					{#each data.personalEntries.slice(0, 5) as entry}
-						<div class="flex items-center gap-4 rounded-lg border p-3">
+							<div class="flex items-center gap-4 rounded-lg border p-3 transition-colors hover:bg-muted/50">
 							<div class="rounded-full p-2" style="background-color: {entry.emotion.color}20;">
 								<span class="text-2xl">{entry.emotion.emoji}</span>
 							</div>
