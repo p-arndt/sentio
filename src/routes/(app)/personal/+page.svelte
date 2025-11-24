@@ -194,7 +194,7 @@
 		<StatCard title="Streak" value="Coming soon" />
 	</div>
 
-	<!-- Calendar Container with Day/Week/Month Views -->
+	<!-- Calendar Container with Week/Month Views -->
 	<PersonalCalendarContainer
 		{weekStart}
 		{weekDays}

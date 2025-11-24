@@ -2,12 +2,11 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import type { Emotion, MoodEntryWithDetails, TeamMemberWithUser } from '$lib/types';
 	import CalendarViewToggle from '../calendar/CalendarViewToggle.svelte';
-	import DayView from '../calendar/views/DayView.svelte';
 	import MonthView from '../calendar/views/MonthView.svelte';
 	import WeekView from '../calendar/views/WeekView.svelte';
 	// weekDays are provided by the parent page and are UTC-aware local midnight dates
 
-	type CalendarViewMode = 'week' | 'month' | 'day';
+	type CalendarViewMode = 'week' | 'month';
 
 	type Props = {
 		weekStart: Date;
@@ -59,15 +58,8 @@
 		selectedDate = newDate;
 	}
 
-	function handleDayChange(direction: 'prev' | 'next') {
-		const newDate = new Date(selectedDate);
-		const delta = direction === 'prev' ? -1 : 1;
-		newDate.setDate(newDate.getDate() + delta);
-		selectedDate = newDate;
-	}
-
 	function handleDaySelect(date: Date) {
-		mode = 'day';
+		mode = 'week';
 		selectedDate = date;
 	}
 </script>
@@ -102,18 +94,6 @@
 					{entries}
 					onMonthChange={handleMonthChange}
 					onDaySelect={handleDaySelect}
-				/>
-			{:else if mode === 'day'}
-				<DayView
-					selectedDate={selectedDate || new Date()}
-					teamMembers={[teamMember]}
-					{emotions}
-					{entries}
-					currentUserId={userId}
-					onDayChange={handleDayChange}
-					onEdit={(date, entry) => onEdit?.(date, entry)}
-					{isSubmitting}
-					{requireComment}
 				/>
 			{/if}
 		</CardContent>

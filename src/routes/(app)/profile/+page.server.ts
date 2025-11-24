@@ -52,7 +52,7 @@ export const actions = {
 
 		const data = await request.formData();
 		const theme = data.get('theme')?.toString() as 'light' | 'dark' | 'system' | undefined;
-		const defaultView = data.get('defaultView')?.toString() as 'day' | 'week' | 'month' | undefined;
+		const defaultView = data.get('defaultView')?.toString() as 'week' | 'month' | undefined;
 		const enableNotificationsStr = data.get('enableNotifications')?.toString();
 		const startPage = data.get('startPage')?.toString();
 

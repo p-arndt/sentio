@@ -8,11 +8,10 @@ import type {
 	TeamWithMembers
 } from '$lib/types';
 	import CalendarViewToggle from './CalendarViewToggle.svelte';
-	import DayView from './views/DayView.svelte';
 	import MonthView from './views/MonthView.svelte';
 	import WeekView from './views/WeekView.svelte';
 
-	type CalendarViewMode = 'week' | 'month' | 'day';
+	type CalendarViewMode = 'week' | 'month';
 
 	type Props = {
 		teamId: string;
@@ -71,15 +70,8 @@ import type {
 		selectedDate = newDate;
 	}
 
-	function handleDayChange(direction: 'prev' | 'next') {
-		const newDate = new Date(selectedDate);
-		const delta = direction === 'prev' ? -1 : 1;
-		newDate.setDate(newDate.getDate() + delta);
-		selectedDate = newDate;
-	}
-
 	function handleDaySelect(date: Date) {
-		mode = 'day';
+		mode = 'week';
 		selectedDate = date;
 	}
 </script>
@@ -123,20 +115,6 @@ import type {
 					onDaySelect={handleDaySelect}
 				/>
 				<!-- </div> -->
-			{:else if mode === 'day'}
-				<DayView
-					{selectedDate}
-					{teamMembers}
-					{emotions}
-					{entries}
-					{currentUserId}
-					{teamId}
-					teamSharingPreferenceForCurrentUser={teamSharingPreference}
-					onDayChange={handleDayChange}
-					{onEdit}
-					{isSubmitting}
-					{requireComment}
-				/>
 			{/if}
 		</CardContent>
 	</Card>

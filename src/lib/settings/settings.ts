@@ -74,7 +74,6 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
 				description: 'Your preferred calendar view when opening the app',
 				defaultValue: 'week',
 				options: [
-					{ value: 'day', label: 'Day View' },
 					{ value: 'week', label: 'Week View' },
 					{ value: 'month', label: 'Month View' }
 				]

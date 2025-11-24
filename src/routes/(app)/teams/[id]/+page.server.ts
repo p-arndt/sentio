@@ -92,7 +92,7 @@ export async function load({ params, locals, url }) {
 		currentUserId: locals.user.id,
 		weekStart: startOfWeek.toISOString(),
 		weekEnd: endOfWeek.toISOString(),
-		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week',
+		defaultView: (preferences?.settings?.defaultView as 'week' | 'month') || 'week',
 		teamSharingPreference,
 		teamSharingOverrides,
 		teamSharingDefault

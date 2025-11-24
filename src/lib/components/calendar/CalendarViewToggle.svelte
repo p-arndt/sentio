@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Calendar, Calendar1, CalendarDays } from '@lucide/svelte';
+	import { Calendar, CalendarDays } from '@lucide/svelte';
 	import { cn } from '$lib/utils';
 
-	type CalendarViewMode = 'week' | 'month' | 'day';
+	type CalendarViewMode = 'week' | 'month';
 
 	type Props = {
 		mode: CalendarViewMode;
@@ -14,7 +14,6 @@
 	let { mode, onModeChange, className = '' } = $props();
 
 	const viewOptions: { value: CalendarViewMode; label: string; icon: any }[] = [
-		{ value: 'day', label: 'Day', icon: Calendar1 },
 		{ value: 'week', label: 'Week', icon: Calendar },
 		{ value: 'month', label: 'Month', icon: CalendarDays }
 	];

@@ -37,6 +37,6 @@ export async function load({ locals, url }) {
 		emotions,
 		weekStart: startOfWeek.toISOString(),
 		weekEnd: endOfWeek.toISOString(),
-		defaultView: (preferences?.settings?.defaultView as 'day' | 'week' | 'month') || 'week'
+		defaultView: (preferences?.settings?.defaultView as 'week' | 'month') || 'week'
 	};
 }

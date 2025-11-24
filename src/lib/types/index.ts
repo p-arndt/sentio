@@ -16,14 +16,14 @@ export interface User {
  * User settings stored as JSONB. Structure is flexible to support any future settings.
  * Current known settings:
  * - theme: 'light' | 'dark' | 'system' (default: 'system')
- * - defaultView: 'day' | 'week' | 'month' (default: 'week')
+ * - defaultView: 'week' | 'month' (default: 'week')
  * - startPage: string, path like '/', '/personal', '/teams', '/teams/<id>' (default: '/')
  * - enableNotifications: boolean (default: true)
  * - lastQuickMoodTargets: { personal: boolean, teamIds: string[] } - Last selected targets for quick mood entry
  */
 export interface UserSettings {
 	theme?: 'light' | 'dark' | 'system';
-	defaultView?: 'day' | 'week' | 'month';
+	defaultView?: 'week' | 'month';
 	startPage?: string;
 	enableNotifications?: boolean;
 	teamSharingDefault?: MoodSharePreference;
