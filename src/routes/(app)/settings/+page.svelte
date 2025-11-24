@@ -15,6 +15,15 @@
 	import RemindersManager from '$lib/components/RemindersManager.svelte';
 	import NotificationSettings from '$lib/components/NotificationSettings.svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import { Button } from '$lib/components/ui/button';
+	import { showNotificationPopup } from '$lib/client/notification-popup';
+	import { Bell } from '@lucide/svelte';
+	import { onMount } from 'svelte';
+	import {
+		enableAutostart,
+		disableAutostart,
+		checkAutostartEnabled
+	} from '$lib/client/autostart';
 	import type { PageData } from './$types';
 	import { blur } from 'svelte/transition';
 
@@ -34,6 +43,27 @@
 
 	let saveStatus = $state<'idle' | 'success' | 'error'>('idle');
 	let saveTimeout: ReturnType<typeof setTimeout> | undefined;
+	
+	// Autostart state (Tauri only)
+	let autostartEnabled = $state(false);
+	let isCheckingAutostart = $state(true);
+	let isTauri = $state(false);
+	
+	onMount(async () => {
+		// Check if we're in Tauri
+		if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+			isTauri = true;
+			try {
+				autostartEnabled = await checkAutostartEnabled();
+			} catch (error) {
+				console.error('Failed to check autostart status:', error);
+			} finally {
+				isCheckingAutostart = false;
+			}
+		} else {
+			isCheckingAutostart = false;
+		}
+	});
 
 	function showSaveSuccess() {
 		saveStatus = 'success';
@@ -89,6 +119,33 @@
 
 		return path;
 	}
+
+	async function testNotificationPopup() {
+		try {
+			await showNotificationPopup({
+				title: 'Mood Reminder',
+				message: 'How are you feeling right now?',
+				autoHide: false,
+				showMoods: true
+			});
+		} catch (error) {
+			console.error('Failed to show notification:', error);
+		}
+	}
+	
+	async function toggleAutostart(enabled: boolean) {
+		try {
+			if (enabled) {
+				await enableAutostart();
+				autostartEnabled = true;
+			} else {
+				await disableAutostart();
+				autostartEnabled = false;
+			}
+		} catch (error) {
+			console.error('Failed to toggle autostart:', error);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -125,6 +182,34 @@
 
 		<!-- General Settings -->
 		<TabsContent value="general" class="space-y-6">
+			<!-- Autostart Setting (Tauri only) -->
+			{#if isTauri}
+				<Card>
+					<CardHeader>
+						<CardTitle>Startup</CardTitle>
+						<CardDescription>Configure how Sentio starts with your system</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div class="flex items-center justify-between rounded-lg border p-4">
+							<div class="space-y-0.5">
+								<Label>Start with system</Label>
+								<p class="text-sm text-muted-foreground">
+									Automatically launch Sentio when your computer starts
+								</p>
+							</div>
+							{#if isCheckingAutostart}
+								<div class="text-sm text-muted-foreground">Checking...</div>
+							{:else}
+								<Switch
+									checked={autostartEnabled}
+									onCheckedChange={(checked) => toggleAutostart(checked)}
+								/>
+							{/if}
+						</div>
+					</CardContent>
+				</Card>
+			{/if}
+			
 			{#each SETTINGS_SECTIONS as section (section.id)}
 				<Card>
 					<CardHeader>
@@ -196,14 +281,41 @@
 		</TabsContent>
 
 		<!-- Notifications -->
-		<TabsContent value="notifications">
+		<TabsContent value="notifications" class="space-y-6">
 			<Card>
-				<NotificationSettings
-					vapidPublicKey={data.vapidPublicKey}
-					currentUser={data.user}
-					initialIsSubscribed={data.hasPushSubscription}
-				/>
+				<CardHeader>
+					<CardTitle>Push Notifications</CardTitle>
+					<CardDescription>Configure browser push notifications</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<NotificationSettings
+						vapidPublicKey={data.vapidPublicKey}
+						currentUser={data.user}
+						initialIsSubscribed={data.hasPushSubscription}
+					/>
+				</CardContent>
 			</Card>
+
+			<!-- Test Notification Popup (Tauri only) -->
+			{#if typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window}
+				<Card>
+					<CardHeader>
+						<CardTitle>Custom Popup Notifications</CardTitle>
+						<CardDescription>
+							Test the Teams-style custom popup notification system (Tauri only)
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Button onclick={testNotificationPopup} class="w-full sm:w-auto">
+							<Bell class="mr-2 h-4 w-4" />
+							Test Notification Popup
+						</Button>
+						<p class="mt-2 text-sm text-muted-foreground">
+							Click to show a test notification popup in the bottom-right corner
+						</p>
+					</CardContent>
+				</Card>
+			{/if}
 		</TabsContent>
 
 		<!-- Reminders -->

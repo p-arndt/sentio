@@ -2,13 +2,9 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
-
+const host = process.env.TAURI_DEV_HOST;
 export default defineConfig({
-	plugins: [
-		tailwindcss(),
-		sveltekit(),
-		devtoolsJson()
-	],
+	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
@@ -41,5 +37,22 @@ export default defineConfig({
 		entries: ['src/**/*.svelte'],
 		include: ['better-auth/svelte-kit', '@lucide/svelte'],
 		holdUntilCrawlEnd: false
+	},
+	clearScreen: false,
+	server: {
+		port: 5173,
+		strictPort: true,
+		host: host || false,
+		hmr: host
+			? {
+					protocol: 'ws',
+					host,
+					port: 5174
+				}
+			: undefined,
+		watch: {
+			// 3. tell Vite to ignore watching `src-tauri`
+			ignored: ['**/src-tauri/**']
+		}
 	}
 });
