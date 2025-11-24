@@ -17,14 +17,17 @@ export async function load({ params, locals }) {
 		throw redirect(303, '/teams');
 	}
 
-	const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+	const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 
 	if (!isAdmin) {
 		throw redirect(303, `/teams/${params.id}`);
 	}
 
+	const teamTrees = await TeamService.getUserTeamTrees(locals.user.id);
+
 	return {
-		team
+		team,
+		teamTrees
 	};
 }
 
@@ -34,7 +37,7 @@ export const actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return fail(403, { error: 'Only admins can update settings' });
 		}
@@ -47,9 +50,18 @@ export const actions = {
 		const allowMultipleMoodsPerDay = data.get('allowMultipleMoodsPerDay') === 'true';
 		const requireComment = data.get('requireComment') === 'true';
 		const showWeekends = data.get('showWeekends') === 'true';
+		const parentId = data.get('parentId')?.toString() || null;
+		const isContainer = data.get('isContainer') === 'true';
 
 		if (!name) {
 			return fail(400, { error: 'Team name is required' });
+		}
+
+		if (parentId) {
+			const isValidMove = await TeamService.validateTeamMove(params.id, parentId);
+			if (!isValidMove) {
+				return fail(400, { error: 'Invalid parent team (circular reference detected)' });
+			}
 		}
 
 		await TeamService.updateTeam(params.id, {
@@ -58,7 +70,9 @@ export const actions = {
 			visibility,
 			allowMultipleMoodsPerDay,
 			requireComment,
-			showWeekends
+			showWeekends,
+			parentId,
+			isContainer
 		});
 
 		return { success: true, message: 'Settings updated successfully' };
@@ -69,7 +83,7 @@ export const actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return fail(403, { error: 'Only admins can delete teams' });
 		}

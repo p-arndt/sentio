@@ -18,7 +18,7 @@ export async function load({ params, locals }) {
 		throw redirect(303, '/teams');
 	}
 
-	const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+	const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 
 	if (!isAdmin) {
 		throw redirect(303, `/teams/${params.id}`);
@@ -37,7 +37,7 @@ export const actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return fail(403, { error: 'Only admins can remove members' });
 		}
@@ -59,7 +59,7 @@ export const actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return fail(403, { error: 'Only admins can update roles' });
 		}

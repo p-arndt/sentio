@@ -58,6 +58,23 @@ export interface Team {
 	createdBy: string;
 	createdAt: Date;
 	updatedAt: Date;
+	parentId?: string | null;
+	order?: number | null;
+	isContainer: boolean;
+	children?: Team[];
+	parent?: Team | null;
+	path?: string[]; // Array of team IDs from root to current
+}
+
+export interface TeamTreeNode extends Team {
+	children: TeamTreeNode[];
+	level: number;
+	expanded?: boolean;
+}
+
+export interface TeamWithHierarchy extends Team {
+	children: TeamWithHierarchy[];
+	parent?: Team | null;
 }
 
 export interface TeamMember {
@@ -242,6 +259,8 @@ export interface TeamCreateInput {
 	allowMultipleMoodsPerDay?: boolean;
 	requireComment?: boolean;
 	showWeekends?: boolean;
+	parentId?: string | null;
+	isContainer?: boolean;
 }
 
 export interface TeamUpdateInput {
@@ -251,6 +270,9 @@ export interface TeamUpdateInput {
 	allowMultipleMoodsPerDay?: boolean;
 	requireComment?: boolean;
 	showWeekends?: boolean;
+	parentId?: string | null;
+	order?: number | null;
+	isContainer?: boolean;
 }
 
 export interface UserProfileUpdate {

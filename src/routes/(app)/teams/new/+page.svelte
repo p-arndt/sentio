@@ -13,6 +13,7 @@
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import TeamHierarchySelector from '$lib/components/TeamHierarchySelector.svelte';
 	import { ArrowLeft, Save, Users } from '@lucide/svelte';
 	import { fly, fade } from 'svelte/transition';
 
@@ -20,6 +21,8 @@
 
 	let name = $state('');
 	let description = $state('');
+	let parentId = $state<string | null>(null);
+	let isContainer = $state(false);
 	let visibility = $state<'public' | 'team' | 'private'>('team');
 	let allowMultipleMoodsPerDay = $state(true);
 	let requireComment = $state(false);
@@ -47,6 +50,8 @@
 				body: JSON.stringify({
 					name: name.trim(),
 					description: description.trim() || undefined,
+					parentId: parentId || undefined,
+					isContainer,
 					visibility,
 					allowMultipleMoodsPerDay,
 					requireComment,
@@ -134,6 +139,24 @@
 					</div>
 
 					<div class="space-y-2">
+						<Label>Parent Team</Label>
+						<TeamHierarchySelector
+							bind:value={parentId}
+							tree={data.teamTrees}
+							placeholder="Select parent team (optional)"
+						/>
+					</div>
+
+					<div class="space-y-2">
+						<Label>Parent Team</Label>
+						<TeamHierarchySelector
+							bind:value={parentId}
+							tree={data.teamTrees}
+							placeholder="Select parent team (optional)"
+						/>
+					</div>
+
+					<div class="space-y-2">
 						<Label for="visibility">Visibility</Label>
 						<Select type="single" bind:value={visibility}>
 							<SelectTrigger class="transition-all focus:ring-2 focus:ring-primary/20">
@@ -147,6 +170,16 @@
 						</Select>
 						<p class="text-xs text-muted-foreground">Control who can see this team's calendar</p>
 					</div>
+
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Container Team</Label>
+							<p class="text-sm text-muted-foreground">
+								This team acts as a container for sub-teams. Direct mood logging will be disabled.
+							</p>
+						</div>
+						<Switch bind:checked={isContainer} />
+					</div>
 				</CardContent>
 			</Card>
 
@@ -157,6 +190,16 @@
 					<CardDescription>Configure how the calendar works for this team</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-6">
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Container Team</Label>
+							<p class="text-sm text-muted-foreground">
+								Container teams only contain sub-teams and cannot have direct mood entries
+							</p>
+						</div>
+						<Switch bind:checked={isContainer} />
+					</div>
+
 					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
 						<div class="space-y-0.5">
 							<Label>Allow Multiple Moods Per Day</Label>

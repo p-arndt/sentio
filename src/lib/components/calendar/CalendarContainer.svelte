@@ -4,7 +4,8 @@ import type {
 	Emotion,
 	MoodEntryWithDetails,
 	TeamMemberWithUser,
-	MoodSharePreference
+	MoodSharePreference,
+	TeamWithMembers
 } from '$lib/types';
 	import CalendarViewToggle from './CalendarViewToggle.svelte';
 	import DayView from './views/DayView.svelte';
@@ -25,6 +26,13 @@ import type {
 		requireComment?: boolean;
 		defaultView?: CalendarViewMode;
 		teamSharingPreference?: MoodSharePreference;
+		isContainer?: boolean;
+		childTeams?: Array<{
+			team: TeamWithMembers;
+			emotions: Emotion[];
+			entries: MoodEntryWithDetails[];
+			anonymousMembers: TeamMemberWithUser[];
+		}>;
 		onWeekChange: (direction: 'prev' | 'next') => void;
 		onEdit?: (date: Date, entry: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
@@ -42,6 +50,8 @@ import type {
 		requireComment = false,
 		defaultView = 'week',
 		teamSharingPreference = 'public',
+		isContainer = false,
+		childTeams = [],
 		onWeekChange,
 		onEdit,
 		isSubmitting = false
@@ -100,6 +110,8 @@ import type {
 					}}
 					{onEdit}
 					{isSubmitting}
+					{isContainer}
+					{childTeams}
 				/>
 			{:else if mode === 'month'}
 				<!-- <div class="flex w-full items-center justify-center"> -->

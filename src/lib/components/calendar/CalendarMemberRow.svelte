@@ -22,6 +22,7 @@
 		isSubmitting?: boolean;
 		requireComment?: boolean;
 		showWeekends?: boolean;
+		isContainer?: boolean;
 	};
 
 	let {
@@ -35,12 +36,13 @@
 		requireComment = false,
 		showWeekends = true,
 		teamId,
-		teamSharingPreferenceForCurrentUser = 'public'
+		teamSharingPreferenceForCurrentUser = 'public',
+		isContainer = false
 	}: Props = $props();
 </script>
 
 <div
-	class={'grid gap-2 rounded-lg p-2 md:gap-4 md:p-4 ' +
+	class={'grid gap-2 rounded-lg px-3 py-2 md:gap-4 md:px-6 md:py-4 ' +
 		(isAnonymousUser(member.userId)
 			? 'border-3 border-dashed border-white/25 bg-muted!'
 			: 'border')}
@@ -70,6 +72,7 @@
 			{isSubmitting}
 			{requireComment}
 			{teamId}
+			{isContainer}
 			teamSharingPreference={member.userId === currentUserId
 				? teamSharingPreferenceForCurrentUser
 				: 'public'}

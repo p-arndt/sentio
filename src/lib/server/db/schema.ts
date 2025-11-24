@@ -128,7 +128,10 @@ export const team = pgTable('teams', {
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
+	updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	parentId: uuid('parent_id'), // Self-reference added manually in SQL, defined here for types
+	order: integer('order'),
+	isContainer: boolean('is_container').default(false).notNull()
 });
 
 export const teamMember = pgTable('team_members', {

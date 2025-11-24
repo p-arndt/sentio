@@ -23,8 +23,9 @@
 		isAnonymousUser
 	} from '$lib/utils';
 	import { getWeekDaysFromUTCStart, toDate, toDateString, toYMD } from '$lib/utils/date';
-	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users } from '@lucide/svelte';
+	import { BarChart3, Calendar, ChevronLeft, Settings, UserPlus, Users, Network } from '@lucide/svelte';
 	import { fly, fade } from 'svelte/transition';
+	import TeamBreadcrumbs from '$lib/components/TeamBreadcrumbs.svelte';
 
 	let { data } = $props();
 
@@ -60,6 +61,10 @@
 	}
 
 	function openMoodDialog(date: Date, mood?: MoodEntryWithDetails) {
+		// Prevent mood logging on container teams
+		if (data.team.isContainer) {
+			return;
+		}
 		selectedDate = date;
 		selectedMood = mood || null;
 		showMoodDialog = true;
@@ -168,6 +173,8 @@
 </svelte:head>
 
 <div class="container mx-auto space-y-6 px-4 py-8" in:fade={{ duration: 300 }}>
+	<TeamBreadcrumbs ancestors={data.ancestors} currentTeam={data.team} />
+
 	<!-- Header -->
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div class="space-y-1">
@@ -213,6 +220,34 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Subteams -->
+	{#if data.children && data.children.length > 0}
+		<Card>
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<Network class="h-5 w-5" />
+					Subteams
+				</CardTitle>
+				<CardDescription>Teams nested under {data.team.name}</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{#each data.children as child}
+						<a
+							href="/teams/{child.id}"
+							class="group flex flex-col gap-1 rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+						>
+							<div class="font-medium group-hover:text-primary">{child.name}</div>
+							{#if child.description}
+								<div class="line-clamp-1 text-sm text-muted-foreground">{child.description}</div>
+							{/if}
+						</a>
+					{/each}
+				</div>
+			</CardContent>
+		</Card>
+	{/if}
 
 	<!-- Team Info -->
 	<div class="grid gap-4 md:grid-cols-3">
@@ -264,6 +299,8 @@
 		requireComment={data.team.requireComment}
 		defaultView={data.defaultView}
 		{teamSharingPreference}
+		isContainer={data.team.isContainer}
+		childTeams={data.childTeamsData}
 		onWeekChange={handleWeekChange}
 		onEdit={(date, entry, userId) => openMoodDialog(date, entry)}
 		{isSubmitting}

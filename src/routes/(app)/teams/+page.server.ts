@@ -7,10 +7,12 @@ export async function load({ locals }) {
 	}
 
 	const teams = await TeamService.getUserTeams(locals.user.id);
+	const teamTrees = await TeamService.getUserTeamTrees(locals.user.id);
 
 	return {
 		user: locals.user,
-		teams
+		teams,
+		teamTrees
 	};
 }
 

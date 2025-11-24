@@ -14,9 +14,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		throw redirect(303, '/teams');
 	}
 
-	const isMember = await TeamService.isUserMember(params.id, locals.user.id);
-	if (!isMember) {
-		throw error(403, 'You are not a member of this team');
+	const canAccess = await TeamService.canUserAccessTeam(locals.user.id, params.id);
+	if (!canAccess) {
+		throw error(403, 'You do not have access to this team');
 	}
 
 	const team = await TeamService.getTeamWithMembers(params.id);
@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		allEntriesRaw,
 		currentWeekEntriesRaw
 	] = await Promise.all([
-		TeamService.isUserTeamAdmin(params.id, locals.user.id),
+		TeamService.canUserManageTeam(locals.user.id, params.id),
 		EmotionService.getTeamEmotions(params.id),
 		MoodEntryService.getTeamMoodEntries(params.id, thirtyDaysAgo, now),
 		MoodEntryService.getTeamMoodEntries(params.id, sevenDaysAgo, now),

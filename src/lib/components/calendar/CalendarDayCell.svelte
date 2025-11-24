@@ -23,6 +23,7 @@
 		onEdit?: (day: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
 		requireComment?: boolean;
+		isContainer?: boolean;
 	};
 
 	let {
@@ -35,7 +36,8 @@
 		isSubmitting = false,
 		requireComment = false,
 		teamId,
-		teamSharingPreference = 'public'
+		teamSharingPreference = 'public',
+		isContainer = false
 	}: Props = $props();
 
 	let moods = $derived(
@@ -60,13 +62,15 @@
 
 	function handleCellClick(e: MouseEvent) {
 		// Only open if clicking the cell background, not a mood button
-		if (isCurrentUser && e.target === e.currentTarget) {
+		// Don't allow mood logging on container teams
+		if (isCurrentUser && e.target === e.currentTarget && !isContainer) {
 			popoverOpen = true;
 		}
 	}
 
 	function handleCellKeyDown(e: KeyboardEvent) {
-		if (isCurrentUser && (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+		// Don't allow mood logging on container teams
+		if (isCurrentUser && (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && !isContainer) {
 			e.preventDefault();
 			popoverOpen = true;
 		}

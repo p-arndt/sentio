@@ -12,8 +12,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
-		const isMember = await TeamService.isUserMember(params.id, locals.user.id);
-		if (!isMember) {
+		const canAccess = await TeamService.canUserAccessTeam(locals.user.id, params.id);
+		if (!canAccess) {
 			return json({ success: false, error: 'Forbidden' }, { status: 403 });
 		}
 
@@ -39,12 +39,26 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	}
 
 	try {
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return json({ success: false, error: 'Forbidden - Admin access required' }, { status: 403 });
 		}
 
 		const body = await request.json();
+
+		if (body.parentId) {
+			const isValidMove = await TeamService.validateTeamMove(params.id, body.parentId);
+			if (!isValidMove) {
+				return json({ success: false, error: 'Invalid parent team (circular reference)' }, { status: 400 });
+			}
+			
+			// Also check if user can manage the NEW parent
+			const canManageParent = await TeamService.canUserManageTeam(locals.user.id, body.parentId);
+			if (!canManageParent) {
+				return json({ success: false, error: 'Forbidden - Cannot move team to this parent' }, { status: 403 });
+			}
+		}
+
 		const team = await TeamService.updateTeam(params.id, body);
 
 		if (!team) {
@@ -68,7 +82,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
-		const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+		const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
 		if (!isAdmin) {
 			return json({ success: false, error: 'Forbidden - Admin access required' }, { status: 403 });
 		}

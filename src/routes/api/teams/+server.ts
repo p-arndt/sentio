@@ -31,11 +31,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	try {
 		const body = await request.json();
-		const { name, description, visibility, allowMultipleMoodsPerDay, requireComment, showWeekends } =
-			body;
+		const {
+			name,
+			description,
+			visibility,
+			allowMultipleMoodsPerDay,
+			requireComment,
+			showWeekends,
+			parentId,
+			isContainer
+		} = body;
 
 		if (!name) {
 			return json({ success: false, error: 'Team name is required' }, { status: 400 });
+		}
+
+		// If parentId is provided, verify user has permission to create subteam?
+		// Usually, if I can create a team, I can make it a child of any team I can access?
+		// Or only if I am admin of the parent?
+		if (parentId) {
+			const canManageParent = await TeamService.canUserManageTeam(locals.user.id, parentId);
+			if (!canManageParent) {
+				return json({ success: false, error: 'You do not have permission to add a subteam to this team' }, { status: 403 });
+			}
 		}
 
 		const team = await TeamService.createTeam(locals.user.id, {
@@ -44,7 +62,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			visibility,
 			allowMultipleMoodsPerDay,
 			requireComment,
-			showWeekends
+			showWeekends,
+			parentId,
+			isContainer
 		});
 
 		return json({ success: true, data: team }, { status: 201 });

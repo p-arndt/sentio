@@ -16,9 +16,9 @@ export async function load({ params, locals, url }) {
 		throw redirect(303, '/teams');
 	}
 
-	const isMember = await TeamService.isUserMember(params.id, locals.user.id);
-	if (!isMember) {
-		throw error(403, 'You are not a member of this team');
+	const canAccess = await TeamService.canUserAccessTeam(locals.user.id, params.id);
+	if (!canAccess) {
+		throw error(403, 'You do not have access to this team');
 	}
 
 	const team = await TeamService.getTeamWithMembers(params.id);
@@ -26,7 +26,9 @@ export async function load({ params, locals, url }) {
 		throw error(404, 'Team not found');
 	}
 
-	const isAdmin = await TeamService.isUserTeamAdmin(params.id, locals.user.id);
+	const isAdmin = await TeamService.canUserManageTeam(locals.user.id, params.id);
+	const ancestors = await TeamService.getTeamAncestors(params.id);
+	const children = await TeamService.getTeamChildren(params.id);
 
 	// Get emotions for this team
 	const emotions = await EmotionService.getTeamEmotions(params.id);
@@ -42,6 +44,35 @@ export async function load({ params, locals, url }) {
 		{ teamId: team.id }
 	);
 
+	// Fetch child teams data if this is a container team
+	const childTeamsData = await Promise.all(
+		children.map(async (child) => {
+			const canAccessChild = await TeamService.canUserAccessTeam(locals.user.id, child.id);
+			if (!canAccessChild) return null;
+
+			const childTeam = await TeamService.getTeamWithMembers(child.id);
+			if (!childTeam) return null;
+
+			const childEmotions = await EmotionService.getTeamEmotions(child.id);
+			const childRawEntries = await MoodEntryService.getTeamMoodEntries(
+				child.id,
+				startOfWeek,
+				endOfWeek
+			);
+			const { entries: childEntries, anonymousMembers: childAnonymousMembers } =
+				MoodEntryService.anonymizeEntriesForViewer(childRawEntries, locals.user.id, {
+					teamId: child.id
+				});
+
+			return {
+				team: childTeam,
+				emotions: childEmotions,
+				entries: childEntries,
+				anonymousMembers: childAnonymousMembers
+			};
+		})
+	);
+
 	const preferences = await UserService.getUserPreferences(locals.user.id);
 	const teamSharingOverrides =
 		(preferences?.settings?.teamSharingOverrides as Record<string, MoodSharePreference>) || {};
@@ -51,6 +82,9 @@ export async function load({ params, locals, url }) {
 
 	return {
 		team,
+		ancestors,
+		children,
+		childTeamsData: childTeamsData.filter((d): d is NonNullable<typeof d> => d !== null),
 		isAdmin,
 		emotions,
 		entries,

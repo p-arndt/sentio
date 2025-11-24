@@ -60,7 +60,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// If teamId is provided, check if comment is required
 		if (teamId) {
 			const teamData = await TeamService.getTeamById(teamId);
-			if (teamData && teamData.requireComment) {
+			if (!teamData) {
+				return json({ error: 'Team not found' }, { status: 404 });
+			}
+			
+			// Prevent mood entries on container teams
+			if (teamData.isContainer) {
+				return json({ error: 'Cannot create mood entries on container teams' }, { status: 400 });
+			}
+			
+			if (teamData.requireComment) {
 				if (!comment || comment.trim().length === 0) {
 					return json({ error: 'Comment is required for this team' }, { status: 400 });
 				}

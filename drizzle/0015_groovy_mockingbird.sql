@@ -1,0 +1,1 @@
+ALTER TABLE "teams" ADD COLUMN "is_container" boolean DEFAULT false NOT NULL;

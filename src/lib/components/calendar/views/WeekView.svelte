@@ -6,7 +6,8 @@
 		Emotion,
 		MoodEntryWithDetails,
 		MoodSharePreference,
-		TeamMemberWithUser
+		TeamMemberWithUser,
+		TeamWithMembers
 	} from '$lib/types';
 	import { isAnonymousUser } from '$lib/utils';
 	import {
@@ -19,6 +20,7 @@
 	} from '$lib/utils/date';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import CalendarMemberRow from '../CalendarMemberRow.svelte';
+	import NestedTeamContainer from '../NestedTeamContainer.svelte';
 
 	type Props = {
 		weekStart: Date;
@@ -35,7 +37,16 @@
 		teamId?: string;
 		onEdit?: (date: Date, mood: MoodEntryWithDetails, userId: string) => void;
 		isSubmitting?: boolean;
+		isContainer?: boolean;
 		className?: string;
+		hideHeader?: boolean; // Hide header when nested
+		childTeams?: Array<{
+			team: TeamWithMembers;
+			emotions: Emotion[];
+			entries: MoodEntryWithDetails[];
+			anonymousMembers: TeamMemberWithUser[];
+		}>;
+		teamIndex?: number; // For color variation
 	};
 
 	let {
@@ -52,7 +63,11 @@
 		onEdit,
 		isSubmitting = false,
 		teamId,
-		className = ''
+		isContainer = false,
+		className = '',
+		hideHeader = false,
+		childTeams = [],
+		teamIndex = 0
 	}: Props = $props();
 
 	let displayDays = $derived(filterWeekDays(weekDays, showWeekends));
@@ -67,77 +82,157 @@
 	});
 </script>
 
-<Card class="overflow-hidden {className}">
-	<CardHeader>
-		<div class="flex items-center justify-between">
-			<CardTitle class="text-lg md:text-xl">Week View</CardTitle>
-			<div class="flex items-center gap-2">
-				<Button variant="ghost" size="icon" onclick={() => onWeekChange('prev')} class="h-8 w-8">
-					<ChevronLeft class="h-4 w-4" />
-				</Button>
-				<span class="min-w-[120px] text-center text-xs font-semibold md:text-sm">
-					{formatDate(weekStart, { month: 'short', day: 'numeric' })} -
-					{formatDate(new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000), {
-						month: 'short',
-						day: 'numeric'
-					})}
-				</span>
-				<Button variant="ghost" size="icon" onclick={() => onWeekChange('next')} class="h-8 w-8">
-					<ChevronRight class="h-4 w-4" />
-				</Button>
-			</div>
-		</div>
-	</CardHeader>
-
-	<CardContent>
-		<div class="overflow-x-auto" style="--calendar-grid-template: {gridTemplate}">
-			<!-- Day Headers -->
-			<div class="sticky top-0 z-10 border-b-2 bg-card px-3 py-3 md:px-6 md:py-4">
-				<div
-					class="grid gap-2 md:gap-4"
-					style="grid-template-columns: var(--calendar-grid-template)"
-				>
-					<div class="text-sm font-semibold">Team Members</div>
-					{#each displayDays as day (day.toISOString())}
-						<div class="min-w-0 text-center">
-							<div class="truncate text-[10px] font-semibold text-foreground md:text-sm">
-								{formatDayName(day).slice(0, 3)}
-							</div>
-							<div
-								class="{isToday(day)
-									? 'font-semibold text-primary'
-									: 'text-muted-foreground'} mt-0.5 text-[9px] md:mt-1 md:text-xs"
-							>
-								{formatDayDate(day).replace(' ', '\u00A0')}
-								{#if isToday(day)}
-									<span class="ml-0.5 text-primary md:ml-1">•</span>
-								{/if}
-							</div>
-						</div>
-					{/each}
+{#if hideHeader}
+	<!-- Nested view - padding handled by parent wrapper to align with header -->
+	<div class="overflow-x-auto" style="--calendar-grid-template: {gridTemplate}">
+		<!-- Team Member Rows -->
+		{#if !isContainer}
+			<div class="py-2 md:py-6">
+				<div class="space-y-2 md:space-y-4 px-3 md:px-6">
+					<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30 [&>*:nth-child(odd)]:rounded-lg [&>*:nth-child(odd)]:-mx-3 md:[&>*:nth-child(odd)]:-mx-6">
+						{#each filteredMembers as member (member.userId)}
+							<CalendarMemberRow
+								{member}
+								days={displayDays}
+								{emotions}
+								{entries}
+								{currentUserId}
+								{onEdit}
+								{isSubmitting}
+								{requireComment}
+								{showWeekends}
+								{teamId}
+								{isContainer}
+								{teamSharingPreferenceForCurrentUser}
+							/>
+						{/each}
+					</div>
 				</div>
 			</div>
+		{/if}
 
-			<!-- Team Member Rows -->
-			<div class="px-3 py-2 md:px-6 md:py-6">
-				<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
-					{#each filteredMembers as member (member.userId)}
-						<CalendarMemberRow
-							{member}
-							days={displayDays}
-							{emotions}
-							{entries}
+		<!-- Nested Sub-Teams (if container team) -->
+		{#if childTeams && childTeams.length > 0}
+			<div class="py-2">
+				<div class="space-y-4">
+					{#each childTeams as childTeam, index}
+						<NestedTeamContainer
+							childTeam={childTeam}
+							{weekStart}
+							{weekDays}
 							{currentUserId}
+							{showWeekends}
+							{requireComment}
+							teamSharingPreference={teamSharingPreferenceForCurrentUser}
+							{onWeekChange}
 							{onEdit}
 							{isSubmitting}
-							{requireComment}
-							{showWeekends}
-							{teamId}
-							{teamSharingPreferenceForCurrentUser}
+							teamIndex={teamIndex + index + 1}
 						/>
 					{/each}
 				</div>
 			</div>
-		</div>
-	</CardContent>
-</Card>
+		{/if}
+	</div>
+{:else}
+	<Card class="overflow-hidden {className}">
+		<CardHeader>
+			<div class="flex items-center justify-between">
+				<CardTitle class="text-lg md:text-xl">Week View</CardTitle>
+				<div class="flex items-center gap-2">
+					<Button variant="ghost" size="icon" onclick={() => onWeekChange('prev')} class="h-8 w-8">
+						<ChevronLeft class="h-4 w-4" />
+					</Button>
+					<span class="min-w-[120px] text-center text-xs font-semibold md:text-sm">
+						{formatDate(weekStart, { month: 'short', day: 'numeric' })} -
+						{formatDate(new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000), {
+							month: 'short',
+							day: 'numeric'
+						})}
+					</span>
+					<Button variant="ghost" size="icon" onclick={() => onWeekChange('next')} class="h-8 w-8">
+						<ChevronRight class="h-4 w-4" />
+					</Button>
+				</div>
+			</div>
+		</CardHeader>
+
+		<CardContent>
+			<div class="overflow-x-auto" style="--calendar-grid-template: {gridTemplate}">
+				<!-- Day Headers -->
+				<div class="sticky top-0 z-10 border-b-2 bg-card">
+					<div
+						class="grid gap-2 px-3 py-3 md:gap-4 md:px-6 md:py-4"
+						style="grid-template-columns: var(--calendar-grid-template)"
+					>
+						<div class="text-sm font-semibold">Team Members</div>
+						{#each displayDays as day (day.toISOString())}
+							<div class="min-w-0 text-center">
+								<div class="truncate text-[10px] font-semibold text-foreground md:text-sm">
+									{formatDayName(day).slice(0, 3)}
+								</div>
+								<div
+									class="{isToday(day)
+										? 'font-semibold text-primary'
+										: 'text-muted-foreground'} mt-0.5 text-[9px] md:mt-1 md:text-xs"
+								>
+									{formatDayDate(day).replace(' ', '\u00A0')}
+									{#if isToday(day)}
+										<span class="ml-0.5 text-primary md:ml-1">•</span>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Team Member Rows -->
+				{#if !isContainer}
+					<div class="py-2 md:py-6">
+						<div class="space-y-2 md:space-y-4 [&>*:nth-child(odd)]:bg-muted/30">
+							{#each filteredMembers as member (member.userId)}
+								<CalendarMemberRow
+									{member}
+									days={displayDays}
+									{emotions}
+									{entries}
+									{currentUserId}
+									{onEdit}
+									{isSubmitting}
+									{requireComment}
+									{showWeekends}
+									{teamId}
+									{isContainer}
+									{teamSharingPreferenceForCurrentUser}
+								/>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
+				<!-- Nested Sub-Teams (if container team) -->
+				{#if childTeams && childTeams.length > 0}
+					<div class="mt-4">
+						<div class="space-y-4">
+							{#each childTeams as childTeam, index}
+								<NestedTeamContainer
+									childTeam={childTeam}
+									{weekStart}
+									{weekDays}
+									{currentUserId}
+									{showWeekends}
+									{requireComment}
+									teamSharingPreference={teamSharingPreferenceForCurrentUser}
+									{onWeekChange}
+									{onEdit}
+									{isSubmitting}
+									teamIndex={teamIndex + index + 1}
+								/>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
+		</CardContent>
+	</Card>
+{/if}

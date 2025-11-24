@@ -23,6 +23,7 @@
 		AlertDialogTitle,
 		AlertDialogTrigger
 	} from '$lib/components/ui/alert-dialog';
+	import TeamHierarchySelector from '$lib/components/TeamHierarchySelector.svelte';
 	import { ChevronLeft, Save, Trash2, Settings as SettingsIcon } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
 	import { fly, fade } from 'svelte/transition';
@@ -31,7 +32,9 @@
 
 	let name = $state(data.team.name);
 	let description = $state(data.team.description || '');
+	let parentId = $state(data.team.parentId || null);
 	let visibility = $state(data.team.visibility || 'members_only');
+	let isContainer = $state(data.team.isContainer ?? false);
 	let allowMultipleMoodsPerDay = $state(data.team.allowMultipleMoodsPerDay ?? true);
 	let requireComment = $state(data.team.requireComment ?? false);
 	let showWeekends = $state(data.team.showWeekends ?? true);
@@ -93,35 +96,56 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
-					<Label for="description">Description</Label>
-					<Textarea
-						id="description"
-						name="description"
-						bind:value={description}
-						placeholder="Describe your team..."
-						rows={3}
-						class="resize-none transition-all focus:ring-2 focus:ring-primary/20"
-					/>
-				</div>
+					<div class="space-y-2">
+						<Label for="description">Description</Label>
+						<Textarea
+							id="description"
+							name="description"
+							bind:value={description}
+							placeholder="Describe your team..."
+							rows={3}
+							class="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+						/>
+					</div>
 
-				<div class="space-y-2">
-					<Label for="visibility">Visibility</Label>
-					<Select name="visibility" type="single" bind:value={visibility}>
-						<SelectTrigger class="transition-all focus:ring-2 focus:ring-primary/20">
-							{visibility ? visibility : 'Select visibility'}
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="public">Public - Anyone can view</SelectItem>
-							<SelectItem value="members_only">Members Only - Only team members can view</SelectItem
-							>
-							<SelectItem value="private">Private - Hidden from others</SelectItem>
-						</SelectContent>
-					</Select>
-					<p class="text-xs text-muted-foreground">Control who can see this team's calendar</p>
-				</div>
+					<div class="space-y-2">
+						<Label>Parent Team</Label>
+						<TeamHierarchySelector
+							bind:value={parentId}
+							tree={data.teamTrees}
+							currentTeamId={data.team.id}
+							placeholder="Select parent team (optional)"
+						/>
+					</div>
 
-				<div class="flex justify-end">
+					<div class="space-y-2">
+						<Label for="visibility">Visibility</Label>
+						<Select name="visibility" type="single" bind:value={visibility}>
+							<SelectTrigger class="transition-all focus:ring-2 focus:ring-primary/20">
+								{visibility ? visibility : 'Select visibility'}
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="public">Public - Anyone can view</SelectItem>
+								<SelectItem value="members_only">Members Only - Only team members can view</SelectItem
+								>
+								<SelectItem value="private">Private - Hidden from others</SelectItem>
+							</SelectContent>
+						</Select>
+						<p class="text-xs text-muted-foreground">Control who can see this team's calendar</p>
+					</div>
+
+					<div class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+						<div class="space-y-0.5">
+							<Label>Container Team</Label>
+							<p class="text-sm text-muted-foreground">
+								This team acts as a container for sub-teams. Direct mood logging will be disabled.
+							</p>
+						</div>
+						<Switch bind:checked={isContainer} />
+					</div>
+					<input type="hidden" name="isContainer" value={isContainer ? 'true' : 'false'} />
+
+					<div class="flex justify-end">
 					<Button type="submit" class="transition-all active:scale-95">
 						<Save class="mr-2 h-4 w-4" />
 						Save General Settings
@@ -142,6 +166,20 @@
 				<input type="hidden" name="name" value={name} />
 				<input type="hidden" name="description" value={description} />
 				<input type="hidden" name="visibility" value={visibility} />
+				<input type="hidden" name="parentId" value={parentId || ''} />
+				<input type="hidden" name="isContainer" value={isContainer ? 'true' : 'false'} />
+
+				<div
+					class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+				>
+					<div class="space-y-0.5">
+						<Label>Container Team</Label>
+						<p class="text-sm text-muted-foreground">
+							Container teams only contain sub-teams and cannot have direct mood entries
+						</p>
+					</div>
+					<Switch bind:checked={isContainer} />
+				</div>
 
 				<div
 					class="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
