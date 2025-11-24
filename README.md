@@ -67,6 +67,19 @@ Similar to a classic **Niko-Niko calendar**, but modern, visual, and built for r
 - Configure roles and permissions
 - Manage mood options (emojis, colors, labels)
 
+### Nested Teams & Organizational Hierarchy
+
+Sentio supports creating complex organizational structures with nested teams:
+
+- **Parent-Child Relationships**: Teams can be organized in a hierarchy by setting a parent team when creating or editing teams
+- **Container Teams**: Mark teams as "container teams" to group multiple sub-teams without having direct members. Container teams display all their child teams' calendars in a unified view
+- **Organization Tree View**: Visual tree structure showing your complete team hierarchy with expandable/collapsible nodes
+- **Nested Calendar Display**: When viewing a container team, all child teams are displayed as nested calendars with color-coded borders for easy distinction
+- **Settings Inheritance**: Child teams can inherit settings from their parent teams, making it easy to maintain consistent configurations across your organization
+- **Hierarchy Navigation**: Easy navigation through the team structure with breadcrumbs and direct links to parent/child teams
+
+Perfect for organizations with departments, sub-teams, or multi-level structures!
+
 ## 🚀 Quickstart
 
 Choose how you want to run Sentio:
